@@ -1,0 +1,21 @@
+---
+title: "Source-compatible routing"
+description: "Use upstream-compatible paths without handing YIR the Authorization header."
+---
+
+YIR source-compatible routes use `/x-router/:source/*sourcePath`.
+
+```text
+/x-router/kie/api/v1/jobs/createTask
+/x-router/kie/api/v1/jobs/recordInfo
+```
+
+The `/x-router` prefix belongs to YIR. Everything after the source name is the upstream source path. YIR does not add its own version number to the router prefix.
+
+For KIE migration, use:
+
+```text
+https://api.yir.ai/x-router/kie/api/v1/jobs/createTask
+```
+
+YIR v1 intentionally avoids a global `/:source/*path` catch-all route. Only explicitly supported sources are registered.

@@ -1,0 +1,24 @@
+---
+title: "Observe KIE tasks"
+description: "Start with telemetry before enabling managed routing."
+---
+
+Observe mode is the safest first step because it keeps the original provider path intact.
+
+## What gets recorded
+
+- task creation time
+- task status transitions
+- upstream errors
+- elapsed time
+- estimated cost signals
+- URL metadata
+
+## What Observe does not do
+
+- it does not switch providers
+- it does not start fallback attempts
+- it does not materialize base64 or multipart inputs into YIR storage
+- it does not mirror provider results
+
+After enough healthy baseline data exists, you can evaluate Protect, Optimize, or Accelerate with a real latency and cost baseline.

@@ -1,0 +1,8 @@
+Use `X-YIR-API-Key` for YIR authentication. Keep the upstream provider key in its original header, usually `Authorization`.
+
+```bash
+curl https://api.yir.ai/x-router/kie/api/v1/jobs/createTask \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>" \
+  -H "Content-Type: application/json"
+```

@@ -1,0 +1,51 @@
+---
+title: "快速开始"
+description: "通过 YIR 路由一个 KIE-compatible 任务。"
+---
+
+这篇指南展示最小 KIE-compatible 请求。
+
+## 1. 创建 YIR API Key
+
+在 YIR dashboard 创建 API Key。YIR API Key 使用 `yir_sk_` 前缀。
+
+## 2. 修改 base URL
+
+保留 KIE path 和请求体，只在上游 path 前加 `/x-router/kie`。
+
+```text
+KIE:
+https://api.kie.ai/api/v1/jobs/createTask
+
+YIR:
+https://api.yir.ai/x-router/kie/api/v1/jobs/createTask
+```
+
+## 3. 发送请求
+
+```bash
+curl https://api.yir.ai/x-router/kie/api/v1/jobs/createTask \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>" \
+  -H "Content-Type: application/json"
+```
+
+```json
+{
+  "model": "gpt-image-2",
+  "input": {
+    "prompt": "A clean product photo of a matte black desk lamp"
+  },
+  "callBackUrl": "https://example.com/yir/kie-callback"
+}
+```
+
+## 4. 查询任务状态
+
+```bash
+curl "https://api.yir.ai/x-router/kie/api/v1/jobs/recordInfo?taskId=93020" \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>"
+```
+
+YIR 返回 KIE-compatible 状态结构。如果任务由 YIR 托管，状态会从 YIR 内部异步任务状态映射而来。

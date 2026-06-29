@@ -1,0 +1,17 @@
+---
+title: "Modes"
+description: "Understand Observe, Protect, Optimize, and Accelerate."
+---
+
+YIR capabilities are opt-in per API key. Higher modes build on lower modes.
+
+| Mode | What YIR can do | Default behavior |
+| --- | --- | --- |
+| Observe | Track task status, latency, errors, and estimated cost. | No managed rerouting. |
+| Protect | Add failover when the original path has a recoverable failure. | User configured. |
+| Optimize | Route to compatible lower-cost channels when safe. | User configured. |
+| Accelerate | Start a delayed hedge attempt after the configured latency threshold. | User configured. |
+
+YIR does not silently switch providers. Provider routing, failover, cost optimization, and delayed hedging are driven by the user's API key settings and route configuration.
+
+Observe mode is intentionally minimal. It does not materialize base64, multipart, or PDF inputs into YIR storage, and it does not mirror results. It records task metadata, timing, errors, cost estimates, and URL metadata.

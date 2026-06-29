@@ -1,0 +1,37 @@
+---
+title: "Migrate from KIE"
+description: "Change the base URL while keeping KIE-compatible request shapes."
+---
+
+YIR's KIE-compatible route is designed for minimal migration.
+
+## Before
+
+```bash
+curl https://api.kie.ai/api/v1/jobs/createTask \
+  -H "Authorization: Bearer <upstream_kie_key>" \
+  -H "Content-Type: application/json" \
+  -d @request.json
+```
+
+## After
+
+```bash
+curl https://api.yir.ai/x-router/kie/api/v1/jobs/createTask \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>" \
+  -H "Content-Type: application/json" \
+  -d @request.json
+```
+
+Keep the request body and the upstream `Authorization` header. Add `X-YIR-API-Key`, then change the base URL and prefix the path with `/x-router/kie`.
+
+## Status polling
+
+```bash
+curl "https://api.yir.ai/x-router/kie/api/v1/jobs/recordInfo?taskId=93020" \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>"
+```
+
+If the task was created by YIR, YIR returns a KIE-compatible status derived from the managed task. If it is an upstream-only task id, YIR can passthrough the query to KIE when configured.

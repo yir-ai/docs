@@ -1,0 +1,17 @@
+---
+title: "能力模式"
+description: "理解 Observe、Protect、Optimize、Accelerate。"
+---
+
+YIR 能力按 API Key 显式开启，高阶模式建立在低阶模式之上。
+
+| 模式 | YIR 可以做什么 | 默认行为 |
+| --- | --- | --- |
+| Observe | 记录任务状态、耗时、错误和成本估算。 | 不托管切换渠道。 |
+| Protect | 原链路出现可恢复失败时尝试故障转移。 | 由用户配置驱动。 |
+| Optimize | 在安全时路由到兼容且更低成本的渠道。 | 由用户配置驱动。 |
+| Accelerate | 超过延迟阈值后启动 delayed hedge attempt。 | 由用户配置驱动。 |
+
+YIR 不会默认偷偷切 provider。provider 路由、故障转移、成本优化和 delayed hedge 都必须由用户配置驱动。
+
+Observe 模式刻意保持最小化：不物化 base64、multipart 或 PDF 输入，不镜像结果，只记录任务、错误、耗时、成本估算和 URL metadata。

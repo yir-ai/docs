@@ -1,0 +1,50 @@
+---
+title: "Quickstart"
+description: "Route a KIE-compatible task through YIR."
+---
+
+This guide shows the smallest KIE-compatible request you can send through YIR.
+
+## 1. Create a YIR API key
+
+Create an API key in the YIR dashboard. YIR API keys use the `yir_sk_` prefix.
+
+## 2. Change the base URL
+
+Keep the KIE path and request body. Prefix the upstream path with `/x-router/kie`.
+
+```text
+KIE:
+https://api.kie.ai/api/v1/jobs/createTask
+
+YIR:
+https://api.yir.ai/x-router/kie/api/v1/jobs/createTask
+```
+
+## 3. Send the request
+
+import AuthHeader from "/snippets/auth-header.mdx";
+
+<AuthHeader />
+
+```json
+{
+  "model": "gpt-image-2",
+  "input": {
+    "prompt": "A clean product photo of a matte black desk lamp"
+  },
+  "callBackUrl": "https://example.com/yir/kie-callback"
+}
+```
+
+## 4. Query task status
+
+Use the KIE-compatible record endpoint with the same `taskId`.
+
+```bash
+curl "https://api.yir.ai/x-router/kie/api/v1/jobs/recordInfo?taskId=93020" \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>"
+```
+
+YIR returns a KIE-compatible status payload. When the task is managed by YIR, the returned state is mapped from YIR's internal async task state.

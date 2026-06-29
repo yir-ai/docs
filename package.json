@@ -1,0 +1,15 @@
+{
+  "name": "yir-docs-public",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "mint dev --port 38086 --no-open",
+    "validate": "mint validate",
+    "links": "mint broken-links --check-anchors --check-redirects",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/docs/build-public-docs.ps1"
+  },
+  "devDependencies": {
+    "mint": "^4.2.531"
+  },
+  "packageManager": "pnpm@11.7.0"
+}

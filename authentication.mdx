@@ -1,0 +1,23 @@
+---
+title: "Authentication"
+description: "Authenticate YIR without stealing the upstream provider Authorization header."
+---
+
+YIR source-compatible routes use two separate credentials:
+
+| Header | Owner | Purpose |
+| --- | --- | --- |
+| `X-YIR-API-Key` | YIR | Authenticates the gateway request. |
+| `Authorization` | Upstream provider | Passed through or stored encrypted for the upstream attempt. |
+
+YIR does not use `Authorization` for gateway authentication because many source-compatible providers already require that header. Keeping the headers separate lets you migrate by changing the base URL without changing upstream SDK request signing.
+
+```bash
+curl https://api.yir.ai/x-router/kie/api/v1/jobs/createTask \
+  -H "X-YIR-API-Key: yir_sk_..." \
+  -H "Authorization: Bearer <upstream_kie_key>" \
+  -H "Content-Type: application/json" \
+  -d @request.json
+```
+
+If `X-YIR-API-Key` is missing or invalid, YIR rejects the request. If the upstream key is required for the selected source path and missing, YIR returns an error instead of creating a task.

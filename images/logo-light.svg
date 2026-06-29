@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="32" viewBox="0 0 120 32" role="img" aria-label="YIR">
+  <rect width="32" height="32" rx="8" fill="#111827"/>
+  <path d="M7.5 8.5h4.7L16 15.7l3.8-7.2h4.7l-6.4 11.1V25h-4.2v-5.4L7.5 8.5Z" fill="#F9FAFB"/>
+  <text x="42" y="22" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">YIR</text>
+</svg>

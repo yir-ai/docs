@@ -1,0 +1,30 @@
+---
+title: "Async tasks"
+description: "How YIR tracks long-running multimodal generation jobs."
+---
+
+Long-running generation tasks should not depend on a single synchronous connection. YIR models each generation as a task with one or more attempts.
+
+```text
+Client request
+  -> YIR task
+  -> provider attempt
+  -> provider task
+  -> polling or webhook
+  -> winning result
+  -> source-compatible response or callback
+```
+
+YIR tracks:
+
+- the source-compatible request
+- the YIR task state
+- each provider attempt
+- upstream provider task ids
+- polling and webhook results
+- the winning attempt
+- late results
+- callback delivery attempts
+- estimated and actual cost signals
+
+This state model is what makes Observe, Protect, Optimize, and Accelerate auditable.
