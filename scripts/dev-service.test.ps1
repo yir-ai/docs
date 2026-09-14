@@ -40,6 +40,8 @@ $script:Fixture[100] = [pscustomobject]@{
     CommandLine = 'pwsh -NoProfile -File "' + $script:WatcherPath + '" -Action Watch'
 }
 Assert-Equal (Get-DocsWatcher 101) 100
+$script:Fixture[100].CommandLine = 'pwsh -File "' + $script:DocsRoot + '/../' + (Split-Path -Leaf $script:DocsRoot) + '/scripts/dev-service.ps1" -Action Watch'
+Assert-Equal (Get-DocsWatcher 101) 100
 $script:Fixture[100].CommandLine = 'pwsh -File "C:/another-repo/scripts/dev-service.ps1" -Action Watch'
 Assert-Equal (Get-DocsWatcher 101) 0
 $script:Fixture[100].CommandLine = 'pwsh -File "' + $script:WatcherPath + '" -Action Status'

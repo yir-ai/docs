@@ -25,8 +25,11 @@ function Get-DocsWatcher {
     $parent = Get-CimInstance Win32_Process -Filter "ProcessId = $($entry.ParentProcessId)" -ErrorAction SilentlyContinue
     if ($null -eq $parent) { return 0 }
     $parentCommand = ([string]$parent.CommandLine).Replace('\', '/')
+    if ($parentCommand -notmatch '(?i)-File\s+(?:"([^"]+)"|(\S+))') { return 0 }
+    $parentScript = if ($Matches[1]) { $Matches[1] } else { $Matches[2] }
+    try { $parentScript = [IO.Path]::GetFullPath($parentScript).Replace('\', '/') } catch { return 0 }
     if ($parent.Name -in @('pwsh.exe', 'powershell.exe') -and
-        $parentCommand -match ('(?i)-File\s+"?' + [regex]::Escape($script:WatcherPath) + '"?(?:\s|$)') -and
+        $parentScript -eq $script:WatcherPath -and
         $parentCommand -match '(?i)-Action\s+"?Watch"?(?:\s|$)') {
         return [int]$parent.ProcessId
     }
