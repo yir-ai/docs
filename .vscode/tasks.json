@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [{
     "label": "Dev: Docs (Blume)",
-    "type": "shell",
-    "command": "pnpm",
-    "args": ["exec", "blume", "dev", "--port", "40084", "--host", "0.0.0.0"],
+    "type": "process",
+    "command": "pwsh",
+    "args": ["-NoProfile", "-File", "${workspaceFolder}/scripts/dev-service.ps1", "-Action", "Watch"],
     "options": { "cwd": "${workspaceFolder}" },
     "presentation": { "reveal": "always", "panel": "dedicated", "close": false },
     "runOptions": { "instanceLimit": 1 },
