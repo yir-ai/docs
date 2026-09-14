@@ -26,6 +26,20 @@ Start preview explicitly with the VS Code **Dev: Docs (Blume)** task, or
 `pnpm exec blume dev --port 40084 --host 0.0.0.0`.
 Tests build a disposable copy in `.tmp/`, leaving the development runtime untouched.
 
+On Windows, the VS Code task keeps Docs under a watcher in the original terminal.
+After starting that task once, maintainers and agents can inspect or restart it:
+
+```powershell
+pwsh -File scripts/dev-service.ps1 -Action Status
+pwsh -File scripts/dev-service.ps1 -Action Restart -DryRun
+pwsh -File scripts/dev-service.ps1 -Action Restart
+```
+
+Restart verifies the listener belongs to this repository's watcher and waits for
+its replacement on port 40084. It refuses unmanaged listeners or an absent service.
+Stop the VS Code task to stop the watcher and its child processes.
+On other platforms, use the explicit Blume command above.
+
 ## API contracts
 
 `openapi/` contains reviewed public OpenAPI and model contract snapshots. Builds use

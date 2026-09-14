@@ -28,6 +28,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run publish:check
       - run: pnpm run check
+      - name: Test development service ownership and restart
+        shell: pwsh
+        run: ./scripts/dev-service.test.ps1
       - run: pnpm run build
       - run: pnpm run release:verify
       - run: pnpm run origin:smoke
