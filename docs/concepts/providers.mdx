@@ -1,0 +1,20 @@
+---
+title: Providers and managed supply
+description: Understand Yir Cloud managed supply, provider selection, and credential boundaries.
+---
+
+A **provider** is an upstream platform that supplies the compute and APIs for image and video generation. Yir only displays and integrates providers and capabilities that Yir has certified and supports.
+
+## Managed supply
+
+Yir Cloud supplies generation through platform-managed provider accounts. Fund your Yir wallet before submitting tasks. Each provider submission requires sufficient balance and authorization; charges follow confirmed billable usage.
+
+Use Routing Profiles to express provider preferences. A listed provider does not guarantee that every model or specification is currently available: execution depends on current supply, supported specifications, and your authorized budget.
+
+## Credential safety
+
+Task requests use your Yir API key. Yir manages upstream credentials on the server; they are never returned to you. Yir Cloud does not accept your own upstream API keys or support BYOK.
+
+## Supported providers only
+
+Yir does not accept arbitrary base URLs, custom providers, or user-defined model mappings. Only supported providers and capabilities can participate in routing and fallback.

@@ -1,0 +1,54 @@
+---
+title: Image generation
+description: Submit image jobs with unified parameters, multiple references, and request-specific quotes.
+---
+
+This page describes the new contract under integration. See [clients](/docs/guides/clients) for SDK status and the [quickstart](/docs/getting-started/quickstart) for REST quoting, submission, and result storage.
+
+## Build one demand
+
+Model rules ship statically with the SDK. No runtime rule download is required. Dynamic model IDs and parameter objects are validated before requests are sent; Gateway checks the current contract and execution eligibility.
+
+| Field | Meaning |
+| --- | --- |
+| `model` | Yir model ID |
+| `input` | Text or reference-image input |
+| `parameters` | Model-supported parameters such as resolution, aspect ratio, and count |
+| `routing` | Optional allowlist, channel variants, preference, and fallback |
+
+Put `resolution`, `aspect_ratio`, and `n` inside `parameters`. Each request generates one output. Schedule multiple outputs as application slots with separate persisted idempotency keys and budgets.
+
+## Reference images
+
+```json
+{
+  "model": "openai/gpt-image-2",
+  "input": {
+    "type": "image",
+    "prompt": "Change the background to a calm blue sky",
+    "references": [
+      { "role": "reference_image", "url": "https://example.com/reference.png" }
+    ]
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  },
+  "routing": { "fallback": true }
+}
+```
+
+Replace the example URL with your own accessible HTTPS asset. Append additional images to the ordered `input.references` array. The model's static contract determines the accepted count; the common request is no longer limited to one reference.
+
+For an uploaded input, use `{ "role": "reference_image", "file_id": "file_11111111-1111-4111-8111-111111111111" }`, replacing the example ID with a ready ID returned by Files. Each reference must have exactly one URL or File ID. Image references use `reference_image`, not video frame roles. See [production integration](/docs/guides/production-integration) for uploading.
+
+## Quote, authorize, and recover
+
+Send the demand to `POST /v1/images/quotes` and read `primary / max / official`. Quoting creates no Job and reserves no funds. Each price can be unavailable; null is not zero. The authorization ceiling is the separate `single_attempt_upper_bound`.
+
+After user confirmation, persist the demand, authorized amount, and business idempotency key together. Send the same demand to `POST /v1/images/generations` with `max_cost` and, if needed, `webhook_url`. Quotes do not accept those submission-only fields. Keep references, parameters, input order, and routing identical.
+
+Prices are checked again at submission and recovery, without automatically increasing authorization. Recover unknown network outcomes with the original request, amount, and key. Once a Job ID is known, query that Job. Changed request content requires a new logical task rather than replacing an already submitted request.
+
+Default recovery permits up to two distinct unofficial channels followed by one official channel, subject to eligibility, specifications, and budget. Failed jobs are not charged to the customer. A stop request still allows the current attempt to succeed and deliver. See [billing](/docs/concepts/billing) and [task lifecycle](/docs/concepts/task-lifecycle).

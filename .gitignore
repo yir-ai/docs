@@ -1,4 +1,9 @@
 node_modules/
-.mintlify/
+.tmp/
+.blume/
+dist/
+patches/blume-1.5.1/
 .env
 .env.local
+*.log
+.blume-verify/

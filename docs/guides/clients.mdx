@@ -1,0 +1,88 @@
+---
+title: Clients and compatibility
+description: Integrate image and video jobs with static validation, live quotes, and durable recovery.
+---
+
+The new SDK is being integrated with Gateway, Console, and Pilio and is not publicly released. This page describes the repository implementation; production cutover requires complete entry-point acceptance. The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
+
+## Installation and contracts
+
+The TypeScript entry points are `@yir/sdk`, `@yir/sdk/model-contracts`, and `@yir/sdk/vercel`. For local integration, run `pnpm run build` in `yir-sdk`, then `pnpm pack --pack-destination ../.tmp/scratch/sdk-package`. Install the archive with `pnpm add <archive-path>`. Do not put development-machine paths in deployment dependencies.
+
+The Go module is `github.com/GargantuaX/yir/yir-sdk/go`, package `yir`. Use the matching verified source or artifact; this guide does not specify a publicly released version.
+
+Parameter rules ship statically with the SDK. Dynamic model IDs, operations, parameters, and reference roles are validated before sending a request; rules are never downloaded at runtime. Unknown models require an SDK upgrade. A bundled model does not guarantee current executable supply. Gateway remains authoritative for prices and execution eligibility.
+
+| Capability | TypeScript | Go |
+| --- | --- | --- |
+| Image/video quotes | `quoteImage / quoteVideo` | `QuoteImage / QuoteVideo` |
+| Submission | `submitImage / submitVideo` | `SubmitImage / SubmitVideo` |
+| Query, stop, wait | `getJob / cancelJob / waitForJob` | `GetJob / CancelJob / WaitJob` |
+| Inputs | Files create, get, complete, multipart upload helpers | Files and upload helpers |
+| Webhooks | Verify original bytes | Verify original bytes |
+
+Python retains its historical implementation. Use Go, TypeScript, or REST for the new contract.
+
+## Persist authorization before submission
+
+Create a server-side client with `createNodeYirClient({ apiKey })`, or `yir.NewClient(apiKey, yir.ClientOptions{})` in Go. Keep the API key on your server.
+
+These functions separate quoting from submission. Display `primary / max / official`, obtain the user's confirmation, and persist the complete request, authorized amount, and business idempotency key together before submitting. Retail credits may follow primary while the procurement budget uses the single-attempt ceiling.
+
+```js
+export async function prepareImage(client, demand) {
+  const quote = await client.quoteImage(demand);
+  if (!quote.has_verifiable_upper_bound || quote.single_attempt_upper_bound === null) {
+    throw new Error("verifiable_budget_required");
+  }
+  return {
+    prices: { primary: quote.primary, max: quote.max, official: quote.official },
+    expiresAt: quote.expires_at,
+    request: { ...demand, max_cost: quote.single_attempt_upper_bound },
+  };
+}
+
+export async function submitSavedImage(client, saved) {
+  if (!saved.idempotencyKey?.trim() || saved.request.max_cost === undefined) {
+    throw new Error("saved_authorization_required");
+  }
+  return client.submitImage(saved.request, saved.idempotencyKey);
+}
+```
+
+The demand has the shape `{ model, input, parameters, routing }`. For example, image parameters belong in `parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 }`. Multiple images use ordered `input.references`, each with `role: "reference_image"` and exactly one of `url` or `file_id`. Static contracts validate model-specific support.
+
+Quotes neither reserve funds nor lock prices. Submission and every recovery attempt check the original authorization. The example stops when no verifiable ceiling exists; unavailable prices are not zero. See [billing](/docs/concepts/billing).
+
+Persist the returned Job ID. After an unknown network outcome, recover using the original request, amount, and idempotency key. Do not requote and reuse that key with a different amount. Once the Job ID is known, query or wait for that Job.
+
+## Channel parameter handling
+
+The model pricing view includes optional `channel_parameters`: declared rules scoped to a provider, channel variant, operation, and input mode. A parameter may be `supported`, `ignored`, or `rejected`. An omitted rule does not authorize ignoring it. Read the returned descriptions instead of inferring support from the model name. Declared behavior is separate from runtime availability.
+
+Keep the original parameter in the request so Yir can apply channel rules consistently to pricing and execution and report any ignored input. Quote `parameter_notices` describe expected primary-channel behavior; `parameter_handling_may_vary` indicates that fallback may differ. A successful Job and its signed Webhook report actual `parameter_notices` from the adopted attempt snapshot. Historical jobs may omit this field.
+
+GPT Image models ignore explicit `quality` by default. To use an official quality tier, explicitly select only the official channel with `routing: { only: ["openai"] }`. A mixed allowlist or automatic fallback to the official channel still ignores quality. Official selection remains subject to supported values, availability, and budget; it does not guarantee execution.
+
+These reminders come from the Go model contract's generated parameter `policy`, rather than model-name checks. TS, Go, and Python clients check declared policies before Quote/Submit; Python uses the `yir_sdk` logger. Rules update with SDK versions. TS/Go still reject invalid types, values and ranges through their existing validators; Python relies on server validation for other parameter constraints. TS `checkParameterPolicies` accepts an operation contract, parameters and optional `routing.only`, returning structured reminders without logging or modifying the request. Static checks do not establish current availability, pricing or execution eligibility.
+
+For Quote and Submit requests that specify quality without this official-only selection, the TS SDK logs a fixed `console.warn` message and the Go SDK uses the standard logger: `[Yir] GPT Image quality is ignored unless routing.only is ["openai"].` Omitted quality and job polling do not produce this reminder. Logs contain no prompts, parameter values, URLs, or credentials. The API notice reason is `quality_requires_official_channel`. The native clients retain structured notices, and the Vercel adapter also returns final notices as generation `warnings`. Ignoring quality does not promise an equivalent official quality tier.
+
+## Vercel AI SDK
+
+Import `createYirAIProvider` from `@yir/sdk/vercel` and call `createYirAIProvider({ client })`. Select `provider.imageModel(modelId)` or `provider.videoModel(modelId)`. This implementation is tested with `ai@7.0.97` and `@ai-sdk/provider@4.0.13`.
+
+For `generateImage`, `experimental_generateVideo`, or `experimental_startVideo`, pass a persisted `idempotencyKey`, authorized `maxCost`, `parameters`, and optional `routing` in `providerOptions.yir`. Changing the Vercel Gateway Base URL alone is insufficient.
+
+| Vercel field | Yir expression |
+| --- | --- |
+| `aspectRatio` | `parameters.aspect_ratio` |
+| Video `duration / generateAudio` | `parameters.duration / generate_audio` |
+| `frameImages` | First-frame and last-frame roles |
+| `inputReferences` | Image, video, or audio roles from explicit MIME types |
+| Inline bytes | Files upload followed by submission with ready File IDs |
+| `providerOptions.yir.routing.only` | Unordered channel allowlist |
+
+Use `{ data: "https://…", mediaType: "video/mp4" }` for remote video references. The adapter currently rejects unmapped generic options such as `size / seed / fps`; it does not silently ignore them. Each Yir request accepts one output. Schedule multiple outputs as application slots; do not bypass this constraint with AI SDK batch-splitting overrides.
+
+Persist the operation returned by `experimental_startVideo`. After restarting, use the same model with `experimental_getVideoStatus`. AbortSignal and local timeouts stop local waiting. To request a remote stop, call the native `cancelJob`; the current attempt may still succeed and deliver. See [task lifecycle](/docs/concepts/task-lifecycle) and [production integration](/docs/guides/production-integration).

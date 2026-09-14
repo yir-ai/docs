@@ -1,15 +1,20 @@
 {
-  "name": "yir-docs-public",
+  "name": "@yir/docs",
+  "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "mint dev --port 38086 --no-open",
-    "validate": "mint validate",
-    "links": "mint broken-links --check-anchors --check-redirects",
-    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/docs/build-public-docs.ps1"
+    "build": "pnpm exec blume build && node ./scripts/prepare-origin-release.mjs",
+    "check": "pnpm exec blume check",
+    "origin:smoke": "node ./scripts/origin-nginx-smoke.mjs",
+    "preview": "pnpm exec blume preview",
+    "release:verify": "node ./scripts/origin-release.mjs verify --artifact ./dist",
+    "sync:openapi": "node ./scripts/sync-openapi.mjs",
+    "publish:check": "pnpm run test && pnpm run validate",
+    "test": "node --test ./scripts/*.test.mjs",
+    "validate": "pnpm exec blume validate"
   },
   "devDependencies": {
-    "mint": "^4.2.531"
+    "blume": "1.5.1"
   },
-  "packageManager": "pnpm@11.7.0"
+  "packageManager": "pnpm@10.26.1"
 }

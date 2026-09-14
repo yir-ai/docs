@@ -1,0 +1,19 @@
+---
+title: Troubleshooting and support boundaries
+description: Diagnose authentication, admission, polling, and terminal task issues without exposing secrets.
+---
+
+<Accordion>
+  <AccordionItem title="The Gateway returns 401">
+    Confirm the request uses `Authorization: Bearer ...`, the secret has not been rotated, and the complete key is never printed while debugging.
+  </AccordionItem>
+  <AccordionItem title="The submit response timed out">
+    Retry the identical request with the same idempotency key. A new key could create a second logical generation and a second billing fact.
+  </AccordionItem>
+  <AccordionItem title="The task appears slow">
+    Keep querying the same task ID. Slow or unknown is not a confirmed failure and does not authorize a replacement request.
+  </AccordionItem>
+  <AccordionItem title="What can I send to support?">
+    Send the Yir task ID, route, approximate UTC time, HTTP status, public error code, and a safe key prefix. Do not send the complete key, prompt, media, or raw provider response.
+  </AccordionItem>
+</Accordion>

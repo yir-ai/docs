@@ -1,0 +1,144 @@
+---
+title: 快速开始
+description: 使用 Yir 生成第一张图片，查询任务并保存结果。
+---
+
+通过 Standard API 使用 GPT Image 2 生成一张图片。提交后获得 Job ID，再查询同一个任务并下载完成的图片。
+
+## 开始之前
+
+准备有 Bash、cURL 7.76 或更新版本、`jq` 和 `uuidgen` 的后端终端。Windows 用户可在 Bash 环境中运行这些命令。请在一个新的本地目录中运行示例。
+
+获取 [Yir API Key](/zh/docs/getting-started/authentication)，在 Console 充值，然后在终端设置密钥：
+
+```bash
+export YIR_API_KEY="your-yir-api-key"
+```
+
+密钥保存在服务端。示例直接使用 HTTP，无需安装 SDK。当前模型供应与价格决定请求能否执行。
+
+## 1. 准备一次请求
+
+提交前保存请求和新生成的幂等键：
+
+```bash
+cat > yir-request.json <<'JSON'
+{
+  "model": "openai/gpt-image-2",
+  "input": {
+    "type": "text",
+    "prompt": "A quiet observatory above a sea of clouds"
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  },
+  "routing": { "preference": "cost", "fallback": false }
+}
+JSON
+
+uuidgen > yir-idempotency-key.txt
+export YIR_IDEMPOTENCY_KEY="$(cat yir-idempotency-key.txt)"
+```
+
+重试**同一个逻辑请求**时，保持 API Key、请求文件和幂等键不变。重新打开终端后，读取已保存的键，不要再次运行 `uuidgen`。新任务使用新的目录和幂等键。
+
+示例关闭自动恢复，让首次调用只执行一次渠道尝试。上游明确失败不收费，Quote 不锁价。接入进展与结算合同见[报价与计费](/zh/docs/concepts/billing)。
+
+首次提交前查询本次请求的当前价格，并保存授权请求：
+
+```bash
+curl --fail-with-body --silent --show-error --max-time 30 \
+  --request POST \
+  --url "https://gateway.yir.ai/v1/images/quotes" \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data-binary @yir-request.json \
+  --output yir-quote.json
+
+jq '{primary, max, official, single_attempt_upper_bound}' yir-quote.json
+```
+
+查看价格后再继续。以下命令要求存在可验证的单次费用上界，并将其保存为 `max_cost`。命令失败时停止并检查报价，不能把不可报价替换成零。
+
+```bash
+YIR_MAX_COST="$(jq -er '
+  select(.has_verifiable_upper_bound == true)
+  | .single_attempt_upper_bound
+  | strings | select(test("^[0-9]+(\\.[0-9]+)?$"))
+' yir-quote.json)" &&
+jq --arg max_cost "$YIR_MAX_COST" '. + {max_cost: $max_cost}' \
+  yir-request.json > yir-submission.json
+```
+
+Submit 会按此授权重新检查当前供应。提交后恢复未知结果时，保持 `yir-submission.json` 不变，不要重新报价并在同一幂等键下更改预算。
+
+## 2. 提交并保存 Job ID
+
+```bash
+curl --fail-with-body --silent --show-error --max-time 30 \
+  --request POST \
+  --url "https://gateway.yir.ai/v1/images/generations" \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
+  --data-binary @yir-submission.json \
+  --output yir-submit.json
+```
+
+提交成功返回 HTTP `202` 和 Job。仅在 cURL 成功且响应包含 `id` 后继续：
+
+```bash
+export YIR_JOB_ID="$(jq -er '.id' yir-submit.json)"
+```
+
+保留 `yir-submit.json`，便于稍后恢复 ID。将 Job ID 作为字符串处理。
+
+提交超时意味着结果未知。使用已保存的请求和幂等键重试第 2 步，不要重新执行第 1 步：新键会创建另一个任务。收到 HTTP 错误时，先检查公开的 `error.code` 和 `error.action`。
+
+## 3. 等待同一个任务
+
+以下循环最多查询 60 次，活动状态之间等待五秒；遇到终态或查询错误时停止：
+
+```bash
+for ((attempt = 1; attempt <= 60; attempt++)); do
+  curl --fail-with-body --silent --show-error --max-time 30 \
+    --url "https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID" \
+    --header "Authorization: Bearer $YIR_API_KEY" \
+    --output yir-job.json || break
+
+  status="$(jq -er '.status' yir-job.json)" || break
+  printf 'Job status: %s\n' "$status"
+  case "$status" in
+    succeeded|failed|cancelled) break ;;
+    queued|running|delivering) sleep 5 ;;
+    *) break ;;
+  esac
+done
+```
+
+`queued`、`running` 和 `delivering` 都是活动状态。只有 `succeeded` 后才下载结果。循环结束时任务仍在运行，或查询超时，可以继续查询这个 Job ID；停止本地轮询不会取消任务。`failed` 和 `cancelled` 是终态。恢复与取消规则见[任务生命周期](/zh/docs/concepts/task-lifecycle)。
+
+## 4. 保存图片
+
+仅下载成功任务中仍然可用的结果：
+
+```bash
+if YIR_RESULT_URL="$(jq -er '
+  select(.status == "succeeded" and .result.availability == "available")
+  | .result.files[0].url
+' yir-job.json)"; then
+  curl --fail --silent --show-error --location --max-time 120 \
+    --url "$YIR_RESULT_URL" --output generated-image
+  jq -r '.result.files[0].media_type' yir-job.json
+else
+  printf 'No downloadable result. Check the Job status, result availability, and error.\n'
+fi
+```
+
+文件保存为 `generated-image`。根据 `media_type` 添加扩展名，例如 `image/png` 对应 `.png`。下载仅使用返回的结果 URL，不向文件域名发送 Yir API Key。
+
+请在结果到期前保存图片，默认保留至任务创建后第 7 天；已有结果可能更早到期。单个 URL 可能更早过期：结果仍在保留期内时，可以查询同一个 Job 获取新链接。`result.availability` 变为 `expired` 后，任务仍然成功，但文件已不可用。任务创建满 90 天后，查询不再返回该日志。
+
+接下来阅读[图片生成与参数](/zh/docs/guides/image-generation)、[生产集成](/zh/docs/guides/production-integration)，或查询 [API 参考](/zh/docs/reference)。

@@ -1,0 +1,26 @@
+---
+title: 身份认证
+description: 使用仅保存在服务端的 Yir API Key 认证每个 Gateway 请求。
+---
+
+所有公开 Gateway 请求都使用 `Authorization: Bearer <YIR_API_KEY>`。
+
+<Steps>
+  <Step title="创建或显示密钥">在 Yir Console 中复制一次密钥，并立即保存到 Secret Manager。</Step>
+  <Step title="只提供给后端代码">仅在负责提交任务的服务端或 Worker 中设置 `YIR_API_KEY`。</Step>
+  <Step title="发送 Bearer Header">提交请求和查询请求都必须携带相同的认证方式。</Step>
+</Steps>
+
+:::warning
+不要把 Yir API Key 放入浏览器 JavaScript、截图、工单、日志或公开仓库，也不要向 Yir 发送任何上游 Provider API Key。
+:::
+
+IP 白名单是可选的高级安全设置，默认关闭。出口 IP 固定的生产环境可以在 Console 的 API Keys 页面按需开启，支持单个 IPv4、IPv6 或 CIDR 网段；开启后只有匹配来源才能使用该 Key 调用 Gateway。动态出口、本地开发或 Serverless 环境通常应保持关闭，避免请求被误拒绝。IP 白名单只能降低泄漏后的可利用性，确认 Secret 泄漏时仍应立即轮转。
+
+```bash .env
+YIR_API_KEY=replace-with-your-secret
+```
+
+<Panel title="Secret 轮转">
+  怀疑泄露时应轮转 Secret。逻辑 Key 的名称、默认标记、RoutingProfile 绑定和统计归属保持不变，旧 Secret 立即失效。
+</Panel>

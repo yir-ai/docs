@@ -1,0 +1,88 @@
+---
+title: 客户端与兼容性
+description: 使用静态校验的 Yir SDK、实时报价与持久化任务接入图片和视频生成。
+---
+
+新 SDK 正在与 Gateway、Console 和 Pilio 同批集成，尚未公开发布。下列说明对应本仓库实现；生产切换须等待完整入口验收。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
+
+## 安装与合同
+
+TypeScript 包的三个入口是 `@yir/sdk`、`@yir/sdk/model-contracts` 和 `@yir/sdk/vercel`。本地先在 `yir-sdk` 执行 `pnpm run build`，再用 `pnpm pack --pack-destination ../.tmp/scratch/sdk-package` 打包；接入项目通过 `pnpm add <打包文件路径>` 安装。不要把开发机目录写入部署依赖。
+
+Go 模块为 `github.com/GargantuaX/yir/yir-sdk/go`，包名 `yir`。使用同批经过验证的源码或制品；当前没有已发布版本可供本文指定。
+
+参数规则随 SDK 静态发布。客户端在请求发出前校验动态模型、操作、参数和引用角色，不远程下载规则。未知模型需要升级 SDK；模型被收录不代表当前有可执行渠道。价格与执行资格以 Gateway 当前响应为准。
+
+| 能力 | TypeScript | Go |
+| --- | --- | --- |
+| 图片、视频报价 | `quoteImage / quoteVideo` | `QuoteImage / QuoteVideo` |
+| 提交 | `submitImage / submitVideo` | `SubmitImage / SubmitVideo` |
+| 查询、停止、等待 | `getJob / cancelJob / waitForJob` | `GetJob / CancelJob / WaitJob` |
+| 素材 | Files 创建、查询、完成与分片上传便利层 | 同样提供 Files 与上传便利层 |
+| Webhook | 原始字节验签 | 原始字节验签 |
+
+Python 保留历史实现，本次新合同优先使用 Go、TypeScript 或 REST。
+
+## 报价与提交分开持久化
+
+服务端通过 `createNodeYirClient({ apiKey })` 创建客户端；Go 使用 `yir.NewClient(apiKey, yir.ClientOptions{})`。API Key 留在服务端。
+
+下面两个函数演示应用边界。先报价并展示 `primary / max / official`，用户确认后把完整请求、授权金额与业务幂等键一起持久化，再调用提交函数。用户积分可以按 primary 定价，采购预算可以采用单次上限，两者不必相同。
+
+```js
+export async function prepareImage(client, demand) {
+  const quote = await client.quoteImage(demand);
+  if (!quote.has_verifiable_upper_bound || quote.single_attempt_upper_bound === null) {
+    throw new Error("verifiable_budget_required");
+  }
+  return {
+    prices: { primary: quote.primary, max: quote.max, official: quote.official },
+    expiresAt: quote.expires_at,
+    request: { ...demand, max_cost: quote.single_attempt_upper_bound },
+  };
+}
+
+export async function submitSavedImage(client, saved) {
+  if (!saved.idempotencyKey?.trim() || saved.request.max_cost === undefined) {
+    throw new Error("saved_authorization_required");
+  }
+  return client.submitImage(saved.request, saved.idempotencyKey);
+}
+```
+
+`demand` 使用统一形状：`{ model, input, parameters, routing }`。例如图片参数放在 `parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 }` 中。多参考图使用有序的 `input.references`，每项写明 `role: "reference_image"` 以及互斥的 `url` 或 `file_id`。模型支持范围由静态合同校验。
+
+报价不冻结资金，也不锁价。正式提交和每次恢复都会检查原授权。没有可验证上限时，上例停止并交回应用处理，不能把未知价格当作零。更多规则见[计费](/zh/docs/concepts/billing)。
+
+保存提交返回的 Job ID。网络结果不明时，保留原请求、原金额和原幂等键重试；不要重新报价后用同一键提交不同金额。已知 Job ID 后使用查询或等待恢复，避免再创建任务。
+
+## 渠道参数处理
+
+模型价格视图的可选 `channel_parameters` 按 Provider、渠道变体、操作和输入模式提供参数规则：`supported` 支持、`ignored` 接受但不发送、`rejected` 拒绝显式传入。省略规则不代表允许忽略。直接读取返回的说明，不按模型名称推断支持情况；规则声明与实时可用性分开。
+
+请求保留用户原始参数，由 Yir 对每个渠道统一处理计价与执行，并报告被忽略的输入。Quote 的 `parameter_notices` 表示预计主渠道行为，`parameter_handling_may_vary` 表示恢复时可能不同。成功 Job 及其签名 Webhook 的 `parameter_notices` 来自最终采用的 Attempt 快照，代表实际处理；历史任务可能没有此字段。
+
+GPT Image 系列默认忽略显式 `quality`。只有使用 `routing: { only: ["openai"] }` 单独指定官方渠道时才使用官方画质档位。混合白名单或自动恢复到官方渠道仍忽略画质。指定官方后仍需满足该路线支持值、可用性及预算，不保证一定执行。
+
+提醒规则来自 Go 模型合同生成的参数 `policy`，SDK 不按模型名称判断。TS、Go、Python 均在 Quote/Submit 前检查已声明策略，Python 使用 `yir_sdk` logger。规则随 SDK 版本更新。TS/Go 原有类型、取值与范围校验仍拒绝非法参数；Python 其他参数约束仍由服务端校验。TS 的 `checkParameterPolicies` 接受操作合同、参数和可选的 `routing.only`，返回结构化提醒，不写日志、不修改请求。静态检查不代表当前可用性、价格或执行资格。
+
+带画质且未单独指定官方的 Quote/Submit 调用，TS SDK 通过 `console.warn`、Go SDK 通过标准日志输出固定提醒：`[Yir] GPT Image quality is ignored unless routing.only is ["openai"].` 省略画质和查询轮询不输出此提醒，日志不包含 Prompt、参数值、URL 或凭据。API 通知原因码为 `quality_requires_official_channel`。原生客户端保留结构化通知，Vercel 适配器也将最终通知放入生成结果的 `warnings`；忽略画质不能视为兑现官方对应档位。
+
+## Vercel AI SDK
+
+使用 `createYirAIProvider({ client })`（从 `@yir/sdk/vercel` 导入），图片选择 `provider.imageModel(modelId)`，视频选择 `provider.videoModel(modelId)`。本批验证的依赖为 `ai@7.0.97` 与 `@ai-sdk/provider@4.0.13`。
+
+调用 `generateImage`、`experimental_generateVideo` 或 `experimental_startVideo` 时，在 `providerOptions.yir` 传入持久化的 `idempotencyKey`、已授权的 `maxCost`、`parameters` 和可选 `routing`。不能只替换 Vercel Gateway 的 Base URL。
+
+| Vercel 字段 | Yir 表达 |
+| --- | --- |
+| `aspectRatio` | `parameters.aspect_ratio` |
+| 视频 `duration / generateAudio` | `parameters.duration / generate_audio` |
+| `frameImages` | 首帧、尾帧角色 |
+| `inputReferences` | 按显式 MIME 类型映射图片、视频、音频引用 |
+| 内联素材字节 | 通过 Files 上传，再以就绪 File ID 提交 |
+| `providerOptions.yir.routing.only` | 无序渠道白名单 |
+
+视频远程引用用 `{ data: "https://…", mediaType: "video/mp4" }`。当前适配器拒绝通用 `size / seed / fps` 等未映射选项；不能静默忽略。单个 Yir 请求只接受一个输出，多输出由应用逐槽位调度。不要用 AI SDK 的批次拆分覆盖选项绕过这一约束。
+
+`experimental_startVideo` 返回的 operation 应持久化；进程恢复后用同一模型与 `experimental_getVideoStatus` 查询。AbortSignal 或本地等待超时只停止本地等待。用户要求远端停止时调用原生 `cancelJob`，当前尝试仍可能成功并交付。参见[任务生命周期](/zh/docs/concepts/task-lifecycle)与[生产集成](/zh/docs/guides/production-integration)。

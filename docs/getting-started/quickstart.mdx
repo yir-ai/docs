@@ -1,0 +1,144 @@
+---
+title: Quickstart
+description: Generate your first image with Yir, follow its Job, and save the result.
+---
+
+Generate one image with GPT Image 2 using the Standard API. A submission returns a Job ID; you then query that Job and download the finished image.
+
+## Before you begin
+
+Use a backend terminal with Bash, cURL 7.76 or later, `jq`, and `uuidgen`. Windows users can run these commands in a Bash environment. Use a new local directory for this example.
+
+Get your [Yir API key](/docs/getting-started/authentication), add funds in Console, and set the key in your shell:
+
+```bash
+export YIR_API_KEY="your-yir-api-key"
+```
+
+Keep the key on your server. The example uses HTTP directly and does not require an SDK package. Current model supply and pricing determine whether the request can run.
+
+## 1. Prepare one request
+
+Save the request and a new idempotency key before submitting:
+
+```bash
+cat > yir-request.json <<'JSON'
+{
+  "model": "openai/gpt-image-2",
+  "input": {
+    "type": "text",
+    "prompt": "A quiet observatory above a sea of clouds"
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  },
+  "routing": { "preference": "cost", "fallback": false }
+}
+JSON
+
+uuidgen > yir-idempotency-key.txt
+export YIR_IDEMPOTENCY_KEY="$(cat yir-idempotency-key.txt)"
+```
+
+For retries of the **same logical request**, keep the same API key, request file, and idempotency key. If you reopen your shell, reload the saved value instead of running `uuidgen` again. Use a new directory and key for a new task.
+
+This example disables fallback to keep the first call to one provider attempt. Confirmed upstream failures are not charged. Quotes do not lock prices. See [quotes and billing](/docs/concepts/billing) for the integration status and settlement contract.
+
+Before the first submission, read the current request prices and save the authorized request:
+
+```bash
+curl --fail-with-body --silent --show-error --max-time 30 \
+  --request POST \
+  --url "https://gateway.yir.ai/v1/images/quotes" \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data-binary @yir-request.json \
+  --output yir-quote.json
+
+jq '{primary, max, official, single_attempt_upper_bound}' yir-quote.json
+```
+
+Review the prices before continuing. The following command requires a verified single-attempt ceiling and saves it as `max_cost`. If it fails, stop and inspect the quote; do not replace an unavailable price with zero.
+
+```bash
+YIR_MAX_COST="$(jq -er '
+  select(.has_verifiable_upper_bound == true)
+  | .single_attempt_upper_bound
+  | strings | select(test("^[0-9]+(\\.[0-9]+)?$"))
+' yir-quote.json)" &&
+jq --arg max_cost "$YIR_MAX_COST" '. + {max_cost: $max_cost}' \
+  yir-request.json > yir-submission.json
+```
+
+Submit rechecks current supply against this authorization. Once submitted, keep `yir-submission.json` unchanged when recovering an unknown outcome; do not repeat the quote step and change its budget under the same key.
+
+## 2. Submit and save the Job ID
+
+```bash
+curl --fail-with-body --silent --show-error --max-time 30 \
+  --request POST \
+  --url "https://gateway.yir.ai/v1/images/generations" \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
+  --data-binary @yir-submission.json \
+  --output yir-submit.json
+```
+
+A successful submission returns HTTP `202` with a Job. Continue only after cURL succeeds and the response contains an `id`:
+
+```bash
+export YIR_JOB_ID="$(jq -er '.id' yir-submit.json)"
+```
+
+Keep `yir-submit.json` so you can recover this ID later. Treat it as a string.
+
+If submission times out, its outcome is unknown. Retry step 2 with the saved request and idempotency key. Do not restart step 1: a new key would create another task. For an HTTP error, inspect the public `error.code` and `error.action` before proceeding.
+
+## 3. Wait for the same Job
+
+This loop makes at most 60 queries, pauses five seconds between active responses, and stops on a terminal state or query error:
+
+```bash
+for ((attempt = 1; attempt <= 60; attempt++)); do
+  curl --fail-with-body --silent --show-error --max-time 30 \
+    --url "https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID" \
+    --header "Authorization: Bearer $YIR_API_KEY" \
+    --output yir-job.json || break
+
+  status="$(jq -er '.status' yir-job.json)" || break
+  printf 'Job status: %s\n' "$status"
+  case "$status" in
+    succeeded|failed|cancelled) break ;;
+    queued|running|delivering) sleep 5 ;;
+    *) break ;;
+  esac
+done
+```
+
+`queued`, `running`, and `delivering` are active states. Download the result only after `succeeded`. If the loop ends while active or a query times out, resume querying this Job ID; stopping local polling does not cancel the Job. `failed` and `cancelled` are terminal states. See [task lifecycle](/docs/concepts/task-lifecycle) for recovery and cancellation.
+
+## 4. Save the image
+
+Download only an available result from a successful Job:
+
+```bash
+if YIR_RESULT_URL="$(jq -er '
+  select(.status == "succeeded" and .result.availability == "available")
+  | .result.files[0].url
+' yir-job.json)"; then
+  curl --fail --silent --show-error --location --max-time 120 \
+    --url "$YIR_RESULT_URL" --output generated-image
+  jq -r '.result.files[0].media_type' yir-job.json
+else
+  printf 'No downloadable result. Check the Job status, result availability, and error.\n'
+fi
+```
+
+The file is saved as `generated-image`; add an extension matching `media_type`, such as `.png` for `image/png`. The download uses the returned result URL and does not send your Yir API key to the file host.
+
+Save the image before the result expires, normally 7 days after Job creation. Existing results may expire earlier. Individual URLs can expire sooner: query the same Job for a fresh URL while the result is still retained. Once `result.availability` becomes `expired`, the Job remains successful but its files are no longer available. Job queries stop returning the log after 90 days.
+
+Continue with [image generation and parameters](/docs/guides/image-generation), [production integration](/docs/guides/production-integration), or the [API reference](/docs/reference).
