@@ -242,7 +242,9 @@ test(
     assert.match(englishGuide, /\/docs\/_astro\//)
     assert.doesNotMatch(englishGuide, /(?<![A-Za-z0-9_-])\/_astro\//)
     assert.doesNotMatch(englishGuide, /docs\.yir\.ai/)
-    assert.doesNotMatch(chineseGuide, /\/docs\/zh\//)
+    assert.doesNotMatch(chineseGuide, /href="(?:https:\/\/yir\.ai)?\/docs\/zh\//)
+    assert.match(englishGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/guides\/production-integration\.mdx"/)
+    assert.match(chineseGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/zh\/guides\/production-integration\.mdx"/)
     assert.match(searchClient, /`\/docs\/`,`blume-search\.json`/)
 
     const builtHtmlFiles = await findFilesWithExtension(
