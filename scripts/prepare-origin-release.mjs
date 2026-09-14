@@ -155,8 +155,8 @@ function rewriteMountedPaths(content, chinese) {
     .replace(rootPath('zh/docs.md'), '/zh/docs/index.md')
     .replace(rootPath('zh/docs.mdx'), '/zh/docs/index.mdx')
     .replace(
-      /(?<!\/(?:docs|zh\/docs))\/(getting-started|guides|concepts|reference|support)(?=\/|["'#?`\s<])/gu,
-      `${docsPrefix}/$1`,
+      /(^|["'(\s`>]|https:\/\/yir\.ai)\/(getting-started|guides|concepts|reference|support)(?=\/|["'#?`\s<])/gu,
+      `$1${docsPrefix}/$2`,
     )
     .replace(
       '(`/`,`blume-search.json`)',
