@@ -1,0 +1,23 @@
+---
+interface Props {
+  page: { title: string; route: string };
+}
+
+const { page } = Astro.props;
+const chinese = page.route.startsWith('/zh/');
+const issue = new URL('https://github.com/yir-ai/docs/issues/new');
+issue.search = new URLSearchParams({
+  template: 'documentation.yml',
+  title: `[Docs] ${page.title}`,
+  page: `https://yir.ai${page.route}`,
+  language: chinese ? 'zh' : 'en',
+}).toString();
+---
+
+<div class="mx-auto mb-4 flex max-w-content justify-end">
+  <a href={issue.href} target="_blank" rel="noopener noreferrer"
+    class="text-muted-foreground text-sm underline underline-offset-4 hover:text-foreground"
+    data-report-error>
+    {chinese ? '报告文档错误 ↗' : 'Report a documentation error ↗'}
+  </a>
+</div>

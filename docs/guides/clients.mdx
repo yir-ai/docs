@@ -3,13 +3,23 @@ title: Clients and compatibility
 description: Integrate image and video jobs with static validation, live quotes, and durable recovery.
 ---
 
-The new SDK is being integrated with Gateway, Console, and Pilio and is not publicly released. This page describes the repository implementation; production cutover requires complete entry-point acceptance. The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
+The TypeScript and Go SDKs are publicly available at version `0.1.0` in the [Yir SDK repository](https://github.com/yir-ai/sdk). The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
 
 ## Installation and contracts
 
-The TypeScript entry points are `@yir/sdk`, `@yir/sdk/model-contracts`, and `@yir/sdk/vercel`. For local integration, run `pnpm run build` in `yir-sdk`, then `pnpm pack --pack-destination ../.tmp/scratch/sdk-package`. Install the archive with `pnpm add <archive-path>`. Do not put development-machine paths in deployment dependencies.
+Install the TypeScript SDK:
 
-The Go module is `github.com/GargantuaX/yir/yir-sdk/go`, package `yir`. Use the matching verified source or artifact; this guide does not specify a publicly released version.
+```sh
+pnpm add @yir-ai/sdk@0.1.0
+```
+
+Import `createNodeYirClient` from `@yir-ai/sdk/server`. Use `@yir-ai/sdk/model-contracts` for static contracts and `@yir-ai/sdk/vercel` for the Vercel adapter. The `@yir-ai/sdk/browser` entry provides local validation and pricing utilities; keep API calls and keys on your server.
+
+The Go module is `github.com/yir-ai/sdk/go`, package `yir`:
+
+```sh
+go get github.com/yir-ai/sdk/go@v0.1.0
+```
 
 Parameter rules ship statically with the SDK. Dynamic model IDs, operations, parameters, and reference roles are validated before sending a request; rules are never downloaded at runtime. Unknown models require an SDK upgrade. A bundled model does not guarantee current executable supply. Gateway remains authoritative for prices and execution eligibility.
 
@@ -70,7 +80,7 @@ For Quote and Submit requests that specify quality without this official-only se
 
 ## Vercel AI SDK
 
-Import `createYirAIProvider` from `@yir/sdk/vercel` and call `createYirAIProvider({ client })`. Select `provider.imageModel(modelId)` or `provider.videoModel(modelId)`. This implementation is tested with `ai@7.0.97` and `@ai-sdk/provider@4.0.13`.
+Import `createYirAIProvider` from `@yir-ai/sdk/vercel` and call `createYirAIProvider({ client })`. Select `provider.imageModel(modelId)` or `provider.videoModel(modelId)`. This implementation is tested with `ai@7.0.97` and `@ai-sdk/provider@4.0.13`.
 
 For `generateImage`, `experimental_generateVideo`, or `experimental_startVideo`, pass a persisted `idempotencyKey`, authorized `maxCost`, `parameters`, and optional `routing` in `providerOptions.yir`. Changing the Vercel Gateway Base URL alone is insufficient.
 
