@@ -183,6 +183,20 @@ test(
       'utf8',
     )
 
+    for (const [html, language, pagePath] of [
+      [englishGuide, 'en', '/docs/guides/production-integration'],
+      [chineseGuide, 'zh', '/zh/docs/guides/production-integration'],
+      [reference, 'en', '/docs/reference'],
+      [chineseReference, 'zh', '/zh/docs/reference'],
+    ]) {
+      const match = html.match(/href="(https:\/\/github\.com\/yir-ai\/docs\/issues\/new\?[^"]+)"/)
+      assert.ok(match, 'every guide and API reference needs a correction link')
+      const issue = new URL(match[1].replaceAll('&amp;', '&'))
+      assert.equal(issue.searchParams.get('template'), 'documentation.yml')
+      assert.equal(issue.searchParams.get('language'), language)
+      assert.equal(issue.searchParams.get('page'), `https://yir.ai${pagePath}`)
+      assert.ok(issue.searchParams.get('title').startsWith('[Docs] '))
+    }
     assert.match(englishGuide, /Production integration/)
     assert.match(chineseGuide, /生产集成/)
     assert.match(englishProviders, /Providers and managed supply/)

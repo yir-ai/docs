@@ -3,13 +3,23 @@ title: 客户端与兼容性
 description: 使用静态校验的 Yir SDK、实时报价与持久化任务接入图片和视频生成。
 ---
 
-新 SDK 正在与 Gateway、Console 和 Pilio 同批集成，尚未公开发布。下列说明对应本仓库实现；生产切换须等待完整入口验收。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
+TypeScript 和 Go SDK 的 `0.1.0` 版本已公开发布，源码见 [Yir SDK 仓库](https://github.com/yir-ai/sdk)。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
 
 ## 安装与合同
 
-TypeScript 包的三个入口是 `@yir/sdk`、`@yir/sdk/model-contracts` 和 `@yir/sdk/vercel`。本地先在 `yir-sdk` 执行 `pnpm run build`，再用 `pnpm pack --pack-destination ../.tmp/scratch/sdk-package` 打包；接入项目通过 `pnpm add <打包文件路径>` 安装。不要把开发机目录写入部署依赖。
+安装 TypeScript SDK：
 
-Go 模块为 `github.com/GargantuaX/yir/yir-sdk/go`，包名 `yir`。使用同批经过验证的源码或制品；当前没有已发布版本可供本文指定。
+```sh
+pnpm add @yir-ai/sdk@0.1.0
+```
+
+从 `@yir-ai/sdk/server` 导入 `createNodeYirClient`；静态合同使用 `@yir-ai/sdk/model-contracts`，Vercel 适配器使用 `@yir-ai/sdk/vercel`。`@yir-ai/sdk/browser` 提供本地校验和价格计算工具；API 调用和密钥应留在服务端。
+
+Go 模块为 `github.com/yir-ai/sdk/go`，包名 `yir`：
+
+```sh
+go get github.com/yir-ai/sdk/go@v0.1.0
+```
 
 参数规则随 SDK 静态发布。客户端在请求发出前校验动态模型、操作、参数和引用角色，不远程下载规则。未知模型需要升级 SDK；模型被收录不代表当前有可执行渠道。价格与执行资格以 Gateway 当前响应为准。
 
@@ -70,7 +80,7 @@ GPT Image 系列默认忽略显式 `quality`。只有使用 `routing: { only: ["
 
 ## Vercel AI SDK
 
-使用 `createYirAIProvider({ client })`（从 `@yir/sdk/vercel` 导入），图片选择 `provider.imageModel(modelId)`，视频选择 `provider.videoModel(modelId)`。本批验证的依赖为 `ai@7.0.97` 与 `@ai-sdk/provider@4.0.13`。
+使用 `createYirAIProvider({ client })`（从 `@yir-ai/sdk/vercel` 导入），图片选择 `provider.imageModel(modelId)`，视频选择 `provider.videoModel(modelId)`。本批验证的依赖为 `ai@7.0.97` 与 `@ai-sdk/provider@4.0.13`。
 
 调用 `generateImage`、`experimental_generateVideo` 或 `experimental_startVideo` 时，在 `providerOptions.yir` 传入持久化的 `idempotencyKey`、已授权的 `maxCost`、`parameters` 和可选 `routing`。不能只替换 Vercel Gateway 的 Base URL。
 
