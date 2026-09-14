@@ -1,0 +1,31 @@
+---
+title: Routing
+description: Configure reusable provider preferences and fallback behavior for asynchronous generation jobs.
+---
+
+Routing Profiles define the long-term defaults used when Yir selects eligible provider supply for a job. Existing bindings are retained; API Keys no longer expose profile selection, and new profiles cannot be created. Preferences, fallback, and model restrictions remain editable on default and existing profiles.
+
+## Preference
+
+- **Balanced** lets Yir consider the complete eligible plan using the platform's certified facts.
+- **Cost** prefers lower public user prices when the requested specification is comparable.
+
+Custom provider ordering is no longer available. Yir selects eligible providers automatically.
+
+## Provider scope and fallback
+
+Use `routing.only` as an unordered allowlist of 1–16 providers. Selection and recovery stay within it. A single provider supports targeted testing. Existing strict profile restrictions remain in force, and a request can only narrow them.
+
+Fallback controls whether Yir may continue to another planned route after the current attempt is confirmed failed. A slow or unknown attempt is not treated as failed merely to trigger fallback.
+
+## Channel variants
+
+`routing.variants` selects one registered variant per provider. Omitting a provider's variant selects only its standard version (`standard`). Variants bind separate upstream models, prices, and capabilities without changing the model's public parameters.
+
+When `routing.only` is also supplied, every provider in the variant map must belong to that allowlist. An unavailable variant does not fall back to another variant of the same provider; other allowed providers still follow the fallback rules. Consult the model catalog for available variants.
+
+## Request-level overrides
+
+A Standard API or Playground request can override preference and fallback, and narrow provider scope with `routing.only`. An explicit empty list is invalid; omit it to use the default scope. The override cannot bypass authentication, specification compatibility, authorized supply, runtime status, billing, safety checks, or Yir's attempt limit.
+
+Requests cannot choose credentials, access providers, internal access paths, procurement prices, health scores, or arbitrary attempt counts.

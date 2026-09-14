@@ -1,0 +1,33 @@
+---
+title: Yir 异步 AI Gateway
+description: 使用 Yir Standard API 构建可靠的图片与视频生成工作流。
+---
+
+<Badge variant="warning">开发者预览</Badge>
+
+Yir 为长耗时图片与视频生成提供一套 Standard API 与 SDK 合同。应用只提交一次，保存 Yir Job ID，并持续查询同一个 Job 直到公开终态。
+
+:::info
+当前公开 HTTP 预览只包含已进入评审版 Standard OpenAPI 的操作。Provider 来源兼容路由不属于 Yir v1。
+:::
+
+<CardGroup cols={2}>
+  <Card title="快速开始" href="/zh/docs/getting-started/quickstart" icon="rocket">
+    提交并查询第一个 Standard 图片生成 Job。
+  </Card>
+  <Card title="生产集成" href="/zh/docs/guides/production-integration" icon="shield-check">
+    正确实现幂等、有界轮询、路由偏好和安全恢复。
+  </Card>
+  <Card title="任务生命周期" href="/zh/docs/concepts/task-lifecycle" icon="activity">
+    理解 queued、running、delivering、终态和未知结果。
+  </Card>
+  <Card title="API 参考" href="/zh/docs/reference" icon="braces">
+    浏览由 OpenAPI 生成的 Yir Standard 已评审操作。
+  </Card>
+</CardGroup>
+
+## 单一公共任务合同
+
+- 直接 HTTP 客户端调用 Yir Standard REST。
+- Yir 原生 SDK 封装相同的 Standard 请求。
+- Vercel AI SDK 客户端适配层把媒体调用转换为相同 Standard 请求，不增加第二套 Job、路由或计费合同。

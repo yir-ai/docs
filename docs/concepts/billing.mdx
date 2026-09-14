@@ -1,0 +1,50 @@
+---
+title: Quotes and billing
+description: Understand request prices, shared reservations, and delivery charges.
+---
+
+:::info
+This page describes the new contract under integration, not a completed production upgrade. Development supports fixed and unavailable prices and official output-only estimates. Complete dynamic request prices, full supply specifications, and cross-application verification remain in progress.
+:::
+
+## Three request prices
+
+An output-only estimate uses `{"kind":"estimate","amount":"0.042390","estimate":{"scope":"output_only","output_tokens":1413}}`. The amount is calculated from the current request's estimated generated output tokens and current rates. Input and other charges are excluded. It is neither a whole-request price nor an authorization ceiling; do not use it alone to set retail credits or `max_cost`. Missing usage assumptions or applicable rates produce an unavailable price, never a fabricated estimate.
+
+Use `POST /v1/images/quotes` or `POST /v1/videos/quotes`. Quotes validate the same model, input, and `parameters` as generation requests, but do not accept `max_cost` or `webhook_url`. They create no Job or reservation and do not lock prices.
+
+| Field | Meaning |
+| --- | --- |
+| `primary` | The whole-request price of the first selected attempt. |
+| `max` | The highest whole-request price among selected attempts, not their sum or the catalog maximum. |
+| `official` | A comparable official reference price, not a promise of an executable official route. |
+
+Amounts are USD decimal strings. A fixed price is `{"amount":"0.02","kind":"fixed","reason":""}`; an unavailable price is `{"amount":null,"kind":"unavailable","reason":"candidate_price_unavailable"}`. Unknown prices are not zero. If any selected attempt has an unknown price, `max` must not approximate it from known candidates alone.
+
+Quotes provide request-specific prices and supply information without internal channel lists, rankings, procurement discounts, or capacity. Model contracts ship statically with SDK versions; validation code is not downloaded at runtime. Clients calculate savings themselves.
+
+## Authorization and reservation
+
+Generation `max_cost` authorizes a whole-job limit, such as `"0.25"` for US$0.25. Use a non-negative decimal string with at most six decimal places. Submit checks current supply and prices again; an unexpired Quote does not guarantee execution at its earlier price.
+
+A price is different from a verified spending ceiling. Use `single_attempt_upper_bound` as the highest selected single-attempt ceiling only when `has_verifiable_upper_bound` is true. Otherwise the ceiling is `null`, not zero or an empty string. An estimate cannot promise a final spending ceiling.
+
+New Jobs reserve the highest eligible single-attempt ceiling once. Sequential attempts share that reservation rather than adding their ceilings together. If `max_cost` is omitted, admission fixes authorization at that ceiling. A larger explicit limit does not reserve the entire excess. Do not submit automatically without a verifiable ceiling.
+
+Subsequent routes must fit the original authorization and reservation; price increases cannot add customer spending beyond them. With no executable route, the Job fails; insufficient budget can produce `YIR_BUDGET_EXCEEDED`. Set `routing.fallback: false` to disable subsequent attempts.
+
+The target policy is up to two distinct unofficial channels followed by one official fallback, executed sequentially. Specifications, credentials, capacity, and budget still apply. Routes skipped before submission do not consume Attempts. An official reference price alone does not guarantee a fallback.
+
+## Settlement and stopping
+
+Confirmed upstream failures are not charged. Successful delivery settles only the delivered result and releases the remainder. Final failure or cancellation releases the entire reservation. Customer billing is final when a new Job reaches its terminal state; no separate billing polling loop is needed. Historical Jobs retain their recorded settlements.
+
+A short timeout does not establish failure or justify duplicate submission. If an outcome remains unknown for too long, Yir treats the task as failed with no customer charge, freezes the affected channel, and alerts administrators. Late upstream costs are absorbed internally without additional customer charges.
+
+Show “Stop requested” after cancellation is requested: future attempts stop, but the current attempt may still succeed, deliver, and be charged. Tasks already finalized as timeout failures cannot charge again for late results. A local SDK Abort stops local waiting or network operations; it does not replace remote cancellation or confirm a refund.
+
+## Application pricing and recovery
+
+Pilio can price customer credits at `primary` while authorizing procurement at the highest single-attempt ceiling. Pilio absorbs fallback differences without adding customer credits. Undelivered results refund their allocated credits; multi-result tasks use preallocated shares.
+
+Persist the request and idempotency key before submission. Recover a lost response with the same request and key. Changed parameters or budgets form a new request; do not change keys merely to bypass an uncertain submission. Terminal Job `billing.max_cost` reports fixed authorization. Never fill missing historical values with current prices.

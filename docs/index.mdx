@@ -1,0 +1,33 @@
+---
+title: Yir asynchronous AI gateway
+description: Build durable image and video generation workflows with Yir Standard API.
+---
+
+<Badge variant="warning">Developer preview</Badge>
+
+Yir provides one Standard API and SDK contract for long-running image and video generation. Submit once, persist the Yir Job ID, and query the same Job until it reaches a public terminal state.
+
+:::info
+The current published HTTP preview exposes only operations present in the reviewed Standard OpenAPI. Provider-specific source-compatible routes are not part of Yir v1.
+:::
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" href="/docs/getting-started/quickstart" icon="rocket">
+    Submit and query your first Standard image-generation Job.
+  </Card>
+  <Card title="Production integration" href="/docs/guides/production-integration" icon="shield-check">
+    Add idempotency, bounded polling, routing preferences, and safe recovery.
+  </Card>
+  <Card title="Task lifecycle" href="/docs/concepts/task-lifecycle" icon="activity">
+    Understand queued, running, delivering, terminal, and unknown outcomes.
+  </Card>
+  <Card title="API reference" href="/docs/reference" icon="braces">
+    Browse the reviewed Yir Standard operations generated from OpenAPI.
+  </Card>
+</CardGroup>
+
+## One public task contract
+
+- Direct HTTP clients call Yir Standard REST.
+- Native Yir SDKs wrap the same Standard requests.
+- The Vercel AI SDK adapter converts media calls into the same Standard requests; it does not introduce a second Job, routing, or billing contract.

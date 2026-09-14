@@ -1,0 +1,47 @@
+diff --git a/src/components/layout/PageActions.astro b/src/components/layout/PageActions.astro
+index 3f53baae9ce8dfd6c66214c5656eed6c4cd68f3f..d17b354958d3ea77dc31f0ec1736e687973cbc0c 100644
+--- a/src/components/layout/PageActions.astro
++++ b/src/components/layout/PageActions.astro
+@@ -134,42 +134,6 @@ const menuRowClass =
+     )
+   }
+ 
+-  <details class="group relative">
+-    <summary
+-      class={`${rowClass} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}
+-    >
+-      <Icon name="external-link" size={16} />
+-      {a.openInChat}
+-      <Icon
+-        class="ms-auto transition-transform group-open:rotate-180"
+-        name="chevron-down"
+-        size={14}
+-      />
+-    </summary>
+-    <div
+-      class="absolute top-full right-2 z-50 mt-1 w-max min-w-[14rem] max-w-[22rem] rounded-blume border border-border bg-background p-1 shadow-xl"
+-      data-blume-menu
+-    >
+-      {
+-        PROVIDERS.map((provider, index) => (
+-          <>
+-            {index === 1 && <hr class="my-1 border-border border-t" />}
+-            <a
+-              class={menuRowClass}
+-              data-open-in={provider.key}
+-              rel="noreferrer"
+-              target="_blank"
+-            >
+-              <span set:html={LOGOS[provider.key]} />
+-              <span class="flex-1">{provider.label}</span>
+-              <Icon name="external-link" size={13} />
+-            </a>
+-          </>
+-        ))
+-      }
+-    </div>
+-  </details>
+-
+   {
+     mcpUrl && (
+       <details class="group relative">

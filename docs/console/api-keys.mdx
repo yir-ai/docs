@@ -1,0 +1,24 @@
+---
+title: API Keys
+description: Create, secure, and rotate the logical keys used to authenticate Yir API requests.
+---
+
+Yir API Keys authenticate requests with `Authorization: Bearer <YIR_API_KEY>`. They are not upstream provider credentials and must never be placed in browser code or public repositories.
+
+## Default key
+
+Every account has one default logical key. It cannot be revoked, but its secret can be rotated. Rotation keeps the logical key identity, name, default status, Routing Profile binding, and usage attribution while immediately invalidating the old secret after a successful change.
+
+## Additional keys
+
+Create separate keys for applications or environments that need independent rotation, usage attribution, or revocation. Save a newly issued secret immediately and store it in a server-side secret manager.
+
+## Routing and network restrictions
+
+Keys no longer expose Routing Profile binding. Existing bindings and restrictions are retained. All active keys may provide a valid request-level routing override; use `routing.only` to narrow the provider scope without choosing an order.
+
+An optional IP allowlist restricts where a key may be used. Review the allowlist before enabling it so you do not lock out the application that depends on the key.
+
+## Secret actions
+
+Reveal and rotation require an authenticated Console session. Revoke keys that are no longer needed. If exposure is suspected, rotate or revoke the affected key immediately rather than editing provider credentials.

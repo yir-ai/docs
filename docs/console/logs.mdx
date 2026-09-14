@@ -1,0 +1,22 @@
+---
+title: Logs
+description: Inspect job results, actual providers, confirmed fallback recovery, charges, and the execution timeline.
+---
+
+Logs are the user-facing history of real Yir jobs. The list helps you scan outcomes; each detail page explains the delivered result and the safe execution facts available for that job.
+
+## Statuses
+
+The Standard API exposes six job statuses: `queued`, `running`, `delivering`, `succeeded`, `failed`, and `cancelled`. Planning, reconciliation, unknown provider outcomes, and late financial confirmation remain internal facts.
+
+## What a detail page shows
+
+When available, the detail page shows the result, final provider, confirmed fallback recovery, total Yir charge, input transfer facts, and one execution timeline. A fallback is counted as a recovery only when the primary attempt was confirmed failed and a fallback attempt succeeded.
+
+Cost differences appear only when the immutable execution plan contains a comparable same-specification price baseline. Negative differences are shown honestly. Unknown costs are not presented as savings.
+
+## Privacy and retention
+
+Details show prompt length and reference count by default. During the first 7 days after Job creation, you can expand your retained prompt. Reference URLs and file identifiers are not displayed. Provider raw responses, secrets, credentials, internal access paths, health scores, procurement costs, and the complete execution plan remain private.
+
+Original content and results are retained until 7 days after Job creation; summary logs remain available until day 90. Existing results may have an earlier expiry and are not revived by this policy. At expiry, access stops and background cleanup removes eligible data; an expired result does not by itself confirm physical deletion. Independent accounting records remain. Logs are not a permanent asset library; download results you need to retain.

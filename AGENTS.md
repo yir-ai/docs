@@ -1,22 +1,12 @@
-# AGENTS.md - YIR public docs
+# Yir developer documentation
 
-始终用中文回答，但 `docs-public` 面向公开开发者文档，正文默认使用英文；只有 `zh-Hans/` 下的页面使用简体中文。
+始终中文回答。公开正文默认英文，简体中文对应页面位于 `docs/zh/`。
 
-本目录只能包含可公开内容。不要写入内部密钥、生产配置、供应商折扣、非公开成本、账号池、内部排障日志、用户数据、Header/Cookie/token、完整 prompt 或任何无法公开的运营策略。
-
-Mintlify 只消费发布仓库中的文档产物；本目录是主仓库内的公开文档源。修改 API、鉴权、错误码、异步任务、callback、provider/source 兼容行为或 SDK 行为时，同步更新这里。
-
-OpenAPI 规则：
-- `openapi-src/` 是可人工维护的源。
-- `openapi/` 是 Mintlify 读取的单文件产物。
-- 路径、operationId、schema 字段名和状态码必须与代码契约一致。
-- 多语言只翻译人读文本，不改变结构字段。
-- 不要使用外部 `$ref` 指向本目录外文件。
-
-本地命令：
-- `pnpm install`
-- `pnpm run dev`
-- `pnpm run validate`
-- `pnpm run build`
-
-同步到独立 docs 仓库时使用根目录脚本 `scripts/docs/sync-public-docs.ps1`，目标目录必须由调用者显式传入。
+- 本仓库是开发者文档的唯一编辑源，使用 Blume 静态构建。
+- 使用 pnpm；不自动启动开发服务。需要预览时由用户运行 VS Code 的 Docs task。
+- 不加入内部凭据、用户数据、真实请求记录或非公开运营信息。
+- `openapi/` 是经过审查的公共合同快照。维护者通过 `pnpm sync:openapi <source-directory>` 导入；不要手工修改生成字段。
+- 外部贡献者无需访问其他仓库即可安装、检查和构建。
+- 更新指南时保持中英文一致；合同问题通过 Issue 报告，由维护者修正上游后同步。
+- 验证使用 `pnpm check`、`pnpm publish:check`；生产构建和 Linux Origin smoke 由 CI 执行。
+- PR 检查不使用生产凭据，生产部署必须另获明确授权。

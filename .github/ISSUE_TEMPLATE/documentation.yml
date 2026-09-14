@@ -1,0 +1,21 @@
+name: Documentation correction
+description: Report incorrect or unclear documentation / 报告文档错误
+title: "[Docs] "
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page URL / 页面链接
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / 错误说明
+      description: Include the relevant text. Do not include API keys or private data.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Suggested correction / 建议修改

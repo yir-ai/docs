@@ -1,0 +1,19 @@
+---
+title: 排错与支持边界
+description: 在不泄露密钥、Prompt 或素材的前提下排查认证、提交和查询问题。
+---
+
+<Accordion>
+  <AccordionItem title="Gateway 返回 401">
+    确认请求使用 `Authorization: Bearer ...`，Secret 没有被轮转，并且排查时没有打印完整 Key。
+  </AccordionItem>
+  <AccordionItem title="提交响应超时">
+    使用相同幂等键和完全相同的数据重试。新幂等键可能创建第二个逻辑任务和第二条计费事实。
+  </AccordionItem>
+  <AccordionItem title="任务看起来很慢">
+    继续查询同一个任务 ID。慢或未知不是已确认失败，不能据此提交替代任务。
+  </AccordionItem>
+  <AccordionItem title="可以给支持人员什么信息？">
+    提供 Yir 任务 ID、路由、大致 UTC 时间、HTTP 状态、公错误码和安全的 Key 前缀。不要提供完整 Key、Prompt、素材或 Provider 原始响应。
+  </AccordionItem>
+</Accordion>

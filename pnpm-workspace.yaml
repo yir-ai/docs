@@ -1,4 +1,6 @@
-allowBuilds:
-  keytar: true
-  puppeteer: true
-  sharp: true
+overrides:
+  react: 19.2.3
+  react-dom: 19.2.3
+
+patchedDependencies:
+  blume@1.5.1: patches/blume@1.5.1.patch

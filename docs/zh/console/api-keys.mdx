@@ -1,0 +1,24 @@
+---
+title: API Keys
+description: 创建、保护和轮转用于认证 Yir API 请求的逻辑 Key。
+---
+
+Yir API Key 通过 `Authorization: Bearer <YIR_API_KEY>` 认证请求。它不是上游服务商 Credential，不能放入浏览器代码或公开代码仓库。
+
+## 默认 Key
+
+每个账户都有一条默认逻辑 Key。它不能撤销，但可以轮转 Secret。成功轮转会保留逻辑 Key 身份、名称、默认标记、RoutingProfile 绑定和用量归属，同时立即使旧 Secret 失效。
+
+## 其他 Key
+
+为需要独立轮转、用量归属或撤销能力的应用和环境创建不同 Key。新 Secret 只应在签发后立即保存到服务端 Secret Manager。
+
+## 路由和网络限制
+
+Key 不再提供 RoutingProfile 绑定入口，既有绑定及限制保留。所有活动 Key 仍可提交合法的请求级路由覆盖，用 `routing.only` 收窄渠道范围，不指定顺序。
+
+可选 IP 白名单用于限制 Key 的调用来源。启用前应核对实际出口地址，避免阻断依赖该 Key 的应用。
+
+## Secret 操作
+
+回显和轮转需要已认证的 Console Session。不再需要的非默认 Key 应及时撤销。怀疑泄露时，应立即轮转或撤销受影响的 Yir API Key，而不是修改服务商 Credential。

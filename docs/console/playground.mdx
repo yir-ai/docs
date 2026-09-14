@@ -1,0 +1,34 @@
+---
+title: Playground
+description: Quote, submit, and inspect real image and video jobs without exposing an API key secret in the browser.
+---
+
+Playground is the zero-code debugging surface for Yir image and video generation. Quotes, file upload plans and completion, generation submissions, and job queries call the Standard Gateway API through the Web server.
+
+## Before you generate
+
+Choose a model, output specification, and one of your logical Yir API Keys. Console uses the selected key by ID; the browser never receives its secret.
+
+Model options come from the public parameter contract generated from Go. They do not guarantee available supply; the quote checks your complete request. The server retrieves the current secret for each request, and Gateway enforces revocation, rotation, and IP restrictions. Playground requests originate from the Web server, so your allowlist must permit its actual outbound address. Code examples run from your environment and may use a different address.
+
+Playground shows a safe quote before submission. The quote is an estimate based on the current request and eligible supply. It is not a completed job or a promise that every planned route will be submitted.
+
+## Routing controls
+
+Playground uses the Routing Profile bound to the selected API Key. Change that profile on the API Keys page. See the Standard API documentation for request-level routing options.
+
+You cannot select an AccessProvider, credential, internal access path, score, or arbitrary attempt count.
+
+## After submission
+
+Submission creates a real Yir job and can incur real charges. Result cards poll the public Job endpoint and show the results and charges it provides. Open Logs for detailed provider and attempt records. After an uncertain submission response, retrying the same unchanged request reuses its idempotency key. Changing the request or submitting again after receiving a Job creates a new task.
+
+Recent records are restored from task references saved in this browser and queried with their original Key. Switching browsers or clearing local records does not delete server-side tasks; the complete history remains in Logs.
+
+Before submission, Playground saves the draft and idempotency key in this tab's session storage, without API secrets or file contents. Reloading the tab restores the latest unconfirmed draft belonging to your Keys, but never submits automatically. Retrying the same request and Key reuses the saved idempotency key. Closing the tab or clearing session storage removes this recovery data; check Logs before creating a replacement task. Submission is blocked if the browser cannot save the recovery record.
+
+Quote and polling errors are displayed using standard Yir error messages. A polling failure leaves the last known Job status unchanged and polling continues; it does not mean generation failed.
+
+Retrying an unconfirmed, unchanged submission does not require a fresh quote: the original Job may already hold the balance needed for one. Gateway still checks the Key and handles the repeated idempotency key. A changed request requires a new quote.
+
+Results are retained until 7 days after Job creation. Existing results may expire earlier. Download anything you need before the retention window ends.

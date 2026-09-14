@@ -1,0 +1,54 @@
+---
+title: 图片生成
+description: 使用统一参数、多个参考图与请求级报价提交图片任务。
+---
+
+本文对应正在集成的新合同。[客户端指南](/zh/docs/guides/clients)说明 SDK 状态，[快速开始](/zh/docs/getting-started/quickstart)演示 REST 报价、提交和结果保存。
+
+## 构造同一份需求
+
+模型参数由 SDK 随包静态提供，不需要生成前远程下载规则。动态模型字符串和参数对象会在发出请求前校验；Gateway 仍检查当前合同与执行资格。
+
+| 字段 | 含义 |
+| --- | --- |
+| `model` | Yir 模型 ID |
+| `input` | 文本或带参考图的输入 |
+| `parameters` | 模型支持的参数，例如分辨率、画幅和数量 |
+| `routing` | 可选白名单、渠道变体、偏好与恢复开关 |
+
+`resolution`、`aspect_ratio`、`n` 放在 `parameters` 内。单个请求只生成一个输出；多输出由应用逐槽位执行，各槽位使用自己的持久化幂等键与预算。
+
+## 参考图
+
+```json
+{
+  "model": "openai/gpt-image-2",
+  "input": {
+    "type": "image",
+    "prompt": "Change the background to a calm blue sky",
+    "references": [
+      { "role": "reference_image", "url": "https://example.com/reference.png" }
+    ]
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  },
+  "routing": { "fallback": true }
+}
+```
+
+使用你自己的可访问 HTTPS 素材地址。更多参考图按顺序追加到 `input.references`；可接受数量取决于该模型的静态合同，不再限定统一只能一张。
+
+已上传的素材使用 `{ "role": "reference_image", "file_id": "file_11111111-1111-4111-8111-111111111111" }`，将示例 ID 替换为 Files API 返回的就绪 ID。每项只能有 URL 或 File ID 之一。普通图片输入中所有引用使用 `reference_image`，不能混入视频首尾帧角色。上传流程见[生产集成](/zh/docs/guides/production-integration)。
+
+## 报价、授权与恢复
+
+把上述需求提交到 `POST /v1/images/quotes`，读取 `primary / max / official`。报价不创建 Job、不冻结资金。三种价格各自可能不可用，不能把 null 当作零；冻结上限是独立的 `single_attempt_upper_bound`。
+
+用户确认后，将需求、授权金额和业务幂等键一起保存。向 `POST /v1/images/generations` 发送同一需求，并增加 `max_cost`；若需要回调，再增加 `webhook_url`。报价不接收这两个提交字段。参考图、参数、输入顺序和路由在两次请求中保持一致。
+
+价格在提交和恢复时重新检查，不会自动突破原授权。遇到不明网络结果时使用原请求、原金额和原键恢复；已取得 Job ID 则继续查询该 Job。请求内容发生变化时，应建立新的逻辑任务，不能覆盖已提交任务。
+
+默认恢复最多尝试两个不同的非官方渠道与一个官方渠道；官方资格、规格和预算均须满足。失败不向客户收费；停止请求允许当前尝试成功后交付。参见[计费](/zh/docs/concepts/billing)和[任务生命周期](/zh/docs/concepts/task-lifecycle)。
