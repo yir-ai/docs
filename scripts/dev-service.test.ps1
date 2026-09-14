@@ -12,6 +12,19 @@ function Assert-Throws([scriptblock]$Body, [string]$Pattern) {
     throw 'Expected operation to fail.'
 }
 
+function Get-Command {
+    param($Name, $CommandType, $ErrorAction)
+    @(
+        [pscustomobject]@{ Source = 'C:\Program Files\nodejs\node.exe' },
+        [pscustomobject]@{ Source = 'C:\nvm4w\nodejs\node.exe' }
+    )
+}
+$startInfo = New-DocsStartInfo
+Assert-Equal $startInfo.FileName 'C:\Program Files\nodejs\node.exe'
+Assert-Equal $startInfo.WorkingDirectory $script:DocsRoot
+Assert-Equal $startInfo.Arguments ('"' + $script:BlumePath + '" dev --port 40084 --host 0.0.0.0')
+Remove-Item Function:\Get-Command
+
 $script:Fixture = @{}
 function Get-CimInstance {
     param($ClassName, $Filter, $ErrorAction)

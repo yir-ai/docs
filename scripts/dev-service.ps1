@@ -68,6 +68,20 @@ function Restart-Docs {
     throw 'Docs did not recover within 60 seconds. Check the original VS Code terminal.'
 }
 
+function New-DocsStartInfo {
+    $nodeCommand = Get-Command node -CommandType Application -ErrorAction Stop | Select-Object -First 1
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $nodeCommand.Source
+    $startInfo.Arguments = '"' + $script:BlumePath + '" dev --port 40084 --host 0.0.0.0'
+    $startInfo.WorkingDirectory = $script:DocsRoot
+    $startInfo.UseShellExecute = $false
+    $startInfo.EnvironmentVariables.Remove('VSCODE_INSPECTOR_OPTIONS')
+    if ($startInfo.EnvironmentVariables['NODE_OPTIONS'] -like '*ms-vscode.js-debug*') {
+        $startInfo.EnvironmentVariables.Remove('NODE_OPTIONS')
+    }
+    return $startInfo
+}
+
 function Watch-Docs {
     if ($DryRun) { throw 'DryRun is supported only for Restart.' }
     if (-not (Test-Path -LiteralPath $script:BlumePath)) { throw 'Run pnpm install --frozen-lockfile first.' }
@@ -75,15 +89,7 @@ function Watch-Docs {
     try {
         while ($true) {
             if (@(Get-DocsListeners).Count -gt 0) { throw 'Port 40084 is already occupied; refusing to start another Docs service.' }
-            $startInfo = [Diagnostics.ProcessStartInfo]::new()
-            $startInfo.FileName = (Get-Command node -CommandType Application).Source
-            $startInfo.Arguments = '"' + $script:BlumePath + '" dev --port 40084 --host 0.0.0.0'
-            $startInfo.WorkingDirectory = $script:DocsRoot
-            $startInfo.UseShellExecute = $false
-            $startInfo.EnvironmentVariables.Remove('VSCODE_INSPECTOR_OPTIONS')
-            if ($startInfo.EnvironmentVariables['NODE_OPTIONS'] -like '*ms-vscode.js-debug*') {
-                $startInfo.EnvironmentVariables.Remove('NODE_OPTIONS')
-            }
+            $startInfo = New-DocsStartInfo
             # Inherit the task console directly; no extra window, log wrapper, or detached server.
             $child = [Diagnostics.Process]::Start($startInfo)
             Write-Host "[docs-dev] Started PID=$($child.Id). Stop this VS Code task to stop Docs."
