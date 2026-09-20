@@ -19,62 +19,20 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm publish:check
 pnpm build
-pnpm release:verify
 ```
 
-Start preview explicitly with the VS Code **Dev: Docs (Blume)** task, or
-`pnpm exec blume dev --port 40084 --host 0.0.0.0`.
-Tests build a disposable copy in `.tmp/`, leaving the development runtime untouched.
+Start local development explicitly with `pnpm dev`, or preview a completed build
+with `pnpm preview`. Tests build a disposable copy in `.tmp/`.
 
-On Windows, the VS Code task keeps Docs under a watcher in the original terminal.
-After starting that task once, maintainers and agents can inspect or restart it:
+## Public contracts
 
-```powershell
-pwsh -File scripts/dev-service.ps1 -Action Status
-pwsh -File scripts/dev-service.ps1 -Action Restart -DryRun
-pwsh -File scripts/dev-service.ps1 -Action Restart
-```
+`openapi/` contains reviewed, generated public API and model contract snapshots.
+Do not edit generated fields by hand. Report contract issues so maintainers can
+correct the source and submit reviewed updates.
 
-Restart verifies the listener belongs to this repository's watcher and waits for
-its replacement on port 40084. It refuses unmanaged listeners or an absent service.
-Stop the VS Code task to stop the watcher and its child processes.
-On other platforms, use the explicit Blume command above.
+## Static output
 
-## API contracts
-
-`openapi/` contains reviewed public OpenAPI and model contract snapshots. Builds use
-these committed files. Do not edit generated fields by hand. Maintainers import
-reviewed upstream exports with:
-
-```sh
-pnpm sync:openapi /path/to/reviewed-contracts
-pnpm publish:check
-```
-
-The source directory must contain `standard-openapi.json` and
-`standard-model-contracts.json`. Submit the changes as a pull request.
-The upstream project owns contract generation and source consistency checks.
-Only explicitly registered operations appear in the reference.
-
-## Static release
-
-CI checks both languages, public-content contracts, static search, and Linux Origin
-installation and rollback. It uploads `yir-docs-origin-<git-sha>` containing `dist`.
-The artifact contains `/docs/*` and `/zh/docs/*`; `.yir-docs-release.json` records
-the mounts. Other website paths remain outside this artifact.
-
-Generic Nginx mount examples are in `deploy/nginx/`. On an authorized Linux origin:
-
-```sh
-node scripts/origin-release.mjs verify --artifact /path/to/artifact
-node scripts/origin-release.mjs install --artifact /path/to/artifact --release-root /srv/yir/docs --release-id <git-sha>
-node scripts/origin-release.mjs status --release-root /srv/yir/docs
-node scripts/origin-release.mjs rollback --release-root /srv/yir/docs
-```
-
-Installation uses immutable releases and an atomic symlink switch. These commands
-do not upload files or change Nginx. Production deployment requires separate approval;
-merging a pull request does not deploy. CI has no production credentials.
-
-The site has no request runtime, browser API playground, or AI chat. Examples use
-server-side clients calling `https://gateway.yir.ai`.
+`pnpm build` produces the English and Chinese static website in `dist/`.
+CI checks public repository boundaries, both languages, links and search.
+The build contains only public website content and can be hosted independently.
+Production operations are maintained separately; merging a change does not deploy it.

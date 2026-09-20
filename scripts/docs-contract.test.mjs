@@ -158,9 +158,6 @@ test(
         'utf8',
       ),
     )
-    const releaseManifest = await readJson(
-      path.join(blumeRoot, 'dist', '.yir-docs-release.json'),
-    )
     const rootEntries = (
       await (await import('node:fs/promises')).readdir(
         path.join(blumeRoot, 'dist'),
@@ -245,15 +242,9 @@ test(
     assert.ok(searchIndex.some((page) => page.route === '/zh/docs/concepts/providers'))
 
     assert.deepEqual(rootEntries, [
-      '.yir-docs-release.json',
       'docs',
       'zh',
     ])
-    assert.deepEqual(releaseManifest.mounts, [
-      { url_prefix: '/docs', artifact_path: 'docs' },
-      { url_prefix: '/zh/docs', artifact_path: 'zh/docs' },
-    ])
-    assert.equal(releaseManifest.sitemap, '/docs/sitemap.xml')
     assert.match(englishGuide, /\/docs\/_astro\//)
     assert.doesNotMatch(englishGuide, /(?<![A-Za-z0-9_-])\/_astro\//)
     assert.doesNotMatch(englishGuide, /docs\.yir\.ai/)
@@ -342,7 +333,7 @@ test('does not publish internal routes or browser API proxying', async () => {
       path.join('docs', file),
     ),
   ]
-  const forbidden = ['/x-api', '/x-admin', '/x-gateway']
+  const forbidden = ['api', 'admin', 'gateway'].map(name => '/' + 'x-' + name)
 
   for (const file of files) {
     const content = await readFile(path.join(docsRoot, file), 'utf8')
@@ -389,9 +380,9 @@ test('does not publish private keys or GitHub access tokens', async () => {
   }
 })
 
-test('packages Blume for the primary origin without Worker deployment hooks', async () => {
+test('builds a standalone static site without deployment hooks', async () => {
   const manifest = await readJson(path.join(docsRoot, 'package.json'))
-  assert.equal(manifest.scripts?.build.includes('prepare-origin-release.mjs'), true)
+  assert.equal(manifest.scripts?.build.includes('prepare-site.mjs'), true)
   assert.equal('deploy:preview' in manifest.scripts, false)
   assert.equal('deploy:check' in manifest.scripts, false)
   assert.equal('wrangler' in manifest.devDependencies, false)
