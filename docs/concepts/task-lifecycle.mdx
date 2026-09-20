@@ -24,12 +24,19 @@ A slow request, transport timeout, or temporarily unknown provider outcome is no
   A v1 result is retained until 7 days after Job creation; existing results may expire earlier. While retained, `result.availability` is `available` and `result.files` contains download links. At expiry, the Job remains `succeeded` but returns `result.availability: "expired"` without files. Expiry does not itself confirm physical deletion. Summary logs are available until day 90, after which Job queries return not found. Independent accounting records remain. Persist results you need; Yir is not a permanent asset library.
 </Panel>
 
+## Status polling and terminal details
+
+Regular polling queries `GET /v1/jobs/{id}/status`. It returns a minimal projection containing only `id`, `status`, `error`, and optional `cancellation`, without loading attempts, billing details, or result assets. The six public states remain unchanged.
+
+A status summary is not the full job detail. When the status reaches a terminal state (`succeeded`, `failed`, or `cancelled`), the client fetches the complete snapshot via `GET /v1/jobs/{id}` to obtain delivered files (`result`), billing details (`billing`), and usage metrics (`usage`).
+
+In contrast to polling summaries, webhook notifications always deliver the complete terminal Job snapshot directly, containing available results on success along with billing details.
 
 ## Stop requests and local timeouts
 
 Request a remote stop with `POST /v1/jobs/{id}/cancel`. Before execution authorization, the Job can become `cancelled`. After authorization, `cancellation.status: "stop_requested"` means later attempts are stopped; it does not mean the running attempt has failed. Display “Stop requested” and continue querying. If the current attempt succeeds, Yir still delivers the result and settles its charge.
 
-An AbortSignal, context deadline, disconnected browser, or local polling deadline does not send a remote cancellation. Keep the Job ID and resume querying later. Do not refund credits merely because your local wait ended.
+Implement bounded polling with explicit intervals and an overall application timeout. An AbortSignal, context deadline, disconnected browser, or local polling timeout only halts local waiting. It does not send a remote `POST /v1/jobs/{id}/cancel`, nor does it authorize creating a new submit request. Keep the Job ID and resume querying later. Do not refund credits merely because your local wait ended.
 
 ## Terminal customer billing
 
@@ -37,4 +44,4 @@ For the new contract under integration, the terminal Job and its customer billin
 
 A temporarily unknown upstream outcome remains active. If Yir ultimately closes a long-unknown attempt as a failed Job, customer billing stays final at zero; late upstream costs are absorbed by Yir and do not reopen the customer bill. This differs from a user's stop request while an attempt is still active.
 
-Applications must process the same terminal fact idempotently whether it arrives through polling or a webhook. In Pilio, undelivered slots refund their original frozen credits once. Save delivered files before their retention expires. See [billing](/docs/concepts/billing).
+Applications must process the same terminal fact idempotently whether it arrives through polling or a webhook. Polling queries (`GET /v1/jobs/{id}`) and webhook deliveries may race concurrently; business systems must ensure that terminal settlement and credit updates are applied exactly once per Job ID. If a webhook delivery is delayed or lost, querying `GET /v1/jobs/{id}` within the retention window safely recovers the terminal state. In Pilio, undelivered slots refund their original frozen credits once. Save delivered files before their retention expires. See [billing](/docs/concepts/billing).

@@ -35,6 +35,7 @@ const reviewedOperations = new Map([
   ['/v1/files/{id}/content', new Set(['get'])],
   ['/v1/models/{creator}/{model}', new Set(['get'])],
   ['/v1/jobs/{id}', new Set(['get'])],
+  ['/v1/jobs/{id}/status', new Set(['get'])],
   ['/v1/jobs/{id}/cancel', new Set(['post'])],
 ])
 
