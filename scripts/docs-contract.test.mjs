@@ -58,6 +58,7 @@ const reviewedOperations = [
   'GET /v1/files/{id}/content',
   'GET /v1/models/{creator}/{model}',
   'GET /v1/jobs/{id}',
+  'GET /v1/jobs/{id}/status',
   'POST /v1/jobs/{id}/cancel',
 ]
 
@@ -425,6 +426,53 @@ test('teaches safe Bearer authentication and idempotent retries', async () => {
   assert.match(quickstart, /"model": "openai\/gpt-image-2"/)
   assert.match(quickstart, /gateway\.yir\.ai\/v1\/jobs\/\$YIR_JOB_ID/)
   assert.equal(/\/kie\/|\/apimart\//i.test(quickstart), false)
+})
+
+test('exposes reviewed lightweight job status operation in both OpenAPI documents without detail leakage', async () => {
+  const [publicOpenApi, referenceOpenApi] = await Promise.all([
+    readJson(publicOpenApiPath),
+    readJson(referenceOpenApiPath),
+  ])
+
+  for (const [name, openapi] of [
+    ['gateway-openapi.json', publicOpenApi],
+    ['gateway-openapi.reference.json', referenceOpenApi],
+  ]) {
+    const statusItem = openapi.paths?.['/v1/jobs/{id}/status']
+    assert.ok(statusItem, `${name} must include /v1/jobs/{id}/status path`)
+    assert.ok(statusItem.get, `${name} must define GET on /v1/jobs/{id}/status`)
+
+    const getOp = statusItem.get
+    assert.deepEqual(getOp.security, [{ BearerAuth: [] }], `${name} status operation must require BearerAuth`)
+
+    const response200 = getOp.responses?.['200']
+    assert.ok(response200, `${name} must define 200 response for status GET`)
+    const schemaRef = response200.content?.['application/json']?.schema?.$ref
+    assert.equal(
+      schemaRef,
+      '#/components/schemas/JobStatusResponse',
+      `${name} 200 response schema must reference JobStatusResponse`,
+    )
+
+    const statusSchema = openapi.components?.schemas?.JobStatusResponse
+    assert.ok(statusSchema, `${name} must define components.schemas.JobStatusResponse`)
+    assert.equal(statusSchema.type, 'object')
+    assert.equal(statusSchema.additionalProperties, false)
+
+    const requiredFields = [...(statusSchema.required ?? [])].sort()
+    assert.deepEqual(
+      requiredFields,
+      ['error', 'id', 'status'],
+      `${name} JobStatusResponse required fields must be id, status, error`,
+    )
+
+    const propertyKeys = Object.keys(statusSchema.properties ?? {}).sort()
+    assert.deepEqual(
+      propertyKeys,
+      ['cancellation', 'error', 'id', 'status'],
+      `${name} JobStatusResponse properties must strictly be id, status, error, cancellation`,
+    )
+  }
 })
 
 async function readJson(file) {

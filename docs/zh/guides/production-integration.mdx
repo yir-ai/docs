@@ -31,8 +31,8 @@ Yir v1 只有一个公开执行合同：Standard API。Provider 特有的请求�
   <Step title="保存返回的 Job ID">
     在启动后台轮询前，把响应 `id` 与本地请求记录一起持久化。
   </Step>
-  <Step title="轮询到终态">
-    使用有界间隔和应用总期限；临时网络错误后继续查询同一个 Job。
+  <Step title="轮询状态至终态">
+    使用有界间隔和应用总期限轮询 `GET /v1/jobs/{id}/status`。到达终态后，调用 `GET /v1/jobs/{id}` 获取包含可用结果与计费明细的完整 Job。
   </Step>
 </Steps>
 
@@ -110,26 +110,36 @@ sequenceDiagram
   App->>Yir: Standard 提交 + Bearer Key + 幂等键
   Yir-->>App: 稳定 Job ID
   loop 有界轮询
+    App->>Yir: GET /v1/jobs/{id}/status
+    Yir->>Job: 读取轻量状态
+    Job-->>Yir: 活动或终态摘要
+    Yir-->>App: JobStatusResponse (id, status, error)
+  end
+  opt 到达终态后
     App->>Yir: GET /v1/jobs/{id}
-    Yir->>Job: 读取当前事实
-    Job-->>Yir: 活动状态或终态
-    Yir-->>App: Standard Job 响应
+    Yir->>Job: 读取完整快照
+    Job-->>Yir: 可用结果与计费明细
+    Yir-->>App: 完整终态 Job
   end
 ```
 
 ## 轮询与恢复
 
+普通轮询查询 `GET /v1/jobs/{id}/status`，它返回轻量状态摘要（`id`、`status`、`error` 以及可选 `cancellation`）。六种公开状态保持不变。状态摘要不是完整任务详情；当状态进入终态（`succeeded`、`failed`、`cancelled`）时，客户端再调用 `GET /v1/jobs/{id}` 获取完整交付结果与计费明细。
+
 | 情况 | 安全处理方式 |
 | --- | --- |
-| 查询返回活动状态 | 加入抖动后，继续查询同一个 Job ID。 |
-| 查询请求超时 | 把结果视为未知，并重试查询。 |
+| 状态查询返回活动状态（`queued`、`running`、`delivering`） | 加入抖动后，继续查询 `GET /v1/jobs/{id}/status`。 |
+| 状态查询请求超时 | 把结果视为未知，并重试状态查询。 |
 | 提交响应超时 | 使用相同幂等键和完全相同的数据重试提交。 |
-| 返回终态失败 | 停止轮询，处理稳定的公开错误。 |
-| 返回终态成功 | 在结果到期前保存，默认截止任务创建后第 7 天；已有结果可能更早到期。 |
+| 状态查询返回终态失败（`failed`） | 停止轮询，调用 `GET /v1/jobs/{id}` 获取稳定公开错误与计费明细，并处理错误。 |
+| 状态查询返回终态取消（`cancelled`） | 停止轮询，调用 `GET /v1/jobs/{id}` 获取取消事实与计费明细（注意 `error` 可能为 `null`）。 |
+| 状态查询返回终态成功（`succeeded`） | 调用 `GET /v1/jobs/{id}` 获取可用结果文件和计费明细，并在结果到期前保存（默认 7 天）。 |
+| 终态详情请求（`GET /v1/jobs/{id}`）失败或超时 | 仅重试同一个 Job 的详情请求；绝不发起新 Submit 提交，也不用状态摘要替代业务结算。若遇到 401、403 或 404，应先解决鉴权、资源归属或确认保留期是否过期，避免无限重试。 |
 
 <Accordion>
   <AccordionItem title="应该多快轮询？" icon="timer">
-    从保守间隔开始，加入抖动，并在应用侧设置总期限。轮询超时不是任务失败事实。
+    采用有界限次、有间隔并加入抖动的轮询策略，在应用侧设置总期限。轮询超时或本地中止仅停止本地等待，不向远端发送取消，也不发起新的提交。
   </AccordionItem>
   <AccordionItem title="Job 变慢时要不要重新提交？" icon="circle-slash">
     不要。继续查询现有 Job ID。除非是相同数据和相同幂等键的重试，否则会成为第二个逻辑请求。
@@ -177,8 +187,12 @@ sequenceDiagram
 
 ## 用户回调
 
-可在生成请求中提供 `webhook_url`；它接收 Yir 终态 Job，不是 Provider 原始响应。使用独立 Webhook Signing Secret 验证 `Yir-Webhook-Signature`，不使用 Yir API Key。
+可在生成请求中提供 `webhook_url`；它接收 Yir 终态 Job，不是 Provider 原始响应。与轮询的轻量状态摘要不同，Webhook 直接投递完整终态 Job，成功时包含可用结果与计费明细。使用独立 Webhook Signing Secret 验证 `Yir-Webhook-Signature`，不使用 Yir API Key。
 
-对 `Yir-Webhook-Timestamp + "." + Yir-Webhook-Id + "." + raw_request_body` 计算 HMAC-SHA256，Base64 编码后与签名中的 `v1=` 值进行常量时间比较。先检查时间窗口和签名，再解析 JSON；按事件 ID 去重，成功处理返回 2xx。投递可能重复或延迟，仍保留 GET Job 查询以恢复漏回调。
+对 `Yir-Webhook-Timestamp + "." + Yir-Webhook-Id + "." + raw_request_body` 计算 HMAC-SHA256，Base64 编码后与签名中的 `v1=` 值进行常量时间比较。在解析 JSON 之前，必须先基于原始请求字节（raw body）校验时间窗口与签名。
 
-结果地址会过期，及时保存需要长期保留的结果；回调签名、源文件地址和 Secret 不写入普通日志。
+分别说明两层去重与幂等机制：
+1. **Webhook 事件去重**：使用稳定的 `Yir-Webhook-Id`（事件 ID）记录已处理消息，防止网络重发或重试，成功处理后返回 2xx。
+2. **基于 Job ID 的业务终态幂等**：由于 GET 轮询（`GET /v1/jobs/{id}`）与 Webhook 回调可能并发到达产生竞态，业务结算（资产转存、积分结算、扣退费）必须按 `job.id` 保证幂等执行，严禁重复结算。
+
+投递可能重复或延迟，仍保留 `GET /v1/jobs/{id}` 查询机制，以便在回调丢失或延迟时在保留期内主动恢复终态。结果地址会过期，及时保存需要长期保留的结果；回调签名、源文件地址和 Secret 不写入普通日志。

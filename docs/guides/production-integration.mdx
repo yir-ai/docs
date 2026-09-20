@@ -31,8 +31,8 @@ Yir v1 has one public execution contract: the Standard API. Provider-specific re
   <Step title="Persist the returned Job ID">
     Store the response `id` with your local request record before starting background polling.
   </Step>
-  <Step title="Poll to a terminal state">
-    Use a bounded interval and an overall application deadline. Continue querying the same Job after transient transport failures.
+  <Step title="Poll status to a terminal state">
+    Poll `GET /v1/jobs/{id}/status` with a bounded interval and an overall deadline. When a terminal state is reached, fetch the complete Job via `GET /v1/jobs/{id}` for available results and billing details.
   </Step>
 </Steps>
 
@@ -110,26 +110,36 @@ sequenceDiagram
   App->>Yir: Standard submit + Bearer key + idempotency key
   Yir-->>App: Stable Job ID
   loop bounded polling
+    App->>Yir: GET /v1/jobs/{id}/status
+    Yir->>Job: Read lightweight status
+    Job-->>Yir: Active or terminal summary
+    Yir-->>App: JobStatusResponse (id, status, error)
+  end
+  opt on terminal state
     App->>Yir: GET /v1/jobs/{id}
-    Yir->>Job: Read current facts
-    Job-->>Yir: Active or terminal state
-    Yir-->>App: Standard Job response
+    Yir->>Job: Read complete snapshot
+    Job-->>Yir: Available results & billing details
+    Yir-->>App: Complete terminal Job
   end
 ```
 
 ## Polling and recovery
 
+Ordinary polling queries `GET /v1/jobs/{id}/status`, which returns a lightweight status summary (`id`, `status`, `error`, and optional `cancellation`). The six public states remain unchanged. Because the status summary is not the full job detail, reaching a terminal state (`succeeded`, `failed`, or `cancelled`) prompts a follow-up `GET /v1/jobs/{id}` query to obtain complete result files and billing details.
+
 | Situation | Safe client behavior |
 | --- | --- |
-| Query returns an active status | Wait with jitter, then query the same Job ID again. |
-| Query request times out | Treat the outcome as unknown and retry the query. |
+| Status query returns an active status (`queued`, `running`, `delivering`) | Wait with interval jitter, then query `GET /v1/jobs/{id}/status` again. |
+| Status query request times out | Treat the outcome as unknown and retry the status query. |
 | Submit response times out | Retry the identical submit with the same idempotency key. |
-| Terminal failure is returned | Stop polling and handle the stable public error. |
-| Terminal success is returned | Persist the result before expiry, normally 7 days after Job creation; existing results may expire earlier. |
+| Status query returns terminal `failed` | Stop polling, fetch `GET /v1/jobs/{id}` for stable error and billing details, and handle the error. |
+| Status query returns terminal `cancelled` | Stop polling, fetch `GET /v1/jobs/{id}` for cancellation facts and billing details (note that `error` may be `null`). |
+| Status query returns terminal `succeeded` | Fetch `GET /v1/jobs/{id}` for delivered result files and billing details, and persist files before expiry (normally 7 days). |
+| Terminal detail query (`GET /v1/jobs/{id}`) fails or times out | Retry only the detail query for the same Job ID; do not submit a new job and do not settle from a status summary. For 401, 403, or 404, resolve credentials, resource ownership, or retention window expiry first rather than retrying indefinitely. |
 
 <Accordion>
   <AccordionItem title="How fast should I poll?" icon="timer">
-    Start conservatively, add jitter, and enforce an overall deadline in your application. A polling timeout is not proof that generation failed.
+    Use bounded polling with explicit intervals, jitter, and an application-level overall deadline. A polling timeout or local abort only halts local waiting; it does not send a remote cancel and does not authorize a new submission.
   </AccordionItem>
   <AccordionItem title="Should I replace a slow task?" icon="circle-slash">
     No. Query the existing Job ID. A second submit is a second logical request unless it is an idempotent retry of identical data.
@@ -177,8 +187,12 @@ Files are temporary, and querying their state does not extend retention. Invalid
 
 ## User callbacks
 
-Set `webhook_url` on a generation request to receive the terminal Yir Job, rather than a raw Provider response. Verify `Yir-Webhook-Signature` with the independent Webhook Signing Secret, not your Yir API key.
+Set `webhook_url` on a generation request to receive the terminal Yir Job, rather than a raw Provider response. Unlike lightweight polling summaries, webhooks always deliver the complete terminal Job directly, containing available result files on success along with billing details. Verify `Yir-Webhook-Signature` with the independent Webhook Signing Secret, not your Yir API key.
 
-Compute HMAC-SHA256 over `Yir-Webhook-Timestamp + "." + Yir-Webhook-Id + "." + raw_request_body`, encode it as Base64 and compare it with the `v1=` signature value in constant time. Check the timestamp window and signature before parsing JSON. Deduplicate by event ID and return 2xx after successful handling. Keep GET Job polling available to recover from delayed or missing callbacks.
+Compute HMAC-SHA256 over `Yir-Webhook-Timestamp + "." + Yir-Webhook-Id + "." + raw_request_body`, encode it as Base64 and compare it with the `v1=` signature value in constant time. Always check the timestamp window and verify signatures over original raw request bytes before parsing JSON.
 
-Save any results you need before their retention window ends. Do not log callback signatures, source file URLs or secrets.
+Implement deduplication and idempotency on two distinct levels:
+1. **Webhook event deduplication**: Deduplicate incoming deliveries using the stable `Yir-Webhook-Id` header to protect against network retries or replays, and acknowledge with 2xx once handled.
+2. **Business terminal idempotency by Job ID**: Because polling queries (`GET /v1/jobs/{id}`) and webhook deliveries may race concurrently, business actions (saving assets, debiting or refunding credits, finalizing billing) must be idempotent keyed by `job.id` so that settlement is applied exactly once.
+
+Delayed or lost webhook deliveries can be recovered within the retention window by polling `GET /v1/jobs/{id}`. Save any results you need before their retention window ends. Do not log callback signatures, source file URLs or secrets.

@@ -31,7 +31,7 @@ Parameter rules ship statically with the SDK. Dynamic model IDs, operations, par
 | Inputs | Files create, get, complete, multipart upload helpers | Files and upload helpers |
 | Webhooks | Verify original bytes | Verify original bytes |
 
-Python retains its historical implementation. Use Go, TypeScript, or REST for the new contract.
+Python retains its historical implementation and is not recommended as a new client; use Go, TypeScript, or REST for new projects. If maintaining historical Python scripts that use `on_poll` or `last_status`, note that standard library `urllib` cannot enforce strict wall-clock deadline interruptions.
 
 ## Persist authorization before submission
 
@@ -65,6 +65,17 @@ The demand has the shape `{ model, input, parameters, routing }`. For example, i
 Quotes neither reserve funds nor lock prices. Submission and every recovery attempt check the original authorization. The example stops when no verifiable ceiling exists; unavailable prices are not zero. See [billing](/docs/concepts/billing).
 
 Persist the returned Job ID. After an unknown network outcome, recover using the original request, amount, and idempotency key. Do not requote and reuse that key with a different amount. Once the Job ID is known, query or wait for that Job.
+
+## Migration contract: status polling and client waiting
+
+The capabilities below define the migration contract for upcoming SDK releases introducing dedicated status endpoints (`getJobStatus` in TypeScript, `GetJobStatus` in Go). Current public version `0.1.0` relies on full Job queries; do not assume `0.1.0` supports lightweight status polling. Check your installed SDK version and gateway endpoint availability before adopting this contract.
+
+Ordinary polling queries `GET /v1/jobs/{id}/status`, returning a lightweight `JobStatusResponse` projection (`id`, `status`, `error`, and optional `cancellation`). The six public states remain unchanged. A status summary is not full job detail; upon reaching a terminal state (`succeeded`, `failed`, or `cancelled`), the client fetches `GET /v1/jobs/{id}` for delivered result files and final billing details. Webhook deliveries, by contrast, always send the complete terminal Job directly (with available results on success and billing details).
+
+Client waiting requires bounded pacing (interval pacing, attempt limits, and application timeouts). Local timeouts or abort signals only stop local waiting—they never send a remote `POST /v1/jobs/{id}/cancel` and must not trigger a new submit. The updated SDK contracts handle waiting semantics as follows:
+
+- **TypeScript**: Call `client.getJobStatus(id)` for lightweight status checks. In `waitForJob`, the `onPoll` callback receives a `JobStatusResponse`. When waiting times out, `YirTimeoutError` guarantees `jobId` and `lastStatus` properties. In contrast, an aborted `AbortSignal` throws `signal.reason` directly without guaranteed metadata. Neither path cancels the remote job or resubmits.
+- **Go**: Call `client.GetJobStatus(ctx, id)` for status summaries. `WaitJob(ctx, id, options)` accepts an `OnPoll` callback receiving `JobStatusResponse`. When the context is cancelled or times out (including wrapped errors during in-flight transport requests), `WaitJob` halts local waiting and returns a zero `Job{}` and a non-nil error, allowing callers to check `errors.Is(err, context.Canceled)` or `errors.Is(err, context.DeadlineExceeded)` without sending a remote cancellation or resubmission.
 
 ## Channel parameter handling
 
