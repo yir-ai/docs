@@ -55,29 +55,7 @@ await rm(path.join(distRoot, '.well-known'), { force: true, recursive: true })
 
 await rewriteTextFiles(distRoot)
 
-const releaseManifest = {
-  schema_version: 1,
-  site: 'https://yir.ai',
-  mounts: [
-    { url_prefix: '/docs', artifact_path: 'docs' },
-    { url_prefix: '/zh/docs', artifact_path: 'zh/docs' },
-  ],
-  shared_assets: {
-    url_prefix: '/docs/_astro',
-    artifact_path: 'docs/_astro',
-    cache_control: 'public, max-age=31536000, immutable',
-  },
-  sitemap: '/docs/sitemap.xml',
-}
-
-await writeFile(
-  path.join(distRoot, '.yir-docs-release.json'),
-  `${JSON.stringify(releaseManifest, null, 2)}\n`,
-  'utf8',
-)
-
 const allowedRootEntries = new Set([
-  '.yir-docs-release.json',
   'docs',
   'zh',
 ])
@@ -87,7 +65,7 @@ const unexpectedRootEntries = (await readdir(distRoot)).filter(
 
 if (unexpectedRootEntries.length > 0) {
   throw new Error(
-    `Origin release contains unexpected root entries: ${unexpectedRootEntries.join(', ')}`,
+    `Static site contains unexpected root entries: ${unexpectedRootEntries.join(', ')}`,
   )
 }
 

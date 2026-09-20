@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "pnpm exec blume build && node ./scripts/prepare-origin-release.mjs",
+    "dev": "pnpm exec blume dev",
+    "build": "pnpm exec blume build && node ./scripts/prepare-site.mjs && node ./scripts/check-public-boundary.mjs --artifact ./dist",
     "check": "pnpm exec blume check",
-    "origin:smoke": "node ./scripts/origin-nginx-smoke.mjs",
     "preview": "pnpm exec blume preview",
-    "release:verify": "node ./scripts/origin-release.mjs verify --artifact ./dist",
-    "sync:openapi": "node ./scripts/sync-openapi.mjs",
-    "publish:check": "pnpm run test && pnpm run validate",
+    "check:public": "node ./scripts/check-public-boundary.mjs",
+    "publish:check": "pnpm run check:public && pnpm run test && pnpm run validate",
     "test": "node --test ./scripts/*.test.mjs",
     "validate": "pnpm exec blume validate"
   },

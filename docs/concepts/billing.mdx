@@ -45,6 +45,6 @@ Show “Stop requested” after cancellation is requested: future attempts stop,
 
 ## Application pricing and recovery
 
-Pilio can price customer credits at `primary` while authorizing procurement at the highest single-attempt ceiling. Pilio absorbs fallback differences without adding customer credits. Undelivered results refund their allocated credits; multi-result tasks use preallocated shares.
+Applications can define their own customer-facing credit prices and refund policies. Keep these separate from Yir's job authorization and settlement, and process each terminal result idempotently.
 
 Persist the request and idempotency key before submission. Recover a lost response with the same request and key. Changed parameters or budgets form a new request; do not change keys merely to bypass an uncertain submission. Terminal Job `billing.max_cost` reports fixed authorization. Never fill missing historical values with current prices.
