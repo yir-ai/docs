@@ -191,6 +191,20 @@ Set `webhook_url` on a generation request to receive the terminal Yir Job, rathe
 
 Compute HMAC-SHA256 over `Yir-Webhook-Timestamp + "." + Yir-Webhook-Id + "." + raw_request_body`, encode it as Base64 and compare it with the `v1=` signature value in constant time. Always check the timestamp window and verify signatures over original raw request bytes before parsing JSON.
 
+The `Yir-Webhook-Event` header identifies `job.succeeded`, `job.failed`, or `job.cancelled`. The body is the terminal Job itself, with the same billing projection as `GET /v1/jobs/{id}`. Read `billing.total_charged_by_yir` for the final customer charge and `billing.currency` for its currency (`USD`). Amounts are decimal strings; use decimal arithmetic if your application converts them into credits. `billing.max_cost` is the authorization limit, not the charge.
+
+For new Jobs, terminal notification follows settlement. Successful Jobs are charged only after result delivery; failed or cancelled Jobs release the reservation with no customer charge. Retries notify you of the existing outcome and do not charge the Job again. Keep the stable event ID as your deduplication key: delivery timestamps and signatures change, and temporary result URLs may be refreshed between deliveries.
+
+### Signing secrets and delivery records
+
+In Console, open **Webhooks** to reveal or rotate your account's signing secret and inspect delivery records. Accounts with a password must confirm it before revealing or rotating the secret. After rotation, update your receiver to verify subsequent deliveries with the new secret. Keep the secret on your server, separate from your Yir API key.
+
+Continue specifying `webhook_url` on each generation request; Console does not register a default endpoint. Delivery records show the receiving origin, event ID, status, and cumulative attempt count. The origin omits the path, query, and credentials; it is not the complete callback URL.
+
+For a delivered or failed record, **Redeliver** queues the existing event for background delivery. A queued response does not mean the receiver has accepted it. Pending records cannot be queued again. Redelivery keeps the event ID and cumulative attempt count, does not reset the automatic retry budget, and never resubmits or charges the Job again. Refresh the list to inspect the delivery outcome.
+
+### Receiver idempotency
+
 Implement deduplication and idempotency on two distinct levels:
 1. **Webhook event deduplication**: Deduplicate incoming deliveries using the stable `Yir-Webhook-Id` header to protect against network retries or replays, and acknowledge with 2xx once handled.
 2. **Business terminal idempotency by Job ID**: Because polling queries (`GET /v1/jobs/{id}`) and webhook deliveries may race concurrently, business actions (saving assets, debiting or refunding credits, finalizing billing) must be idempotent keyed by `job.id` so that settlement is applied exactly once.
