@@ -57,6 +57,8 @@ const reviewedOperations = [
   'GET /v1/files/{id}',
   'GET /v1/files/{id}/content',
   'GET /v1/models/{creator}/{model}',
+  'GET /v1/models',
+  'POST /v1/quotes',
   'GET /v1/jobs/{id}',
   'GET /v1/jobs/{id}/status',
   'POST /v1/jobs/{id}/cancel',
