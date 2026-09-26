@@ -36,6 +36,10 @@ for (const directory of sharedDirectories) {
 for (const file of sharedFiles) {
   await moveIntoEnglishMount(file)
 }
+await rename(
+  path.join(distRoot, '.well-known', 'api-catalog'),
+  path.join(englishRoot, 'api-catalog.json'),
+)
 
 await moveRootMarkdownMirror('docs.md', path.join('docs', 'index.md'))
 await moveRootMarkdownMirror('docs.mdx', path.join('docs', 'index.mdx'))
@@ -50,6 +54,11 @@ await moveRootMarkdownMirror(
 
 await rm(path.join(distRoot, 'index.md'), { force: true })
 await rm(path.join(distRoot, 'index.mdx'), { force: true })
+await rm(path.join(distRoot, '404.json'), { force: true })
+await rm(path.join(distRoot, '404.md'), { force: true })
+await rm(path.join(distRoot, 'api'), { force: true, recursive: true })
+await rm(path.join(distRoot, 'openapi.json'), { force: true })
+await rm(path.join(distRoot, 'vercel.json'), { force: true })
 await rm(path.join(distRoot, '_headers'), { force: true })
 await rm(path.join(distRoot, '.well-known'), { force: true, recursive: true })
 
@@ -120,7 +129,7 @@ function rewriteMountedPaths(content, chinese) {
     new RegExp(`(?<!/docs)/${escapeRegExp(pathValue)}`, 'gu')
   const docsPrefix = chinese ? '/zh/docs' : '/docs'
 
-  return content
+  const rewritten = content
     .replace(rootPath('_astro/'), '/docs/_astro/')
     .replace(rootPath('og/'), '/docs/og/')
     .replace(rootPath('blume-search.json'), '/docs/blume-search.json')
@@ -128,6 +137,7 @@ function rewriteMountedPaths(content, chinese) {
     .replace(rootPath('llms-full.txt'), '/docs/llms-full.txt')
     .replace(rootPath('llms.txt'), '/docs/llms.txt')
     .replace(rootPath('sitemap.xml'), '/docs/sitemap.xml')
+    .replaceAll('/.well-known/api-catalog', '/docs/api-catalog.json')
     .replace(rootPath('docs.md'), '/docs/index.md')
     .replace(rootPath('docs.mdx'), '/docs/index.mdx')
     .replace(rootPath('zh/docs.md'), '/zh/docs/index.md')
@@ -139,6 +149,18 @@ function rewriteMountedPaths(content, chinese) {
     .replace(
       '(`/`,`blume-search.json`)',
       '(`/docs/`,`blume-search.json`)',
+    )
+
+  if (!chinese) return rewritten
+
+  return rewritten
+    .replace(
+      /(<link rel="canonical" href="https:\/\/yir\.ai)\/docs\/reference(?=\/|")/gu,
+      '$1/zh/docs/reference',
+    )
+    .replace(
+      /(<meta property="og:url" content="https:\/\/yir\.ai)\/docs\/reference(?=\/|")/gu,
+      '$1/zh/docs/reference',
     )
 }
 

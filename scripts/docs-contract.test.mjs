@@ -148,6 +148,10 @@ test(
       path.join(blumeRoot, 'dist', 'zh', 'docs', 'reference', 'index.html'),
       'utf8',
     )
+    const chineseReferenceOperation = await readFile(
+      path.join(blumeRoot, 'dist', 'zh', 'docs', 'reference', 'jobs', 'get-job', 'index.html'),
+      'utf8',
+    )
     const sitemap = await readFile(
       path.join(blumeRoot, 'dist', 'docs', 'sitemap.xml'),
       'utf8',
@@ -157,6 +161,26 @@ test(
         path.join(blumeRoot, 'dist', 'docs', 'blume-search.json'),
         'utf8',
       ),
+    )
+    const agentReadability = JSON.parse(
+      await readFile(
+        path.join(blumeRoot, 'dist', 'docs', 'agent-readability.json'),
+        'utf8',
+      ),
+    )
+    const apiCatalog = JSON.parse(
+      await readFile(
+        path.join(blumeRoot, 'dist', 'docs', 'api-catalog.json'),
+        'utf8',
+      ),
+    )
+    const llms = await readFile(
+      path.join(blumeRoot, 'dist', 'docs', 'llms.txt'),
+      'utf8',
+    )
+    const llmsFull = await readFile(
+      path.join(blumeRoot, 'dist', 'docs', 'llms-full.txt'),
+      'utf8',
     )
     const rootEntries = (
       await (await import('node:fs/promises')).readdir(
@@ -228,6 +252,14 @@ test(
       chineseReference,
       /<link rel="canonical" href="https:\/\/yir\.ai\/zh\/docs\/reference"/,
     )
+    assert.match(
+      chineseReferenceOperation,
+      /<link rel="canonical" href="https:\/\/yir\.ai\/zh\/docs\/reference\/jobs\/get-job"/,
+    )
+    assert.match(
+      chineseReferenceOperation,
+      /<meta property="og:url" content="https:\/\/yir\.ai\/zh\/docs\/reference\/jobs\/get-job"/,
+    )
     assert.ok(
       searchIndex.some(
         (page) => page.route === '/docs/guides/production-integration',
@@ -252,6 +284,22 @@ test(
     assert.match(englishGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/guides\/production-integration\.mdx"/)
     assert.match(chineseGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/zh\/guides\/production-integration\.mdx"/)
     assert.match(searchClient, /`\/docs\/`,`blume-search\.json`/)
+    assert.equal(agentReadability.artifacts.api, undefined)
+    assert.equal(agentReadability.artifacts.aiCatalog, undefined)
+    assert.equal(
+      agentReadability.artifacts.apiCatalog,
+      'https://yir.ai/docs/api-catalog.json',
+    )
+    assert.ok(
+      apiCatalog.linkset.some((entry) =>
+        entry.anchor === 'https://yir.ai/docs/reference' &&
+        entry['service-doc']?.[0]?.href === entry.anchor,
+      ),
+    )
+    assert.match(llms, /https:\/\/yir\.ai\/docs\/api-catalog\.json/u)
+    for (const text of [llms, llmsFull]) {
+      assert.doesNotMatch(text, /\/\.well-known\/api-catalog/u)
+    }
 
     const builtHtmlFiles = await findFilesWithExtension(
       path.join(blumeRoot, 'dist'),
@@ -264,6 +312,7 @@ test(
         /href="\/(?:getting-started|guides|concepts|reference|support)(?:\/|")/u,
         `${path.relative(blumeRoot, file)} links outside the Docs mounts`,
       )
+      assert.doesNotMatch(html, /rel="(?:ai-catalog|ard|service-desc)"/u)
     }
 
     for (const html of [

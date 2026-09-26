@@ -1,20 +1,15 @@
 import { defineConfig } from "blume";
+import { openapi } from "blume/reference";
+import { filesystem } from "blume/sources";
 
 export default defineConfig({
   title: "Yir Developer Documentation",
   description:
     "Build reliable asynchronous image and video generation workflows with Yir.",
   content: {
-    sources: [
-      {
-        type: "filesystem",
-        root: "docs",
-        prefix: "docs",
-      },
-    ],
+    sources: [filesystem({ root: "docs", prefix: "docs" })],
   },
   deployment: {
-    output: "static",
     site: "https://yir.ai",
   },
   theme: {
@@ -27,12 +22,16 @@ export default defineConfig({
     repo: true,
     sidebar: { display: "flat" },
   },
-  search: { provider: "orama" },
   github: { owner: "yir-ai", repo: "docs", branch: "main" },
   feedback: false,
   export: false,
   ai: {
-    ask: { enabled: false },
+    assistant: { enabled: false },
+    openInChat: false,
+  },
+  agents: {
+    api: false,
+    catalog: false,
     llmsTxt: true,
     mcp: { enabled: false },
     webmcp: false,
@@ -52,10 +51,10 @@ export default defineConfig({
       },
     ],
   },
-  openapi: {
-    enabled: true,
+  reference: [openapi({
     spec: "openapi/gateway-openapi.reference.json",
     route: "/docs/reference",
     codeSamples: ["curl", "js", "python"],
-  },
+    playground: false,
+  })],
 });
