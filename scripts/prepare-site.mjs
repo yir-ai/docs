@@ -50,6 +50,11 @@ await moveRootMarkdownMirror(
 
 await rm(path.join(distRoot, 'index.md'), { force: true })
 await rm(path.join(distRoot, 'index.mdx'), { force: true })
+await rm(path.join(distRoot, '404.json'), { force: true })
+await rm(path.join(distRoot, '404.md'), { force: true })
+await rm(path.join(distRoot, 'api'), { force: true, recursive: true })
+await rm(path.join(distRoot, 'openapi.json'), { force: true })
+await rm(path.join(distRoot, 'vercel.json'), { force: true })
 await rm(path.join(distRoot, '_headers'), { force: true })
 await rm(path.join(distRoot, '.well-known'), { force: true, recursive: true })
 
