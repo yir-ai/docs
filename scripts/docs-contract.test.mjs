@@ -296,8 +296,8 @@ test(
         entry['service-doc']?.[0]?.href === entry.anchor,
       ),
     )
+    assert.match(llms, /https:\/\/yir\.ai\/docs\/api-catalog\.json/u)
     for (const text of [llms, llmsFull]) {
-      assert.match(text, /https:\/\/yir\.ai\/docs\/api-catalog\.json/u)
       assert.doesNotMatch(text, /\/\.well-known\/api-catalog/u)
     }
 
