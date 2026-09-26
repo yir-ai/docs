@@ -30,6 +30,8 @@ export default defineConfig({
     openInChat: false,
   },
   agents: {
+    api: false,
+    catalog: false,
     llmsTxt: true,
     mcp: { enabled: false },
     webmcp: false,
