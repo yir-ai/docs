@@ -148,6 +148,10 @@ test(
       path.join(blumeRoot, 'dist', 'zh', 'docs', 'reference', 'index.html'),
       'utf8',
     )
+    const chineseReferenceOperation = await readFile(
+      path.join(blumeRoot, 'dist', 'zh', 'docs', 'reference', 'jobs', 'get-job', 'index.html'),
+      'utf8',
+    )
     const sitemap = await readFile(
       path.join(blumeRoot, 'dist', 'docs', 'sitemap.xml'),
       'utf8',
@@ -227,6 +231,14 @@ test(
     assert.match(
       chineseReference,
       /<link rel="canonical" href="https:\/\/yir\.ai\/zh\/docs\/reference"/,
+    )
+    assert.match(
+      chineseReferenceOperation,
+      /<link rel="canonical" href="https:\/\/yir\.ai\/zh\/docs\/reference\/jobs\/get-job"/,
+    )
+    assert.match(
+      chineseReferenceOperation,
+      /<meta property="og:url" content="https:\/\/yir\.ai\/zh\/docs\/reference\/jobs\/get-job"/,
     )
     assert.ok(
       searchIndex.some(

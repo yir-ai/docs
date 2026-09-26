@@ -125,7 +125,7 @@ function rewriteMountedPaths(content, chinese) {
     new RegExp(`(?<!/docs)/${escapeRegExp(pathValue)}`, 'gu')
   const docsPrefix = chinese ? '/zh/docs' : '/docs'
 
-  return content
+  const rewritten = content
     .replace(rootPath('_astro/'), '/docs/_astro/')
     .replace(rootPath('og/'), '/docs/og/')
     .replace(rootPath('blume-search.json'), '/docs/blume-search.json')
@@ -144,6 +144,18 @@ function rewriteMountedPaths(content, chinese) {
     .replace(
       '(`/`,`blume-search.json`)',
       '(`/docs/`,`blume-search.json`)',
+    )
+
+  if (!chinese) return rewritten
+
+  return rewritten
+    .replace(
+      /(<link rel="canonical" href="https:\/\/yir\.ai)\/docs\/reference(?=\/|")/gu,
+      '$1/zh/docs/reference',
+    )
+    .replace(
+      /(<meta property="og:url" content="https:\/\/yir\.ai)\/docs\/reference(?=\/|")/gu,
+      '$1/zh/docs/reference',
     )
 }
 
