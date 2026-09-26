@@ -168,6 +168,20 @@ test(
         'utf8',
       ),
     )
+    const apiCatalog = JSON.parse(
+      await readFile(
+        path.join(blumeRoot, 'dist', 'docs', 'api-catalog.json'),
+        'utf8',
+      ),
+    )
+    const llms = await readFile(
+      path.join(blumeRoot, 'dist', 'docs', 'llms.txt'),
+      'utf8',
+    )
+    const llmsFull = await readFile(
+      path.join(blumeRoot, 'dist', 'docs', 'llms-full.txt'),
+      'utf8',
+    )
     const rootEntries = (
       await (await import('node:fs/promises')).readdir(
         path.join(blumeRoot, 'dist'),
@@ -272,7 +286,20 @@ test(
     assert.match(searchClient, /`\/docs\/`,`blume-search\.json`/)
     assert.equal(agentReadability.artifacts.api, undefined)
     assert.equal(agentReadability.artifacts.aiCatalog, undefined)
-    assert.equal(agentReadability.artifacts.apiCatalog, undefined)
+    assert.equal(
+      agentReadability.artifacts.apiCatalog,
+      'https://yir.ai/docs/api-catalog.json',
+    )
+    assert.ok(
+      apiCatalog.linkset.some((entry) =>
+        entry.anchor === 'https://yir.ai/docs/reference' &&
+        entry['service-doc']?.[0]?.href === entry.anchor,
+      ),
+    )
+    for (const text of [llms, llmsFull]) {
+      assert.match(text, /https:\/\/yir\.ai\/docs\/api-catalog\.json/u)
+      assert.doesNotMatch(text, /\/\.well-known\/api-catalog/u)
+    }
 
     const builtHtmlFiles = await findFilesWithExtension(
       path.join(blumeRoot, 'dist'),

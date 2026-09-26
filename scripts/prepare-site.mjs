@@ -36,6 +36,10 @@ for (const directory of sharedDirectories) {
 for (const file of sharedFiles) {
   await moveIntoEnglishMount(file)
 }
+await rename(
+  path.join(distRoot, '.well-known', 'api-catalog'),
+  path.join(englishRoot, 'api-catalog.json'),
+)
 
 await moveRootMarkdownMirror('docs.md', path.join('docs', 'index.md'))
 await moveRootMarkdownMirror('docs.mdx', path.join('docs', 'index.mdx'))
@@ -133,6 +137,7 @@ function rewriteMountedPaths(content, chinese) {
     .replace(rootPath('llms-full.txt'), '/docs/llms-full.txt')
     .replace(rootPath('llms.txt'), '/docs/llms.txt')
     .replace(rootPath('sitemap.xml'), '/docs/sitemap.xml')
+    .replaceAll('/.well-known/api-catalog', '/docs/api-catalog.json')
     .replace(rootPath('docs.md'), '/docs/index.md')
     .replace(rootPath('docs.mdx'), '/docs/index.mdx')
     .replace(rootPath('zh/docs.md'), '/zh/docs/index.md')
