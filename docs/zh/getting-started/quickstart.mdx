@@ -7,7 +7,7 @@ description: 使用 Yir 生成第一张图片，查询任务并保存结果。
 
 ## 开始之前
 
-准备有 Bash、cURL 7.76 或更新版本、`jq` 和 `uuidgen` 的后端终端。Windows 用户可在 Bash 环境中运行这些命令。请在一个新的本地目录中运行示例。
+准备有 Bash、cURL 7.76 或更新版本和 `jq` 的后端终端。Windows 用户可在 Bash 环境中运行这些命令。请在一个新的本地目录中运行示例。
 
 获取 [Yir API Key](/zh/docs/getting-started/authentication)，在 Console 充值，然后在终端设置密钥：
 
@@ -19,7 +19,7 @@ export YIR_API_KEY="your-yir-api-key"
 
 ## 1. 准备一次请求
 
-提交前保存请求和新生成的幂等键：
+提交前保存请求：
 
 ```bash
 cat > yir-request.json <<'JSON'
@@ -34,17 +34,15 @@ cat > yir-request.json <<'JSON'
     "aspect_ratio": "1:1",
     "n": 1
   },
-  "routing": { "preference": "cost", "fallback": false }
+  "routing": { "preference": "cost", "fallback": true }
 }
 JSON
 
-uuidgen > yir-idempotency-key.txt
-export YIR_IDEMPOTENCY_KEY="$(cat yir-idempotency-key.txt)"
 ```
 
-重试**同一个逻辑请求**时，保持 API Key、请求文件和幂等键不变。重新打开终端后，读取已保存的键，不要再次运行 `uuidgen`。新任务使用新的目录和幂等键。
+`Idempotency-Key` 可选。本例省略该请求头，每次生成 POST 都会创建新 Job。需要跨调用或跨进程安全重试时，在首次 POST 前保存键，并始终复用该键和完整请求，见[生产集成](/zh/docs/guides/production-integration)。
 
-示例关闭自动恢复，让首次调用只执行一次渠道尝试。上游明确失败不收费，Quote 不锁价。接入进展与结算合同见[报价与计费](/zh/docs/concepts/billing)。
+本例开启自动恢复。遇到可恢复的明确失败后，Yir 可在同一 Job 和授权预算内尝试其他合格渠道，即使客户端没有传幂等键。恢复取决于合格供应，不保证成功。多次尝试共用一笔冻结额度，不累加向用户收费；只对成功交付收费。Quote 不锁价，详见[报价与计费](/zh/docs/concepts/billing)。
 
 首次提交前查询本次请求的当前价格，并保存授权请求：
 
@@ -72,7 +70,7 @@ jq --arg max_cost "$YIR_MAX_COST" '. + {max_cost: $max_cost}' \
   yir-request.json > yir-submission.json
 ```
 
-Submit 会按此授权重新检查当前供应。提交后恢复未知结果时，保持 `yir-submission.json` 不变，不要重新报价并在同一幂等键下更改预算。
+Submit 会按此授权重新检查当前供应。保留 `yir-submission.json` 作为授权记录。`max_cost` 限制本 Job 的单笔用户费用，不是多次尝试成本的累加值。
 
 ## 2. 提交并保存 Job ID
 
@@ -82,7 +80,6 @@ curl --fail-with-body --silent --show-error --max-time 30 \
   --url "https://gateway.yir.ai/v1/images/generations" \
   --header "Authorization: Bearer $YIR_API_KEY" \
   --header "Content-Type: application/json" \
-  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
   --data-binary @yir-submission.json \
   --output yir-submit.json
 ```
@@ -95,7 +92,7 @@ export YIR_JOB_ID="$(jq -er '.id' yir-submit.json)"
 
 保留 `yir-submit.json`，便于稍后恢复 ID。将 Job ID 作为字符串处理。
 
-提交超时意味着结果未知。使用已保存的请求和幂等键重试第 2 步，不要重新执行第 1 步：新键会创建另一个任务。收到 HTTP 错误时，先检查公开的 `error.code` 和 `error.action`。
+提交超时意味着结果未知。停止提交，先在 Console 日志中查找已提交的 Job；再次发出无键 POST 可能创建重复任务。如果首次 POST 前已保存并发送了键，可按[生产集成](/zh/docs/guides/production-integration)复用原键和完整请求恢复。收到 HTTP 错误时，先检查公开的 `error.code` 和 `error.action`。
 
 ## 3. 等待同一个任务
 
