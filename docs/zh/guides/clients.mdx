@@ -3,14 +3,14 @@ title: 客户端与兼容性
 description: 使用静态校验的 Yir SDK、实时报价与持久化任务接入图片和视频生成。
 ---
 
-TypeScript 和 Go SDK 的 `0.2.0` 版本已公开发布，源码见 [Yir SDK 仓库](https://github.com/yir-ai/sdk)。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
+TypeScript `0.2.1` 和 Go `0.3.0` SDK 已公开发布，源码见 [Yir SDK 仓库](https://github.com/yir-ai/sdk)。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
 
 ## 安装与合同
 
 安装 TypeScript SDK：
 
 ```sh
-pnpm add @yir-ai/sdk@0.2.0
+pnpm add @yir-ai/sdk@0.2.1
 ```
 
 从 `@yir-ai/sdk/server` 导入 `createNodeYirClient`；`@yir-ai/sdk/frontend` 可对显式提供的模型目录做本地校验，Vercel 适配器使用 `@yir-ai/sdk/vercel`。`@yir-ai/sdk/model-contracts` 保留历史快照入口；浏览器便利层不计算价格。API 调用和密钥应留在服务端。
@@ -18,7 +18,7 @@ pnpm add @yir-ai/sdk@0.2.0
 Go 模块为 `github.com/yir-ai/sdk/go`，包名 `yir`：
 
 ```sh
-go get github.com/yir-ai/sdk/go@v0.2.0
+go get github.com/yir-ai/sdk/go@v0.3.0
 ```
 
 `0.2.0` 通过 TypeScript 的 `getModelContracts / getModelContract` 或 Go 的 `GetModelContracts / GetModelContract` 读取模型合同，不再仅因新模型未进入内置目录而拒绝请求。TypeScript 可对显式提供的目录或应用生成的快照做本地校验。支持参数、价格与执行资格以 Gateway 当前事实为准；模型被收录不代表有可执行渠道。
@@ -35,7 +35,9 @@ Python 保留历史实现，当前未作为新客户端推荐；新项目建议�
 
 ## 报价与提交分开持久化
 
-REST 生成接口的 `Idempotency-Key` 可选。已发布的 SDK `0.2.0` 仍要求显式键；尚未发布的 TypeScript `0.2.1` 和 Go `0.3.0` 候选在省略键时每次调用生成随机键，详见 [SDK 源码指南](https://github.com/yir-ai/sdk)。再次调用会生成不同键，跨调用或跨进程恢复仍需保存键和完整请求。同一 Job 内的故障转移不依赖客户端传键，但仍受路由、供应和预算约束。
+REST 生成接口的 `Idempotency-Key` 可选。TypeScript `0.2.1` 和 Go `0.3.0` 在省略键时每次调用生成随机键：单次提交可直接使用 `client.submitImage(request)` 或 `client.SubmitImage(ctx, request)`，视频方法同样支持。再次调用会生成不同键，跨调用或跨进程恢复仍需保存键和完整请求。同一 Job 内的故障转移不依赖客户端传键，但仍受路由、供应和预算约束。
+
+Go `0.3.0` 将生成方法的最后一个参数由 `string` 改为 `...string`。普通带键调用仍可编译；固定签名的自定义接口和方法函数赋值须按[迁移说明](https://github.com/yir-ai/sdk/blob/main/go/docs/zh-CN/README.md#030-迁移)调整。SDK 不会自动重试 Submit。
 
 服务端通过 `createNodeYirClient({ apiKey })` 创建客户端；Go 使用 `yir.NewClient(apiKey, yir.ClientOptions{})`。API Key 留在服务端。
 
