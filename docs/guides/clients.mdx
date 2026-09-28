@@ -3,14 +3,14 @@ title: Clients and compatibility
 description: Integrate image and video jobs with static validation, live quotes, and durable recovery.
 ---
 
-The TypeScript and Go SDKs are publicly available at version `0.2.0` in the [Yir SDK repository](https://github.com/yir-ai/sdk). The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
+The TypeScript `0.2.1` and Go `0.3.0` SDKs are publicly available in the [Yir SDK repository](https://github.com/yir-ai/sdk). The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
 
 ## Installation and contracts
 
 Install the TypeScript SDK:
 
 ```sh
-pnpm add @yir-ai/sdk@0.2.0
+pnpm add @yir-ai/sdk@0.2.1
 ```
 
 Import `createNodeYirClient` from `@yir-ai/sdk/server`. Use `@yir-ai/sdk/frontend` for local validation against an explicitly supplied model catalog and `@yir-ai/sdk/vercel` for the Vercel adapter. `@yir-ai/sdk/model-contracts` remains a historical snapshot entry; browser helpers do not calculate prices. Keep API calls and keys on your server.
@@ -18,7 +18,7 @@ Import `createNodeYirClient` from `@yir-ai/sdk/server`. Use `@yir-ai/sdk/fronten
 The Go module is `github.com/yir-ai/sdk/go`, package `yir`:
 
 ```sh
-go get github.com/yir-ai/sdk/go@v0.2.0
+go get github.com/yir-ai/sdk/go@v0.3.0
 ```
 
 Version `0.2.0` reads model contracts through `getModelContracts / getModelContract` (TypeScript) or `GetModelContracts / GetModelContract` (Go). Clients no longer reject new model IDs solely because they are absent from a bundled catalog. TypeScript can validate against an explicitly supplied catalog or an application-generated snapshot. Gateway remains authoritative for supported parameters, prices, and execution eligibility; catalog inclusion does not guarantee supply.
@@ -35,7 +35,9 @@ Python retains its historical implementation and is not recommended as a new cli
 
 ## Persist authorization before submission
 
-REST generation accepts an optional `Idempotency-Key`. Published SDK version `0.2.0` still requires an explicit key. The unreleased TypeScript `0.2.1` and Go `0.3.0` candidates generate a random key per call when omitted; see the [SDK source guides](https://github.com/yir-ai/sdk). Repeated calls generate different keys, so durable recovery still requires a saved key and request. Fallback within an accepted Job is independent of the client key and remains subject to routing, supply, and budget.
+REST generation accepts an optional `Idempotency-Key`. TypeScript `0.2.1` and Go `0.3.0` generate a random key per call when omitted: use `client.submitImage(request)` or `client.SubmitImage(ctx, request)` for a single submission. Video methods work the same way. Repeated calls generate different keys, so durable recovery still requires a saved key and request. Fallback within an accepted Job is independent of the client key and remains subject to routing, supply, and budget.
+
+Go `0.3.0` changes the final generation argument from `string` to `...string`. Ordinary calls with a saved key still compile; custom fixed-signature interfaces and method function assignments require the [migration steps](https://github.com/yir-ai/sdk/blob/main/go/README.md#030-migration). The SDK does not automatically retry Submit.
 
 Create a server-side client with `createNodeYirClient({ apiKey })`, or `yir.NewClient(apiKey, yir.ClientOptions{})` in Go. Keep the API key on your server.
 
