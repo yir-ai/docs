@@ -33,6 +33,8 @@ New Jobs reserve the highest eligible single-attempt ceiling once. Sequential at
 
 Subsequent routes must fit the original authorization and reservation; price increases cannot add customer spending beyond them. With no executable route, the Job fails; insufficient budget can produce `YIR_BUDGET_EXCEEDED`. Set `routing.fallback: false` to disable subsequent attempts.
 
+An API key can carry an optional monthly spend limit, set in the Console under API Keys. Admission adds the new job's cost ceiling to the key's settled charges and in-flight holds for the current UTC calendar month; if the total would exceed the limit, the request is rejected with `YIR_SPEND_LIMIT_EXCEEDED` (HTTP 403) before any job or hold is created. Running jobs are never interrupted by the limit.
+
 The target policy is up to two distinct unofficial channels followed by one official fallback, executed sequentially. Specifications, credentials, capacity, and budget still apply. Routes skipped before submission do not consume Attempts. An official reference price alone does not guarantee a fallback.
 
 ## Settlement and stopping
