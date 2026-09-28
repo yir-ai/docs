@@ -78,7 +78,7 @@ export async function submitSavedImage(client, saved) {
 
 客户端等待必须是有界限次且有间隔的（设置轮询间隔、限制次数与应用总超时）。本地超时或中止（abort）仅停止本地等待，绝不向远端发送 `POST /v1/jobs/{id}/cancel`，也绝不能发起新的 Submit 提交。更新后的 SDK 等待语义如下：
 
-- **TypeScript**：调用 `client.getJobStatus(id)` 查询状态摘要。`waitForJob` 的 `onPoll` 回调接收 `JobStatusResponse`。当等待超时时，`YirTimeoutError` 保证携带 `jobId` 与 `lastStatus` 属性；而通过 `AbortSignal` 中止时直接抛出 `signal.reason`，不保证附加元数据。两种情况均不触发远端取消或重新提交。
+- **TypeScript**：调用 `client.getJobStatus(id)` 查询状态摘要。`waitForJob` 的 `onPoll` 回调接收 `JobStatusResponse`。当等待超时时，`YirTimeoutError` 携带 `jobId` 与 `timeoutMs`，已收到过状态时还附带 `lastStatus`；而通过 `AbortSignal` 中止时直接抛出 `signal.reason`，不保证附加元数据。两种情况均不触发远端取消或重新提交。
 - **Go**：调用 `client.GetJobStatus(ctx, id)` 读取状态摘要。`WaitJob(ctx, id, options)` 的 `OnPoll` 选项回调接收 `JobStatusResponse`。当 context 被取消或超时中断时（包括在途网络请求返回的包裹错误），`WaitJob` 停止本地等待并返回零值 `Job{}` 与非空 error，调用方可使用 `errors.Is(err, context.Canceled)` 或 `errors.Is(err, context.DeadlineExceeded)` 进行判定，既不发送远端取消，也不触发重复提交。
 
 ## 渠道参数处理
