@@ -3,37 +3,39 @@ title: Clients and compatibility
 description: Integrate image and video jobs with static validation, live quotes, and durable recovery.
 ---
 
-The TypeScript and Go SDKs are publicly available at version `0.1.0` in the [Yir SDK repository](https://github.com/yir-ai/sdk). The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
+The TypeScript and Go SDKs are publicly available at version `0.2.0` in the [Yir SDK repository](https://github.com/yir-ai/sdk). The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
 
 ## Installation and contracts
 
 Install the TypeScript SDK:
 
 ```sh
-pnpm add @yir-ai/sdk@0.1.0
+pnpm add @yir-ai/sdk@0.2.0
 ```
 
-Import `createNodeYirClient` from `@yir-ai/sdk/server`. Use `@yir-ai/sdk/model-contracts` for static contracts and `@yir-ai/sdk/vercel` for the Vercel adapter. The `@yir-ai/sdk/browser` entry provides local validation and pricing utilities; keep API calls and keys on your server.
+Import `createNodeYirClient` from `@yir-ai/sdk/server`. Use `@yir-ai/sdk/frontend` for local validation against an explicitly supplied model catalog and `@yir-ai/sdk/vercel` for the Vercel adapter. `@yir-ai/sdk/model-contracts` remains a historical snapshot entry; browser helpers do not calculate prices. Keep API calls and keys on your server.
 
 The Go module is `github.com/yir-ai/sdk/go`, package `yir`:
 
 ```sh
-go get github.com/yir-ai/sdk/go@v0.1.0
+go get github.com/yir-ai/sdk/go@v0.2.0
 ```
 
-Parameter rules ship statically with the SDK. Dynamic model IDs, operations, parameters, and reference roles are validated before sending a request; rules are never downloaded at runtime. Unknown models require an SDK upgrade. A bundled model does not guarantee current executable supply. Gateway remains authoritative for prices and execution eligibility.
+Version `0.2.0` reads model contracts through `getModelContracts / getModelContract` (TypeScript) or `GetModelContracts / GetModelContract` (Go). Clients no longer reject new model IDs solely because they are absent from a bundled catalog. TypeScript can validate against an explicitly supplied catalog or an application-generated snapshot. Gateway remains authoritative for supported parameters, prices, and execution eligibility; catalog inclusion does not guarantee supply.
 
 | Capability | TypeScript | Go |
 | --- | --- | --- |
 | Image/video quotes | `quoteImage / quoteVideo` | `QuoteImage / QuoteVideo` |
 | Submission | `submitImage / submitVideo` | `SubmitImage / SubmitVideo` |
-| Query, stop, wait | `getJob / cancelJob / waitForJob` | `GetJob / CancelJob / WaitJob` |
+| Query, stop, wait | `getJob / getJobStatus / cancelJob / waitForJob` | `GetJob / GetJobStatus / CancelJob / WaitJob` |
 | Inputs | Files create, get, complete, multipart upload helpers | Files and upload helpers |
 | Webhooks | Verify original bytes | Verify original bytes |
 
 Python retains its historical implementation and is not recommended as a new client; use Go, TypeScript, or REST for new projects. If maintaining historical Python scripts that use `on_poll` or `last_status`, note that standard library `urllib` cannot enforce strict wall-clock deadline interruptions.
 
 ## Persist authorization before submission
+
+REST generation accepts an optional `Idempotency-Key`. Published SDK version `0.2.0` still requires an explicit key. The unreleased TypeScript `0.2.1` and Go `0.3.0` candidates generate a random key per call when omitted; see the [SDK source guides](https://github.com/yir-ai/sdk). Repeated calls generate different keys, so durable recovery still requires a saved key and request. Fallback within an accepted Job is independent of the client key and remains subject to routing, supply, and budget.
 
 Create a server-side client with `createNodeYirClient({ apiKey })`, or `yir.NewClient(apiKey, yir.ClientOptions{})` in Go. Keep the API key on your server.
 
@@ -60,7 +62,7 @@ export async function submitSavedImage(client, saved) {
 }
 ```
 
-The demand has the shape `{ model, input, parameters, routing }`. For example, image parameters belong in `parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 }`. Multiple images use ordered `input.references`, each with `role: "reference_image"` and exactly one of `url` or `file_id`. Static contracts validate model-specific support.
+The demand has the shape `{ model, input, parameters, routing }`. For example, image parameters belong in `parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 }`. Multiple images use ordered `input.references`, each with `role: "reference_image"` and exactly one of `url` or `file_id`. An explicitly supplied catalog can validate model-specific support locally.
 
 Quotes neither reserve funds nor lock prices. Submission and every recovery attempt check the original authorization. The example stops when no verifiable ceiling exists; unavailable prices are not zero. See [billing](/docs/concepts/billing).
 
@@ -68,7 +70,7 @@ Persist the returned Job ID. After an unknown network outcome, recover using the
 
 ## Migration contract: status polling and client waiting
 
-The capabilities below define the migration contract for upcoming SDK releases introducing dedicated status endpoints (`getJobStatus` in TypeScript, `GetJobStatus` in Go). Current public version `0.1.0` relies on full Job queries; do not assume `0.1.0` supports lightweight status polling. Check your installed SDK version and gateway endpoint availability before adopting this contract.
+Published SDK version `0.2.0` includes dedicated status methods (`getJobStatus` in TypeScript, `GetJobStatus` in Go) and the waiting behavior below. When upgrading from `0.1.0`, migrate polling callbacks and timeout metadata to status summaries.
 
 Ordinary polling queries `GET /v1/jobs/{id}/status`, returning a lightweight `JobStatusResponse` projection (`id`, `status`, `error`, and optional `cancellation`). The six public states remain unchanged. A status summary is not full job detail; upon reaching a terminal state (`succeeded`, `failed`, or `cancelled`), the client fetches `GET /v1/jobs/{id}` for delivered result files and final billing details. Webhook deliveries, by contrast, always send the complete terminal Job directly (with available results on success and billing details).
 

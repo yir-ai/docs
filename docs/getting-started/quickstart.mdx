@@ -7,7 +7,7 @@ Generate one image with GPT Image 2 using the Standard API. A submission returns
 
 ## Before you begin
 
-Use a backend terminal with Bash, cURL 7.76 or later, `jq`, and `uuidgen`. Windows users can run these commands in a Bash environment. Use a new local directory for this example.
+Use a backend terminal with Bash, cURL 7.76 or later, and `jq`. Windows users can run these commands in a Bash environment. Use a new local directory for this example.
 
 Get your [Yir API key](/docs/getting-started/authentication), add funds in Console, and set the key in your shell:
 
@@ -19,7 +19,7 @@ Keep the key on your server. The example uses HTTP directly and does not require
 
 ## 1. Prepare one request
 
-Save the request and a new idempotency key before submitting:
+Save the request before submitting:
 
 ```bash
 cat > yir-request.json <<'JSON'
@@ -34,17 +34,15 @@ cat > yir-request.json <<'JSON'
     "aspect_ratio": "1:1",
     "n": 1
   },
-  "routing": { "preference": "cost", "fallback": false }
+  "routing": { "preference": "cost", "fallback": true }
 }
 JSON
 
-uuidgen > yir-idempotency-key.txt
-export YIR_IDEMPOTENCY_KEY="$(cat yir-idempotency-key.txt)"
 ```
 
-For retries of the **same logical request**, keep the same API key, request file, and idempotency key. If you reopen your shell, reload the saved value instead of running `uuidgen` again. Use a new directory and key for a new task.
+`Idempotency-Key` is optional. This example omits it: each generation POST creates a new Job. For safe retries across calls or process restarts, save a key before the first POST and reuse it with the exact request; see [production integration](/docs/guides/production-integration).
 
-This example disables fallback to keep the first call to one provider attempt. Confirmed upstream failures are not charged. Quotes do not lock prices. See [quotes and billing](/docs/concepts/billing) for the integration status and settlement contract.
+This example enables fallback. After a confirmed recoverable failure, Yir can try another eligible channel within the same Job and authorized budget, even without a client idempotency key. Recovery depends on eligible supply; it does not guarantee success. Multiple attempts share one hold and are not added together for customer billing; only successful delivery is charged. Quotes do not lock prices. See [quotes and billing](/docs/concepts/billing).
 
 Before the first submission, read the current request prices and save the authorized request:
 
@@ -72,7 +70,7 @@ jq --arg max_cost "$YIR_MAX_COST" '. + {max_cost: $max_cost}' \
   yir-request.json > yir-submission.json
 ```
 
-Submit rechecks current supply against this authorization. Once submitted, keep `yir-submission.json` unchanged when recovering an unknown outcome; do not repeat the quote step and change its budget under the same key.
+Submit rechecks current supply against this authorization. Keep `yir-submission.json` as the record of what you authorized. `max_cost` limits the single charge for this Job, rather than a sum of attempt costs.
 
 ## 2. Submit and save the Job ID
 
@@ -82,7 +80,6 @@ curl --fail-with-body --silent --show-error --max-time 30 \
   --url "https://gateway.yir.ai/v1/images/generations" \
   --header "Authorization: Bearer $YIR_API_KEY" \
   --header "Content-Type: application/json" \
-  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
   --data-binary @yir-submission.json \
   --output yir-submit.json
 ```
@@ -95,7 +92,7 @@ export YIR_JOB_ID="$(jq -er '.id' yir-submit.json)"
 
 Keep `yir-submit.json` so you can recover this ID later. Treat it as a string.
 
-If submission times out, its outcome is unknown. Retry step 2 with the saved request and idempotency key. Do not restart step 1: a new key would create another task. For an HTTP error, inspect the public `error.code` and `error.action` before proceeding.
+If submission times out, its outcome is unknown. Stop and check your Console logs for the submitted Job; another POST without a key could create a duplicate. If you saved and sent a key before the first POST, recover with that same key and exact request as described in [production integration](/docs/guides/production-integration). For an HTTP error, inspect the public `error.code` and `error.action` before proceeding.
 
 ## 3. Wait for the same Job
 

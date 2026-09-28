@@ -3,37 +3,39 @@ title: 客户端与兼容性
 description: 使用静态校验的 Yir SDK、实时报价与持久化任务接入图片和视频生成。
 ---
 
-TypeScript 和 Go SDK 的 `0.1.0` 版本已公开发布，源码见 [Yir SDK 仓库](https://github.com/yir-ai/sdk)。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
+TypeScript 和 Go SDK 的 `0.2.0` 版本已公开发布，源码见 [Yir SDK 仓库](https://github.com/yir-ai/sdk)。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
 
 ## 安装与合同
 
 安装 TypeScript SDK：
 
 ```sh
-pnpm add @yir-ai/sdk@0.1.0
+pnpm add @yir-ai/sdk@0.2.0
 ```
 
-从 `@yir-ai/sdk/server` 导入 `createNodeYirClient`；静态合同使用 `@yir-ai/sdk/model-contracts`，Vercel 适配器使用 `@yir-ai/sdk/vercel`。`@yir-ai/sdk/browser` 提供本地校验和价格计算工具；API 调用和密钥应留在服务端。
+从 `@yir-ai/sdk/server` 导入 `createNodeYirClient`；`@yir-ai/sdk/frontend` 可对显式提供的模型目录做本地校验，Vercel 适配器使用 `@yir-ai/sdk/vercel`。`@yir-ai/sdk/model-contracts` 保留历史快照入口；浏览器便利层不计算价格。API 调用和密钥应留在服务端。
 
 Go 模块为 `github.com/yir-ai/sdk/go`，包名 `yir`：
 
 ```sh
-go get github.com/yir-ai/sdk/go@v0.1.0
+go get github.com/yir-ai/sdk/go@v0.2.0
 ```
 
-参数规则随 SDK 静态发布。客户端在请求发出前校验动态模型、操作、参数和引用角色，不远程下载规则。未知模型需要升级 SDK；模型被收录不代表当前有可执行渠道。价格与执行资格以 Gateway 当前响应为准。
+`0.2.0` 通过 TypeScript 的 `getModelContracts / getModelContract` 或 Go 的 `GetModelContracts / GetModelContract` 读取模型合同，不再仅因新模型未进入内置目录而拒绝请求。TypeScript 可对显式提供的目录或应用生成的快照做本地校验。支持参数、价格与执行资格以 Gateway 当前事实为准；模型被收录不代表有可执行渠道。
 
 | 能力 | TypeScript | Go |
 | --- | --- | --- |
 | 图片、视频报价 | `quoteImage / quoteVideo` | `QuoteImage / QuoteVideo` |
 | 提交 | `submitImage / submitVideo` | `SubmitImage / SubmitVideo` |
-| 查询、停止、等待 | `getJob / cancelJob / waitForJob` | `GetJob / CancelJob / WaitJob` |
+| 查询、停止、等待 | `getJob / getJobStatus / cancelJob / waitForJob` | `GetJob / GetJobStatus / CancelJob / WaitJob` |
 | 素材 | Files 创建、查询、完成与分片上传便利层 | 同样提供 Files 与上传便利层 |
 | Webhook | 原始字节验签 | 原始字节验签 |
 
 Python 保留历史实现，当前未作为新客户端推荐；新项目建议优先使用 Go、TypeScript 或 REST。若在已有维护场景中涉及带有 `on_poll` 或 `last_status` 的 Python 实现，注意其基于标准库 `urllib` 无法实施严格的跨网络墙钟中断。
 
 ## 报价与提交分开持久化
+
+REST 生成接口的 `Idempotency-Key` 可选。已发布的 SDK `0.2.0` 仍要求显式键；尚未发布的 TypeScript `0.2.1` 和 Go `0.3.0` 候选在省略键时每次调用生成随机键，详见 [SDK 源码指南](https://github.com/yir-ai/sdk)。再次调用会生成不同键，跨调用或跨进程恢复仍需保存键和完整请求。同一 Job 内的故障转移不依赖客户端传键，但仍受路由、供应和预算约束。
 
 服务端通过 `createNodeYirClient({ apiKey })` 创建客户端；Go 使用 `yir.NewClient(apiKey, yir.ClientOptions{})`。API Key 留在服务端。
 
@@ -68,7 +70,7 @@ export async function submitSavedImage(client, saved) {
 
 ## 迁移合同：状态轮询与客户端等待
 
-下述内容为待包含独立状态端点方法（TypeScript 的 `getJobStatus`、Go 的 `GetJobStatus`）的 SDK 版本生效后的迁移合同。当前公开的 `0.1.0` 版本依赖完整 Job 查询，不能假定支持轻量状态轮询；升级与接入前请核对安装的 SDK 版本及 Gateway 端点支持情况。
+已发布的 SDK `0.2.0` 包含独立状态端点方法（TypeScript 的 `getJobStatus`、Go 的 `GetJobStatus`）和以下等待行为。从 `0.1.0` 升级时，需要将轮询回调与超时元数据迁移为状态摘要。
 
 普通轮询使用轻量端点 `GET /v1/jobs/{id}/status`，返回 `JobStatusResponse` 结构的状态摘要（仅包含 `id`、`status`、`error` 及可选 `cancellation`）。六种公开状态保持不变。状态摘要不是完整任务详情；只有在到达终态（`succeeded`、`failed`、`cancelled`）后，客户端才调用 `GET /v1/jobs/{id}` 获取交付文件与计费明细。与之不同，Webhook 通知总是直接投递完整终态 Job（成功时包含可用结果与计费明细）。
 

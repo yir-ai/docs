@@ -48,6 +48,7 @@ const requiredPages = [
 ]
 
 const reviewedOperations = [
+  'POST /v1/quotes',
   'POST /v1/images/quotes',
   'POST /v1/images/generations',
   'POST /v1/videos/quotes',
@@ -57,6 +58,7 @@ const reviewedOperations = [
   'GET /v1/files/{id}',
   'GET /v1/files/{id}/content',
   'GET /v1/models/{creator}/{model}',
+  'GET /v1/models',
   'GET /v1/jobs/{id}',
   'GET /v1/jobs/{id}/status',
   'POST /v1/jobs/{id}/cancel',
@@ -438,7 +440,7 @@ test('builds a standalone static site without deployment hooks', async () => {
   await assert.rejects(readFile(path.join(docsRoot, 'wrangler.jsonc'), 'utf8'))
 })
 
-test('teaches safe Bearer authentication and idempotent retries', async () => {
+test('teaches safe Bearer authentication and optional generation keys', async () => {
   const [authentication, quickstart] = await Promise.all([
     readFile(
       path.join(docsRoot, 'docs', 'getting-started', 'authentication.mdx'),
@@ -458,11 +460,9 @@ test('teaches safe Bearer authentication and idempotent retries', async () => {
   )
   assert.match(authentication, /default key cannot be revoked/i)
   assert.match(authentication, /immediately invalidating the old secret/i)
-  assert.equal(
-    quickstart.match(/Idempotency-Key:\s*\$YIR_IDEMPOTENCY_KEY/g)?.length,
-    1,
-  )
-  assert.match(quickstart, /same logical request/i)
+  assert.equal(/--header "Idempotency-Key:/.test(quickstart), false)
+  assert.match(quickstart, /Idempotency-Key` is optional/)
+  assert.match(quickstart, /another POST without a key could create a duplicate/)
   assert.match(quickstart, /"model": "openai\/gpt-image-2"/)
   assert.match(quickstart, /gateway\.yir\.ai\/v1\/jobs\/\$YIR_JOB_ID/)
   assert.equal(/\/kie\/|\/apimart\//i.test(quickstart), false)
