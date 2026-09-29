@@ -51,4 +51,4 @@ validateModelParameters("openai/gpt-image-2", "generate_image", "text",
   { resolution: "1K", aspect_ratio: "1:1", n: 1 }, catalog);
 ```
 
-To ship a snapshot with your front end, generate it during development with `pnpm exec yir-models --output src/models.ts`. The snapshot contains parameter metadata only, with no prices or credentials. Refresh it when you want to offer new models.
+To ship a snapshot with your front end, generate it during development with `pnpm exec yir-models --output src/models.ts`. The command fetches the catalog from the Gateway, so `YIR_API_KEY` must be set in its environment. The snapshot contains parameter metadata only, with no prices or credentials. Refresh it when you want to offer new models.

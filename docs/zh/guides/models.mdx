@@ -51,4 +51,4 @@ validateModelParameters("openai/gpt-image-2", "generate_image", "text",
   { resolution: "1K", aspect_ratio: "1:1", n: 1 }, catalog);
 ```
 
-如需在前端随包分发一份快照，可在开发阶段运行 `pnpm exec yir-models --output src/models.ts` 生成。快照只包含参数元数据，不含价格或凭据。需要提供新模型时重新生成即可。
+如需在前端随包分发一份快照，可在开发阶段运行 `pnpm exec yir-models --output src/models.ts` 生成。该命令会从 Gateway 拉取目录，运行环境中必须设置 `YIR_API_KEY`。快照只包含参数元数据，不含价格或凭据。需要提供新模型时重新生成即可。
