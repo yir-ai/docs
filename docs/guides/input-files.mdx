@@ -87,7 +87,8 @@ Only `ready` files can be used in requests. A referenced file that is missing, n
 | --- | --- |
 | Quote | `200` with `supply.available: false` and `issues: ["no_matching_supply"]`. A file that expires before the quote does is treated the same way. |
 | Generation | `400 YIR_INVALID_REQUEST`. No Job is created. |
-| Files (`GET`, `/complete`, `/content`) | `404 YIR_FILE_NOT_FOUND`, `409 YIR_FILE_NOT_READY`, or `410 YIR_FILE_EXPIRED`. |
+| `GET /v1/files/{id}` | `200` with the file snapshot; read its `status` (`pending_upload`, `ready`, `expired`, or `failed`). An unknown file returns `404 YIR_FILE_NOT_FOUND`. |
+| `POST /v1/files/{id}/complete`, `GET /v1/files/{id}/content` | `404 YIR_FILE_NOT_FOUND`, `409 YIR_FILE_NOT_READY`, or `410 YIR_FILE_EXPIRED`. |
 
 ## Reading a file back
 

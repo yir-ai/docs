@@ -7,8 +7,8 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 
 | 语言 | 包 | 当前版本 |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.3.0` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.4.0` |
+| TypeScript | `@yir-ai/sdk` | `0.3.1` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.4.1` |
 
 两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
@@ -17,11 +17,11 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.3.0
+pnpm add @yir-ai/sdk@0.3.1
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.4.0
+go get github.com/yir-ai/sdk/go@v0.4.1
 ```
 
 </CodeGroup>
@@ -131,6 +131,8 @@ Go 代码片段是一个返回 `error` 的函数体，需要导入 `context`、`
 ## 升级
 
 **TypeScript 0.3.0 / Go 0.4.0。** 等待改为退避轮询（5 秒、10 秒、20 秒），不再每 2 秒查询一次；如需固定间隔，设置 `pollIntervalMs` / `WaitOptions.PollInterval`。新增 `constructWebhookEvent` / `ConstructWebhookEvent`，调用签名不变。
+
+**TypeScript 0.3.1 / Go 0.4.1。** `constructWebhookEvent` / `ConstructWebhookEvent` 同样拒绝 `getJob` / `GetJob` 不接受的 Job ID（须匹配 `^[1-9][0-9]*$`）；`pollDelayMs` / `PollDelay` 的 `poll` 参数为刚完成那次查询的 0 基序号。调用签名不变。
 
 **从 0.1.0 升级。** TypeScript 0.2 与 Go 0.2 移除了内置模型清单和客户端价格表，等待改为轮询状态接口（`onPoll` / `OnPoll` 现在接收状态摘要）。Go 0.3.0 把幂等键参数改为可变参数。升级前请阅读[迁移指南](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md)。
 

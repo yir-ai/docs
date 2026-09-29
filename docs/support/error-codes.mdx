@@ -40,9 +40,9 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_JOB_NOT_FOUND` | 404 | No such Job for this account, or it is older than 90 days. | Check the Job ID and the key's account. |
 | `YIR_FILE_NOT_FOUND` | 404 | Files API only: no such input file for this account. | Check the file ID, or upload again. |
 | `YIR_IDEMPOTENCY_CONFLICT` | 409 | This idempotency key was already used with a different request. | Resend the original request, or use a new key for a new request. |
-| `YIR_FILE_NOT_READY` | 409 | Files API only: the file has not been completed. | Finish uploading and call `/complete`. |
+| `YIR_FILE_NOT_READY` | 409 | Files API only (`/complete`, `/content`): the file has not been completed. `GET /v1/files/{id}` returns `200` with `status` instead. | Finish uploading and call `/complete`. |
 | `YIR_JOB_NOT_CANCELLABLE` | 409 | The Job already succeeded or failed. | Nothing to cancel. Read the Job. |
-| `YIR_FILE_EXPIRED` | 410 | Files API only: the input file has expired. | Upload it again. |
+| `YIR_FILE_EXPIRED` | 410 | Files API only (`/complete`, `/content`): the input file has expired. `GET /v1/files/{id}` returns `200` with `status: "expired"` instead. | Upload it again. |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
 | `YIR_RATE_LIMITED` | 429 | Too many Jobs are in progress for your account. | Wait for Jobs to finish, then retry with back-off. |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |

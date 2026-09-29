@@ -87,7 +87,8 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
 | --- | --- |
 | 报价 | 返回 `200`，报价中 `supply.available: false`、`issues: ["no_matching_supply"]`。文件会在报价有效期内过期时同样如此。 |
 | 生成 | `400 YIR_INVALID_REQUEST`，不创建 Job。 |
-| Files（`GET`、`/complete`、`/content`） | `404 YIR_FILE_NOT_FOUND`、`409 YIR_FILE_NOT_READY` 或 `410 YIR_FILE_EXPIRED`。 |
+| `GET /v1/files/{id}` | 返回 `200` 和文件快照，请读取其 `status`（`pending_upload`、`ready`、`expired` 或 `failed`）。文件不存在时返回 `404 YIR_FILE_NOT_FOUND`。 |
+| `POST /v1/files/{id}/complete`、`GET /v1/files/{id}/content` | `404 YIR_FILE_NOT_FOUND`、`409 YIR_FILE_NOT_READY` 或 `410 YIR_FILE_EXPIRED`。 |
 
 ## 读取文件
 
