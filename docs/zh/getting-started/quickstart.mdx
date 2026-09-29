@@ -19,10 +19,17 @@ API Key 只能保存在服务端，不要放进浏览器或移动端代码。
 
 ## 1. 提交生成请求
 
+每个生成请求都需要 `Idempotency-Key`。先生成一个键，并在本次请求中一直使用它：
+
+```bash
+export YIR_IDEMPOTENCY_KEY="quickstart-$(date +%s)"
+```
+
 ```bash
 curl https://gateway.yir.ai/v1/images/generations \
   --header "Authorization: Bearer $YIR_API_KEY" \
   --header "Content-Type: application/json" \
+  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
   --data '{
     "model": "openai/gpt-image-2",
     "input": { "type": "text", "prompt": "云海之上一座安静的天文台" },
@@ -51,7 +58,7 @@ export YIR_JOB_ID="$(jq -r '.id' job.json)"
 ```
 
 :::info
-`Idempotency-Key` 可选，本例省略了它，因此每次 POST 都会创建新 Job。提交超时时，请先在 [Console → 日志](https://yir.ai/zh/console/logs)中查找已提交的 Job 再决定是否重试：再次发出无键 POST 可能创建重复任务。生产代码应在首次 POST 前保存一个键，并与完整请求一起复用，见[幂等提交](/zh/docs/guides/production-integration#幂等提交)。
+幂等键让提交可以安全重试。请求超时后，在同一个终端中再次运行同一条命令即可：相同的键和请求体会返回原来的 Job，而不是新建一个。换新键会创建另一个单独收费的 Job。不带键的请求会以 `400 YIR_INVALID_REQUEST` 拒绝。见[幂等提交](/zh/docs/guides/production-integration#幂等提交)。
 :::
 
 ## 2. 等待 Job 完成

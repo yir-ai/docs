@@ -65,7 +65,7 @@ Pass Yir-specific options in `providerOptions.yir`. Unknown keys are rejected.
 
 | Option | Description |
 | --- | --- |
-| `idempotencyKey` | Optional. Generated per call when omitted. Persist and pass your own key to recover after a crash. |
+| `idempotencyKey` | Recommended. When omitted, the adapter generates one per call (newer versions log a warning), so a later call cannot recover it. Persist and pass your own key. |
 | `maxCost` | Spending limit for the Job, as a decimal string. See [billing](/docs/concepts/billing#set-a-spending-limit). |
 | `parameters` | Yir model parameters, such as `resolution`, `quality`, or `web_search`. |
 | `routing` | Yir [routing](/docs/concepts/routing) object. `routing.only` is an unordered allowlist. |

@@ -30,7 +30,7 @@ HTTP 调用立即返回，不会创建 Job，也不会收费。
 
 | 错误码 | HTTP | 含义 | 处理方式 |
 | --- | --- | --- | --- |
-| `YIR_INVALID_REQUEST` | 400 | 请求体、参数或参考素材不符合 API 或模型合同。 | 修正请求，查看模型[合同](/zh/docs/guides/models)。 |
+| `YIR_INVALID_REQUEST` | 400 | 请求体、参数或参考素材不符合 API 或模型合同，或生成请求缺少 `Idempotency-Key`。 | 修正请求，查看模型[合同](/zh/docs/guides/models)。 |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | `routing` 对象无效，例如 `only` 为空，或 `variants` 中的渠道不在 `only` 内。 | 修正 `routing`，见[路由](/zh/docs/concepts/routing)。 |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | 该 Key 不允许所请求的路由。 | 移除或收窄覆盖。 |
 | `YIR_UNAUTHORIZED` | 401 | Key 缺失、错误、已轮换、已吊销、已过期，或来源 IP 不被允许。 | 在 Console 检查 Key 及其设置，不要原样重试。 |
@@ -60,7 +60,7 @@ HTTP 调用立即返回，不会创建 Job，也不会收费。
 | `YIR_INSUFFICIENT_BALANCE` | 余额在 Job 继续前耗尽。 | 充值后重新提交。 |
 | `YIR_RATE_LIMITED` | Job 被限流。 | 稍后重新提交。 |
 | `YIR_OUTCOME_TIMEOUT` | 渠道始终未确认结果，Yir 已关闭该 Job。 | 如有需要重新提交；迟到的结果不会收费。 |
-| `result_delivery_failed` | 结果已生成，但未能复制到 Yir 存储。 | 稍后重新提交。该错误码因历史原因为小写。 |
+| `YIR_RESULT_DELIVERY_FAILED` | 结果已生成，但未能复制到 Yir 存储。 | 稍后重新提交。 |
 
 Job 错误上的 `retryable: true` 表示**新的**请求可能成功，绝不表示同一个 Job 会被重试。用原幂等键重新提交只会返回同一个失败的 Job，因此新尝试请使用新键。
 

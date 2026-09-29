@@ -448,7 +448,7 @@ test('builds a standalone static site without deployment hooks', async () => {
   await assert.rejects(readFile(path.join(docsRoot, 'wrangler.jsonc'), 'utf8'))
 })
 
-test('teaches safe Bearer authentication and optional generation keys', async () => {
+test('teaches safe Bearer authentication and required generation keys', async () => {
   const [authentication, quickstart] = await Promise.all([
     readFile(
       path.join(docsRoot, 'docs', 'getting-started', 'authentication.mdx'),
@@ -465,9 +465,9 @@ test('teaches safe Bearer authentication and optional generation keys', async ()
   assert.match(authentication, /reveal and copy it/i)
   assert.match(authentication, /old secret stops working as soon as rotation succeeds/i)
   assert.match(authentication, /never accepts upstream credentials/i)
-  assert.equal(/--header "Idempotency-Key:/.test(quickstart), false)
-  assert.match(quickstart, /Idempotency-Key` is optional/)
-  assert.match(quickstart, /another POST without a key could create a duplicate/)
+  assert.equal(quickstart.match(/--header "Idempotency-Key: \$YIR_IDEMPOTENCY_KEY"/g)?.length, 1)
+  assert.match(quickstart, /same key and body return the original Job/)
+  assert.match(quickstart, /Requests without a key are rejected with `400 YIR_INVALID_REQUEST`/)
   assert.match(quickstart, /"model": "openai\/gpt-image-2"/)
   assert.match(quickstart, /gateway\.yir\.ai\/v1\/jobs\/\$YIR_JOB_ID/)
   assert.equal(/\/kie\/|\/apimart\//i.test(quickstart), false)

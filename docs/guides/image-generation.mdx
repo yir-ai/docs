@@ -67,7 +67,7 @@ Read the complete list for any model from `GET /v1/models/{creator}/{model}?view
 ## Submit and collect
 
 1. Optionally quote the request with `POST /v1/images/quotes` using the same body (without `max_cost` and `webhook_url`).
-2. Submit to `POST /v1/images/generations` with an `Idempotency-Key` header.
+2. Submit to `POST /v1/images/generations` with the required `Idempotency-Key` header.
 3. Poll `GET /v1/jobs/{id}/status`, or wait for a Webhook.
 4. Read `GET /v1/jobs/{id}` and download `result.files[].url`. Each file carries `media_type` and, when known, `width` and `height`.
 

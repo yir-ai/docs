@@ -65,7 +65,7 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 
 | 选项 | 说明 |
 | --- | --- |
-| `idempotencyKey` | 可选，省略时每次调用自动生成。要在崩溃后恢复，请持久化并传入自己的键。 |
+| `idempotencyKey` | 推荐提供。省略时适配器为每次调用自动生成（新版本会打印警告），之后的调用无法用它恢复。请持久化并传入自己的键。 |
 | `maxCost` | Job 的支出上限，十进制字符串。见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
 | `parameters` | Yir 模型参数，例如 `resolution`、`quality` 或 `web_search`。 |
 | `routing` | Yir [路由](/zh/docs/concepts/routing)对象，`routing.only` 为无序白名单。 |

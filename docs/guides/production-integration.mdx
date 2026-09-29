@@ -21,11 +21,11 @@ Use this page before going live. Each section links to the page that explains th
 
 ## Idempotent submission
 
-An `Idempotency-Key` header (up to 200 characters) turns a submission into a safe-to-retry operation:
+Every generation request must carry an `Idempotency-Key` header (1–200 characters). It turns a submission into a safe-to-retry operation:
 
 - Same key and identical request: Yir returns the original Job instead of creating another.
 - Same key and a different request: rejected with `409 YIR_IDEMPOTENCY_CONFLICT`.
-- No key: every request creates a new Job.
+- Missing or blank key: rejected with `400 YIR_INVALID_REQUEST` before any Job is created or funds are reserved.
 
 Generate one key per logical generation (for example `order-123-image-1`) and **store it with the request before you send it**. If the submission times out or your process crashes, send the same request with the same key again. Never create a fresh key because a response was slow; the first request may already have been accepted.
 

@@ -19,10 +19,17 @@ Keep the key on your server. Never ship it in browser or mobile code.
 
 ## 1. Submit a generation
 
+Every generation needs an `Idempotency-Key`. Create one and keep it for this request:
+
+```bash
+export YIR_IDEMPOTENCY_KEY="quickstart-$(date +%s)"
+```
+
 ```bash
 curl https://gateway.yir.ai/v1/images/generations \
   --header "Authorization: Bearer $YIR_API_KEY" \
   --header "Content-Type: application/json" \
+  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
   --data '{
     "model": "openai/gpt-image-2",
     "input": { "type": "text", "prompt": "A quiet observatory above a sea of clouds" },
@@ -51,7 +58,7 @@ export YIR_JOB_ID="$(jq -r '.id' job.json)"
 ```
 
 :::info
-`Idempotency-Key` is optional, and this example omits it, so each POST creates a new Job. If a submission times out, check [Console → Logs](https://yir.ai/console/logs) before trying again: another POST without a key could create a duplicate. Production code should save a key before the first POST and reuse it with the exact request. See [idempotent submission](/docs/guides/production-integration#idempotent-submission).
+The key makes the submission safe to retry. If the request times out, run the same command again in the same shell: the same key and body return the original Job instead of creating a second one. A new key would create a new, separately charged Job. Requests without a key are rejected with `400 YIR_INVALID_REQUEST`. See [idempotent submission](/docs/guides/production-integration#idempotent-submission).
 :::
 
 ## 2. Wait for the Job to finish

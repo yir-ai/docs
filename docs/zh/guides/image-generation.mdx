@@ -67,7 +67,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片。
 ## 提交与获取结果
 
 1. 可选：用相同请求体（去掉 `max_cost` 和 `webhook_url`）调用 `POST /v1/images/quotes` 报价。
-2. 携带 `Idempotency-Key` Header 提交到 `POST /v1/images/generations`。
+2. 携带必填的 `Idempotency-Key` Header 提交到 `POST /v1/images/generations`。
 3. 轮询 `GET /v1/jobs/{id}/status`，或等待 Webhook。
 4. 读取 `GET /v1/jobs/{id}`，下载 `result.files[].url`。每个文件带有 `media_type`，已知时还有 `width` 和 `height`。
 
