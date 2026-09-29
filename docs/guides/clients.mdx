@@ -78,7 +78,7 @@ Ordinary polling queries `GET /v1/jobs/{id}/status`, returning a lightweight `Jo
 
 Client waiting requires bounded pacing (interval pacing, attempt limits, and application timeouts). Local timeouts or abort signals only stop local waiting—they never send a remote `POST /v1/jobs/{id}/cancel` and must not trigger a new submit. The updated SDK contracts handle waiting semantics as follows:
 
-- **TypeScript**: Call `client.getJobStatus(id)` for lightweight status checks. In `waitForJob`, the `onPoll` callback receives a `JobStatusResponse`. When waiting times out, `YirTimeoutError` guarantees `jobId` and `lastStatus` properties. In contrast, an aborted `AbortSignal` throws `signal.reason` directly without guaranteed metadata. Neither path cancels the remote job or resubmits.
+- **TypeScript**: Call `client.getJobStatus(id)` for lightweight status checks. In `waitForJob`, the `onPoll` callback receives a `JobStatusResponse`. When waiting times out, `YirTimeoutError` carries `jobId` and `timeoutMs`, plus `lastStatus` once a status has been received. In contrast, an aborted `AbortSignal` throws `signal.reason` directly without guaranteed metadata. Neither path cancels the remote job or resubmits.
 - **Go**: Call `client.GetJobStatus(ctx, id)` for status summaries. `WaitJob(ctx, id, options)` accepts an `OnPoll` callback receiving `JobStatusResponse`. When the context is cancelled or times out (including wrapped errors during in-flight transport requests), `WaitJob` halts local waiting and returns a zero `Job{}` and a non-nil error, allowing callers to check `errors.Is(err, context.Canceled)` or `errors.Is(err, context.DeadlineExceeded)` without sending a remote cancellation or resubmission.
 
 ## Channel parameter handling
