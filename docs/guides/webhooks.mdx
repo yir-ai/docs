@@ -14,7 +14,7 @@ Set `webhook_url` on a generation request to receive the Job when it reaches `su
 }
 ```
 
-The URL must use HTTPS and is set per request. Console does not register a default endpoint.
+The URL must use HTTPS. You can also register up to 5 endpoints in **Console → Webhooks**; every enabled endpoint receives all terminal events for your account. A request's `webhook_url` is delivered in addition to those endpoints, and a URL that matches a registered endpoint is delivered only once. All deliveries are signed with the same account signing secret.
 
 ## Delivery headers
 
@@ -103,7 +103,8 @@ If your endpoint does not answer with a `2xx` status, Yir retries automatically.
 
 In **Console → Webhooks** you can:
 
-- reveal or rotate the signing secret (password confirmation is required if your account has one). After rotation, verify new deliveries with the new secret;
+- add, edit, enable, disable, or delete endpoints, and see each endpoint's delivery counts and latest status;
+- reveal or rotate the signing secret. After rotation, verify new deliveries with the new secret;
 - inspect delivery records: receiving origin (without path or query), event ID, status, and attempt count;
 - **Redeliver** a delivered or failed event. Redelivery keeps the event ID and queues it in the background; refresh the list to see the outcome.
 
