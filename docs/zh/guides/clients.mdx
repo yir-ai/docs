@@ -102,7 +102,13 @@ if errors.As(err, &failed) {
 if err != nil {
 	return err // Local timeout: the Job keeps running. Resume with job.ID later.
 }
-fmt.Println(final.Status, final.Billing.TotalChargedByYir, final.Result.Files[0].URL)
+fmt.Println(final.Status)
+if final.Billing != nil {
+	fmt.Println(final.Billing.TotalChargedByYir)
+}
+if final.Result != nil && final.Result.Availability == "available" && len(final.Result.Files) > 0 {
+	fmt.Println(final.Result.Files[0].URL) // copy to your own storage
+}
 ```
 
 </CodeGroup>
