@@ -44,7 +44,7 @@ The values above are illustrative. Amounts are USD decimal strings; use decimal 
 | `price_difference_percent` | Optional comparison with `official`. Negative means Yir is cheaper. |
 | `single_attempt_upper_bound` | The most one attempt can cost, verified across all eligible channels. `null` if any channel cannot be bounded. |
 | `supply.available` | `false` with `issues: ["no_matching_supply"]` when no channel can run this request right now. |
-| `supply.requires_max_cost` | `true` when a usage-billed channel is eligible. Submit must then include `max_cost` of at least `0.01`. |
+| `supply.requires_max_cost` | `true` when an eligible usage-billed channel has no verifiable whole-request upper bound. Submit must then include `max_cost` of at least `0.01`. |
 
 Each price has one of three kinds:
 
@@ -69,6 +69,8 @@ Submission checks prices again. A quote you obtained earlier does not guarantee 
 3. **Failure or cancellation** releases the whole reservation. The customer charge is zero.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
 
+For usage-billed channels without a verifiable upper bound, Yir reserves the explicit `max_cost` in full. An output-only estimate does not determine this reservation.
+
 Billing is final when the Job reaches a terminal state. Read the terminal Job's `billing` object:
 
 | Field | Meaning |
@@ -76,7 +78,8 @@ Billing is final when the Job reaches a terminal state. Read the terminal Job's 
 | `billing.total_charged_by_yir` | The final amount charged for this Job. |
 | `billing.currency` | Always `USD`. |
 | `billing.max_cost` | The authorization limit that applied. It is not the charge. |
-| `billing.savings` | Optional comparison with the official reference price. |
+| `billing.savings` | Optional comparison with the user price frozen at admission. It can be negative after fallback. |
+| `billing.official_comparison` | Optional comparison with the complete official price frozen at admission for this request. |
 
 Costs from failed attempts, and from provider results that arrive after Yir has already closed a Job, are absorbed by Yir.
 
@@ -87,4 +90,4 @@ Costs from failed attempts, and from provider results that arrive after Yir has 
 
 ## Pricing your own product
 
-If you resell generation to your users, keep your retail prices and refund rules separate from Yir's authorization. A common pattern is to charge customers from `primary`, authorize Yir with `single_attempt_upper_bound`, and reconcile `total_charged_by_yir` once per Job.
+If you resell generation to your users, keep your retail prices and refund rules separate from Yir's authorization. You can use a `fixed` `primary` price as a pricing input; an `estimate` covers output only and cannot serve as a complete price. Use `single_attempt_upper_bound` for authorization only when `has_verifiable_upper_bound` is `true`; otherwise choose an explicit `max_cost` that your business can accept. Reconcile `total_charged_by_yir` once per Job.

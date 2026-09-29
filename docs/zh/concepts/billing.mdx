@@ -44,7 +44,7 @@ Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 
 | `price_difference_percent` | 可选，与 `official` 的对比，负数表示 Yir 更便宜。 |
 | `single_attempt_upper_bound` | 在所有可用渠道上经过验证的单次尝试费用上限；只要有一个渠道无法确定上限即为 `null`。 |
 | `supply.available` | 当前没有渠道能执行此请求时为 `false`，并带有 `issues: ["no_matching_supply"]`。 |
-| `supply.requires_max_cost` | 存在按用量计费的可用渠道时为 `true`，提交时必须携带不低于 `0.01` 的 `max_cost`。 |
+| `supply.requires_max_cost` | 可用的用量计费渠道无法提供可核验的完整请求费用上限时为 `true`，提交时必须携带不低于 `0.01` 的 `max_cost`。 |
 
 每个价格属于以下三类之一：
 
@@ -69,6 +69,8 @@ Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 
 3. **失败或取消**时释放全部预留，客户费用为零。
 4. 尝试进行中**请求停止**：该次尝试仍可能成功并收费。见[取消](/zh/docs/concepts/task-lifecycle#取消)。
 
+用量计费渠道没有可核验上限时，Yir 会完整预留显式提供的 `max_cost`。仅输出估算不作为这笔预留的依据。
+
 Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 
 | 字段 | 含义 |
@@ -76,7 +78,8 @@ Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 | `billing.total_charged_by_yir` | 此 Job 的最终收费金额。 |
 | `billing.currency` | 固定为 `USD`。 |
 | `billing.max_cost` | 适用的授权上限，不是收费金额。 |
-| `billing.savings` | 可选，与官方参考价的对比。 |
+| `billing.savings` | 可选，与准入时冻结的用户价对比；切换渠道后可能为负数。 |
+| `billing.official_comparison` | 可选，与准入时冻结的本次请求完整官方价对比。 |
 
 失败尝试的成本，以及 Yir 关闭 Job 后才到达的渠道结果成本，均由 Yir 承担。
 
@@ -87,4 +90,4 @@ Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 
 ## 为自己的产品定价
 
-如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的授权分开。常见做法是：按 `primary` 向用户收费，用 `single_attempt_upper_bound` 授权 Yir，并对每个 Job 只核对一次 `total_charged_by_yir`。
+如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的授权分开。可以把 `fixed` 的 `primary` 价格作为定价依据；`estimate` 仅覆盖输出，不可充当完整价格。只有在 `has_verifiable_upper_bound` 为 `true` 时才用 `single_attempt_upper_bound` 授权；否则应显式设置业务能够接受的 `max_cost`。对每个 Job 只核对一次 `total_charged_by_yir`。
