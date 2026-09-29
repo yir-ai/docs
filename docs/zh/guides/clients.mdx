@@ -7,8 +7,8 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 
 | 语言 | 包 | 当前版本 |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.2.1` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.3.0` |
+| TypeScript | `@yir-ai/sdk` | `0.3.0` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.4.0` |
 
 两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
@@ -17,11 +17,11 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.2.1
+pnpm add @yir-ai/sdk@0.3.0
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.3.0
+go get github.com/yir-ai/sdk/go@v0.4.0
 ```
 
 </CodeGroup>
@@ -128,8 +128,10 @@ Go 代码片段是一个返回 `error` 的函数体，需要导入 `context`、`
 - **校验。** 本地参数校验需要传入模型目录，否则由 Gateway 校验。见[模型与参数](/zh/docs/guides/models)。
 - **参数提示。** 对 GPT Image 发送 `quality` 但未限定官方渠道时，SDK 会输出一条警告，因为该参数会被忽略。
 
-## 从 0.1.0 升级
+## 升级
 
-TypeScript 0.2 与 Go 0.2 移除了内置模型清单和客户端价格表，等待改为轮询状态接口（`onPoll` / `OnPoll` 现在接收状态摘要）。Go 0.3.0 把幂等键参数改为可变参数。升级前请阅读[迁移指南](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md)。
+**TypeScript 0.3.0 / Go 0.4.0。** 等待改为退避轮询（5 秒、10 秒、20 秒），不再每 2 秒查询一次；如需固定间隔，设置 `pollIntervalMs` / `WaitOptions.PollInterval`。新增 `constructWebhookEvent` / `ConstructWebhookEvent`，调用签名不变。
+
+**从 0.1.0 升级。** TypeScript 0.2 与 Go 0.2 移除了内置模型清单和客户端价格表，等待改为轮询状态接口（`onPoll` / `OnPoll` 现在接收状态摘要）。Go 0.3.0 把幂等键参数改为可变参数。升级前请阅读[迁移指南](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md)。
 
 Python 没有官方 SDK，可直接调用 REST；[Webhook 指南](/zh/docs/guides/webhooks)提供了 Python 签名校验示例。

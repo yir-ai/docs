@@ -7,8 +7,8 @@ The official SDKs are open source in [yir-ai/sdk](https://github.com/yir-ai/sdk)
 
 | Language | Package | Current version |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.2.1` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.3.0` |
+| TypeScript | `@yir-ai/sdk` | `0.3.0` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.4.0` |
 
 Both clients read `YIR_API_KEY` from your server and default to `https://gateway.yir.ai`. Keep them on the server; the browser entry points of the TypeScript package contain only pure helpers and types.
 
@@ -17,11 +17,11 @@ Both clients read `YIR_API_KEY` from your server and default to `https://gateway
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.2.1
+pnpm add @yir-ai/sdk@0.3.0
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.3.0
+go get github.com/yir-ai/sdk/go@v0.4.0
 ```
 
 </CodeGroup>
@@ -128,8 +128,10 @@ The Go snippet is the body of a function returning `error`, importing `context`,
 - **Validation.** Local parameter validation needs a model catalog you pass in; otherwise the Gateway validates. See [models and parameters](/docs/guides/models).
 - **Parameter notices.** For GPT Image, the SDKs log a warning when `quality` is sent without pinning the official channel, because it will be ignored.
 
-## Upgrading from 0.1.0
+## Upgrading
 
-TypeScript 0.2 and Go 0.2 removed bundled model lists and client-side price tables, and switched waiting to the status endpoint (`onPoll` / `OnPoll` now receive a status summary). Go 0.3.0 made the idempotency key argument variadic. Read the [migration guide](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md) before upgrading.
+**TypeScript 0.3.0 / Go 0.4.0.** Waiting now backs off (5 s, then 10 s, then 20 s) instead of polling every 2 seconds; set `pollIntervalMs` / `WaitOptions.PollInterval` to keep a fixed interval. `constructWebhookEvent` / `ConstructWebhookEvent` are new. No call signatures change.
+
+**From 0.1.0.** TypeScript 0.2 and Go 0.2 removed bundled model lists and client-side price tables, and switched waiting to the status endpoint (`onPoll` / `OnPoll` now receive a status summary). Go 0.3.0 made the idempotency key argument variadic. Read the [migration guide](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md) before upgrading.
 
 Python is not an official SDK. Use REST from Python; the [Webhooks guide](/docs/guides/webhooks) includes a Python signature check.
