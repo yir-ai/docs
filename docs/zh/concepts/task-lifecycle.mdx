@@ -54,7 +54,7 @@ Job 慢、请求超时或渠道暂未答复，都**不代表**失败。继续查
 - **尚未向任何渠道提交**：Job 立即变为 `cancelled`，预留资金全部释放。
 - **已向渠道提交**：响应带有 `cancellation.status: "stop_requested"`。Yir 不再发起后续切换尝试，但当前尝试会继续。若成功，结果照常交付并收费；若失败，Job 以 `failed` 结束且不收费。
 
-第二种情况请在界面显示「已请求停止」并继续轮询。对已 `succeeded` 或 `failed` 的 Job 取消会返回 `409 YIR_JOB_NOT_CANCELLABLE`。重复发送取消请求是安全的。
+第二种情况请在界面显示「已请求停止」并继续轮询。对已 `succeeded` 或 `failed` 的 Job 取消会返回 `409 YIR_JOB_NOT_CANCELLABLE`。重复发送取消请求是安全的。如果取消请求失败或超时，取消可能已经生效：请查询 Job 的 `status` 与 `cancellation` 确认当前状态。
 
 ## 结果未知
 

@@ -26,11 +26,11 @@ On a failed Job, the same `error` object (without `request_id`) is in both `GET 
 
 ## Request errors
 
-Returned immediately by an HTTP call. When a generation request is rejected this way, no Job is created, no funds are reserved, and nothing is charged. Errors on other endpoints (for example cancelling or querying an existing Job) leave that Job unchanged.
+Returned immediately by an HTTP call. When a generation request is rejected this way, no Job is created, no funds are reserved, and nothing is charged.
 
 | Code | HTTP | Meaning | What to do |
 | --- | --- | --- | --- |
-| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`. A generation request that references a missing, unfinished, or expired input file also returns this code. | Fix the request. Check the model's [contract](/docs/guides/models). |
+| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`. A generation request that references a missing, unfinished, or expired input file also returns this code (a quote returns `supply.available: false` instead). | Fix the request. Check the model's [contract](/docs/guides/models). |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | The `routing` object is invalid, for example an empty `only` or a variant outside `only`. | Fix `routing`. See [routing](/docs/concepts/routing). |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | The requested routing is not permitted for this key. | Remove or narrow the override. |
 | `YIR_UNAUTHORIZED` | 401 | Missing, wrong, rotated, revoked, or expired key, or a disallowed source IP. | Check the key and its settings in Console. Do not retry unchanged. |
