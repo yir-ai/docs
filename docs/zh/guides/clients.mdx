@@ -7,8 +7,8 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 
 | 语言 | 包 | 当前版本 |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.3.1` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.4.1` |
+| TypeScript | `@yir-ai/sdk` | `0.4.0` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.5.0` |
 
 两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
@@ -17,11 +17,11 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.3.1
+pnpm add @yir-ai/sdk@0.4.0
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.4.1
+go get github.com/yir-ai/sdk/go@v0.5.0
 ```
 
 </CodeGroup>
@@ -116,7 +116,7 @@ Go 代码片段是一个返回 `error` 的函数体，需要导入 `context`、`
 | 报价 | `quoteImage`、`quoteVideo`、`quoteBatch` | `QuoteImage`、`QuoteVideo`、`QuoteBatch` |
 | 提交 | `submitImage`、`submitVideo` | `SubmitImage`、`SubmitVideo` |
 | Job | `getJob`、`getJobStatus`、`cancelJob`、`waitForJob` | `GetJob`、`GetJobStatus`、`CancelJob`、`WaitJob` |
-| 文件 | `createFiles`、`uploadFile`、`createAndUploadFile`、`getFile`、`completeFile` | `CreateFiles`、`UploadFile`、`CreateAndUploadFile`、`GetFile`、`CompleteFile` |
+| 文件 | `createFiles`、`uploadFile`、`createAndUploadFile`、`getFile`、`completeFile`、`waitForFileReady` | `CreateFiles`、`UploadFile`、`CreateAndUploadFile`、`GetFile`、`CompleteFile`、`WaitForFileReady` |
 | Webhook | `verifyWebhookSignature`、`constructWebhookEvent` | `VerifyWebhookSignature`、`ConstructWebhookEvent` |
 | 模型 | `getModelContracts`、`getModelContract` | `GetModelContracts`、`GetModelContract` |
 
