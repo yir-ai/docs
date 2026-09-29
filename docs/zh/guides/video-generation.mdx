@@ -13,7 +13,7 @@ description: 从文本、首尾帧，或图片、视频、音频混合参考生�
 | `image` | 从首帧开始生成，可选指定尾帧 | `first_frame`、`last_frame` |
 | `reference` | 用多种素材引导视频 | `reference_image`、`reference_video`、`reference_audio` |
 
-每个参考项包含 `role`，并且只能提供 `url` 或 `file_id` 之一。图片参考可以使用公网 HTTPS 地址；**视频和音频参考必须先上传为[输入文件](/zh/docs/guides/input-files)**，再以 `file_id` 引用，因为 Yir 需要在报价前测量其时长。
+所有图片、视频和音频参考都必须先通过[输入文件 API](/zh/docs/guides/input-files)上传，等待分析状态为 `ready` 后，用 `role` 和 `file_id` 引用。生成请求不接受外部 URL。
 
 模型支持哪些输入方式、角色和数量由其合同决定。例如 Seedance 2.0 在 `image` 模式下接受一个 `first_frame` 和可选的 `last_frame`；在 `reference` 模式下最多接受 9 张图片、3 段视频和 3 段音频（至少一张图片或一段视频）。
 
@@ -59,8 +59,8 @@ description: 从文本、首尾帧，或图片、视频、音频混合参考生�
     "type": "image",
     "prompt": "晨光掠过，花苞缓缓绽放",
     "references": [
-      { "role": "first_frame", "url": "https://example.com/bud.png" },
-      { "role": "last_frame", "url": "https://example.com/bloom.png" }
+      { "role": "first_frame", "file_id": "file_44444444-4444-4444-8444-444444444444" },
+      { "role": "last_frame", "file_id": "file_55555555-5555-4555-8555-555555555555" }
     ]
   },
   "parameters": {
@@ -83,7 +83,7 @@ description: 从文本、首尾帧，或图片、视频、音频混合参考生�
     "type": "reference",
     "prompt": "图片中的角色按视频的风格随音乐起舞",
     "references": [
-      { "role": "reference_image", "url": "https://example.com/character.png" },
+      { "role": "reference_image", "file_id": "file_66666666-6666-4666-8666-666666666666" },
       { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
       { "role": "reference_audio", "file_id": "file_33333333-3333-4333-8333-333333333333" }
     ]
@@ -101,7 +101,7 @@ description: 从文本、首尾帧，或图片、视频、音频混合参考生�
 </Tab>
 </Tabs>
 
-请把示例 URL 和文件 ID 替换为你自己的。
+请把示例文件 ID 替换为你自己的 ready 文件。
 
 ## 提交前先报价
 

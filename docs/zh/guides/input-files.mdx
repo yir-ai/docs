@@ -3,7 +3,7 @@ title: 输入文件
 description: 用 Files API 上传参考图片、视频和音频，并在生成请求中引用。
 ---
 
-当参考素材没有公网 HTTPS 地址，或者是视频、音频（必须上传）时，请使用 Files API。生成接口不接受 Base64、Data URL 或 multipart 请求体。
+所有图片、视频和音频参考都必须先通过 Files API 上传；生成请求不接受外部参考 URL。生成接口不接受 Base64、Data URL 或 multipart 请求体。
 
 ## 限制
 
@@ -25,7 +25,7 @@ description: 用 Files API 上传参考图片、视频和音频，并在生成�
     按 `part_number` 顺序，把对应字节段 `PUT` 到 `upload.parts` 中每个分片的 `url`。不要向这些地址发送 Yir API Key。
   </Step>
   <Step title="完成文件">
-    用空 JSON 请求体调用 `POST /v1/files/{id}/complete`，文件变为 `ready`。
+    用空 JSON 请求体调用 `POST /v1/files/{id}/complete`，文件进入 `processing`。轮询 `GET /v1/files/{id}`，等到 `ready` 后再引用；遇到 `failed` 或 `expired` 时停止等待。
   </Step>
   <Step title="引用文件">
     在报价或生成请求的 `input.references` 中使用 `{ "role": "...", "file_id": "file_..." }`。
@@ -87,7 +87,7 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
 | --- | --- |
 | 报价 | 返回 `200`，报价中 `supply.available: false`、`issues: ["no_matching_supply"]`。文件会在报价有效期内过期时同样如此。 |
 | 生成 | `400 YIR_INVALID_REQUEST`，不创建 Job。 |
-| `GET /v1/files/{id}` | 返回 `200` 和文件快照，请读取其 `status`（`pending_upload`、`ready`、`expired` 或 `failed`）。文件不存在时返回 `404 YIR_FILE_NOT_FOUND`。 |
+| `GET /v1/files/{id}` | 返回 `200` 和文件快照，请读取其 `status`（`pending_upload`、`processing`、`ready`、`expired` 或 `failed`）。文件不存在时返回 `404 YIR_FILE_NOT_FOUND`。 |
 | `POST /v1/files/{id}/complete`、`GET /v1/files/{id}/content` | `404 YIR_FILE_NOT_FOUND`、`409 YIR_FILE_NOT_READY` 或 `410 YIR_FILE_EXPIRED`。 |
 
 ## 读取文件
@@ -97,3 +97,5 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
 ## 使用 SDK
 
 SDK 封装了全部三个步骤：TypeScript 为 `createAndUploadFile`，Go 为 `CreateAndUploadFile`。见 [SDK](/zh/docs/guides/clients)。
+
+TypeScript SDK 0.4.0 和 Go SDK 0.5.0 上传辅助函数会等待分析，默认超时五分钟。可用 `waitForFileReady` / `WaitForFileReady` 继续等待；本地超时不会取消服务端分析。

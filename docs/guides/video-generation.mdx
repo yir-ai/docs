@@ -13,7 +13,7 @@ Submit video Jobs to `POST /v1/videos/generations`. Video Jobs follow the same [
 | `image` | Animate from a start frame, optionally to an end frame | `first_frame`, `last_frame` |
 | `reference` | Guide the video with mixed media | `reference_image`, `reference_video`, `reference_audio` |
 
-Each reference has a `role` and exactly one of `url` or `file_id`. Image references can use public HTTPS URLs. **Video and audio references must be uploaded as [input files](/docs/guides/input-files)** and passed by `file_id`, because Yir measures their duration before quoting.
+Upload all image, video, and audio references through the [Files API](/docs/guides/input-files). Wait for analysis to reach `ready`, then reference each file by `role` and `file_id`. Generation requests reject external URLs.
 
 Which modes, roles, and counts a model accepts is defined in its contract. For example, Seedance 2.0 accepts `first_frame` plus an optional `last_frame` in `image` mode, and in `reference` mode up to 9 images, 3 videos, and 3 audio clips (at least one image or video).
 
@@ -59,8 +59,8 @@ Read a model's exact values from `GET /v1/models/{creator}/{model}?view=contract
     "type": "image",
     "prompt": "The flower slowly opens as morning light moves across it",
     "references": [
-      { "role": "first_frame", "url": "https://example.com/bud.png" },
-      { "role": "last_frame", "url": "https://example.com/bloom.png" }
+      { "role": "first_frame", "file_id": "file_44444444-4444-4444-8444-444444444444" },
+      { "role": "last_frame", "file_id": "file_55555555-5555-4555-8555-555555555555" }
     ]
   },
   "parameters": {
@@ -83,7 +83,7 @@ Read a model's exact values from `GET /v1/models/{creator}/{model}?view=contract
     "type": "reference",
     "prompt": "The character from the image dances to the music in the style of the video",
     "references": [
-      { "role": "reference_image", "url": "https://example.com/character.png" },
+      { "role": "reference_image", "file_id": "file_66666666-6666-4666-8666-666666666666" },
       { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
       { "role": "reference_audio", "file_id": "file_33333333-3333-4333-8333-333333333333" }
     ]
@@ -101,7 +101,7 @@ Read a model's exact values from `GET /v1/models/{creator}/{model}?view=contract
 </Tab>
 </Tabs>
 
-Replace example URLs and file IDs with your own.
+Replace the example file IDs with your own ready files.
 
 ## Quote before you submit
 

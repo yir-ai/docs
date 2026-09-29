@@ -33,7 +33,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片。
 
 ## 图生图
 
-把 `input.type` 设为 `image`，按顺序列出参考图。每个参考项的角色都是 `reference_image`，并且只能提供 `url`（公网 HTTPS 地址）或 `file_id`（已处于 `ready` 状态的[输入文件](/zh/docs/guides/input-files)）之一。
+把 `input.type` 设为 `image`，按顺序列出参考图。每张图片都必须先通过[输入文件 API](/zh/docs/guides/input-files)上传，等待分析状态为 `ready` 后，以 `reference_image` 角色和 `file_id` 引用。生成请求不接受外部 URL。
 
 ```json
 {
@@ -42,7 +42,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片。
     "type": "image",
     "prompt": "把第一张图中的商品放到第二张图的桌子上",
     "references": [
-      { "role": "reference_image", "url": "https://example.com/product.png" },
+      { "role": "reference_image", "file_id": "file_44444444-4444-4444-8444-444444444444" },
       { "role": "reference_image", "file_id": "file_11111111-1111-4111-8111-111111111111" }
     ]
   },
@@ -50,7 +50,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片。
 }
 ```
 
-请把示例 URL 和文件 ID 替换为你自己的。参考图数量上限由模型合同决定，许多模型支持多张。
+请把示例文件 ID 替换为你自己的 ready 文件。参考图数量上限由模型合同决定，许多模型支持多张。
 
 ## 模型特有参数
 
