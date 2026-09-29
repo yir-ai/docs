@@ -4,5 +4,5 @@ export default defineMeta({
   title: "Help",
   icon: "circle-help",
   order: 5,
-  pages: ["troubleshooting"],
+  pages: ["error-codes", "troubleshooting"],
 });

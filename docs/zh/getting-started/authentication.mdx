@@ -1,26 +1,37 @@
 ---
 title: 身份认证
-description: 使用仅保存在服务端的 Yir API Key 认证每个 Gateway 请求。
+description: 在 Bearer Header 中携带 Yir API Key 认证每个 Gateway 请求。
 ---
 
-所有公开 Gateway 请求都使用 `Authorization: Bearer <YIR_API_KEY>`。
+每个 Gateway 请求都使用标准 HTTP Bearer Header 携带 Yir API Key：
 
-<Steps>
-  <Step title="创建或显示密钥">在 Yir Console 中复制一次密钥，并立即保存到 Secret Manager。</Step>
-  <Step title="只提供给后端代码">仅在负责提交任务的服务端或 Worker 中设置 `YIR_API_KEY`。</Step>
-  <Step title="发送 Bearer Header">提交请求和查询请求都必须携带相同的认证方式。</Step>
-</Steps>
-
-:::warning
-不要把 Yir API Key 放入浏览器 JavaScript、截图、工单、日志或公开仓库，也不要向 Yir 发送任何上游 Provider API Key。
-:::
-
-IP 白名单是可选的高级安全设置，默认关闭。出口 IP 固定的生产环境可以在 Console 的 API Keys 页面按需开启，支持单个 IPv4、IPv6 或 CIDR 网段；开启后只有匹配来源才能使用该 Key 调用 Gateway。动态出口、本地开发或 Serverless 环境通常应保持关闭，避免请求被误拒绝。IP 白名单只能降低泄漏后的可利用性，确认 Secret 泄漏时仍应立即轮转。
-
-```bash .env
-YIR_API_KEY=replace-with-your-secret
+```http
+Authorization: Bearer <YIR_API_KEY>
 ```
 
-<Panel title="Secret 轮转">
-  怀疑泄露时应轮转 Secret。逻辑 Key 的名称、默认标记、RoutingProfile 绑定和统计归属保持不变，旧 Secret 立即失效。
-</Panel>
+不接受 `X-API-Key` 或 URL 参数中的 Key。缺少有效 Key 的请求会在创建 Job 之前以 `401 YIR_UNAUTHORIZED` 拒绝。
+
+## 获取 Key
+
+每个账户都有一个**默认 API Key**，可以直接开始使用。打开 [Console → API Keys](https://yir.ai/zh/console/api-keys) 显示并复制。
+
+把 Key 存入 Secret Manager 或服务端环境变量：
+
+```bash
+export YIR_API_KEY="your-yir-api-key"
+```
+
+需要区分环境或应用时，可以另建 Key。每个 Key 有独立的月度支出上限、到期时间、IP 白名单和用量统计。见 [Console 中的 API Keys](/zh/docs/console/api-keys)。
+
+## 安全使用
+
+- 只在服务端代码中使用 Key，不要放入浏览器或移动应用、公开仓库、URL、截图或工单。
+- 生产、CI 和本地开发分别使用不同 Key，便于单独轮换或吊销。
+- 怀疑泄露时立即轮换。轮换成功后旧 Secret 立即失效。
+- 不要向 Yir 发送上游服务商的 API Key（例如 OpenAI 或 Google 的 Key）。Yir 使用自己托管的供应账户，请求中的上游凭据一律不接受。
+
+## 请求被拒绝的原因
+
+Key 错误、已轮换、已吊销、已过期，或来源 IP 不在白名单内时，请求以 `401 YIR_UNAUTHORIZED` 拒绝，响应不会说明具体原因，请到 Console 查看 Key 状态。
+
+Key 有效时，创建 Job 仍可能被拒绝：`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度支出上限，`402 YIR_INSUFFICIENT_BALANCE` 表示账户余额不足。见[错误码](/zh/docs/support/error-codes)。

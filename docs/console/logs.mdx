@@ -1,22 +1,23 @@
 ---
 title: Logs
-description: Inspect job results, actual providers, confirmed fallback recovery, charges, and the execution timeline.
+description: Review past Jobs with their results, final channel, fallback recovery, charges, and execution timeline.
 ---
 
-Logs are the user-facing history of real Yir jobs. The list helps you scan outcomes; each detail page explains the delivered result and the safe execution facts available for that job.
+[Console → Logs](https://yir.ai/console/logs) lists your Jobs. Use the list to scan outcomes and open a Job for details.
 
-## Statuses
+## Job details
 
-The Standard API exposes six job statuses: `queued`, `running`, `delivering`, `succeeded`, `failed`, and `cancelled`. Planning, reconciliation, unknown provider outcomes, and late financial confirmation remain internal facts.
+When available, the detail page shows:
 
-## What a detail page shows
+- the result and its status;
+- the channel that produced the result, and whether fallback recovered the Job (counted only when an earlier attempt was confirmed failed and a later one succeeded);
+- the total Yir charge, and a comparison with the official reference price when a like-for-like price exists (negative differences are shown as they are; unknown costs are never shown as savings);
+- input transfer facts and one execution timeline.
 
-When available, the detail page shows the result, final provider, confirmed fallback recovery, total Yir charge, input transfer facts, and one execution timeline. A fallback is counted as a recovery only when the primary attempt was confirmed failed and a fallback attempt succeeded.
+## Privacy
 
-Cost differences appear only when the immutable execution plan contains a comparable same-specification price baseline. Negative differences are shown honestly. Unknown costs are not presented as savings.
+By default, details show the prompt length and the number of references. During the first 7 days you can expand your stored prompt. Reference URLs, file IDs, raw provider responses, credentials, and internal routing data are never shown.
 
-## Privacy and retention
+## Retention
 
-Details show prompt length and reference count by default. During the first 7 days after Job creation, you can expand your retained prompt. Reference URLs and file identifiers are not displayed. Provider raw responses, secrets, credentials, internal access paths, health scores, procurement costs, and the complete execution plan remain private.
-
-Original content and results are retained until 7 days after Job creation; summary logs remain available until day 90. Existing results may have an earlier expiry and are not revived by this policy. At expiry, access stops and background cleanup removes eligible data; an expired result does not by itself confirm physical deletion. Independent accounting records remain. Logs are not a permanent asset library; download results you need to retain.
+Prompts, inputs, and results are kept for 7 days after the Job is created; summary logs for 90 days. Billing records are kept separately. Logs are not an asset library, so download any results you need. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).

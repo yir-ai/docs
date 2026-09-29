@@ -1,113 +1,135 @@
 ---
-title: Clients and compatibility
-description: Integrate image and video jobs with static validation, live quotes, and durable recovery.
+title: SDKs
+description: Use the official TypeScript and Go SDKs to quote, submit, wait for, and collect Yir Jobs.
 ---
 
-The TypeScript `0.2.1` and Go `0.3.0` SDKs are publicly available in the [Yir SDK repository](https://github.com/yir-ai/sdk). The [quickstart](/docs/getting-started/quickstart) uses REST without an SDK.
+The official SDKs are open source in [yir-ai/sdk](https://github.com/yir-ai/sdk) and cover quotes, generation, Job waiting, cancellation, file uploads, and Webhook verification. You can also call the REST API directly; the [quickstart](/docs/getting-started/quickstart) uses cURL.
 
-## Installation and contracts
+| Language | Package | Current version |
+| --- | --- | --- |
+| TypeScript | `@yir-ai/sdk` | `0.2.1` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.3.0` |
 
-Install the TypeScript SDK:
+Both clients read `YIR_API_KEY` from your server and default to `https://gateway.yir.ai`. Keep them on the server; the browser entry points of the TypeScript package contain only pure helpers and types.
 
-```sh
+## Install
+
+<CodeGroup>
+
+```sh TypeScript
 pnpm add @yir-ai/sdk@0.2.1
 ```
 
-Import `createNodeYirClient` from `@yir-ai/sdk/server`. Use `@yir-ai/sdk/frontend` for local validation against an explicitly supplied model catalog and `@yir-ai/sdk/vercel` for the Vercel adapter. `@yir-ai/sdk/model-contracts` remains a historical snapshot entry; browser helpers do not calculate prices. Keep API calls and keys on your server.
-
-The Go module is `github.com/yir-ai/sdk/go`, package `yir`:
-
-```sh
+```sh Go
 go get github.com/yir-ai/sdk/go@v0.3.0
 ```
 
-Version `0.2.0` reads model contracts through `getModelContracts / getModelContract` (TypeScript) or `GetModelContracts / GetModelContract` (Go). Clients no longer reject new model IDs solely because they are absent from a bundled catalog. TypeScript can validate against an explicitly supplied catalog or an application-generated snapshot. Gateway remains authoritative for supported parameters, prices, and execution eligibility; catalog inclusion does not guarantee supply.
+</CodeGroup>
 
-| Capability | TypeScript | Go |
-| --- | --- | --- |
-| Image/video quotes | `quoteImage / quoteVideo` | `QuoteImage / QuoteVideo` |
-| Submission | `submitImage / submitVideo` | `SubmitImage / SubmitVideo` |
-| Query, stop, wait | `getJob / getJobStatus / cancelJob / waitForJob` | `GetJob / GetJobStatus / CancelJob / WaitJob` |
-| Inputs | Files create, get, complete, multipart upload helpers | Files and upload helpers |
-| Webhooks | Verify original bytes | Verify original bytes |
+The TypeScript package is ESM and needs a runtime with native `fetch`, Web Crypto, and `Blob` (Node.js 22 or later). The Go module requires Go 1.25 or later.
 
-Python retains its historical implementation and is not recommended as a new client; use Go, TypeScript, or REST for new projects. If maintaining historical Python scripts that use `on_poll` or `last_status`, note that standard library `urllib` cannot enforce strict wall-clock deadline interruptions.
+## Generate an image end to end
 
-## Persist authorization before submission
+<CodeGroup>
 
-REST generation accepts an optional `Idempotency-Key`. TypeScript `0.2.1` and Go `0.3.0` generate a random key per call when omitted: use `client.submitImage(request)` or `client.SubmitImage(ctx, request)` for a single submission. Video methods work the same way. Repeated calls generate different keys, so durable recovery still requires a saved key and request. Fallback within an accepted Job is independent of the client key and remains subject to routing, supply, and budget.
+```ts TypeScript
+import { createNodeYirClient } from "@yir-ai/sdk/server";
+import type { StandardImageGenerationRequest } from "@yir-ai/sdk/shared";
 
-Go `0.3.0` changes the final generation argument from `string` to `...string`. Ordinary calls with a saved key still compile; custom fixed-signature interfaces and method function assignments require the [migration steps](https://github.com/yir-ai/sdk/blob/main/go/README.md#030-migration). The SDK does not automatically retry Submit.
+const client = createNodeYirClient(); // reads YIR_API_KEY
 
-Create a server-side client with `createNodeYirClient({ apiKey })`, or `yir.NewClient(apiKey, yir.ClientOptions{})` in Go. Keep the API key on your server.
+const request: StandardImageGenerationRequest = {
+  model: "openai/gpt-image-2",
+  input: { type: "text", prompt: "A quiet observatory above a sea of clouds" },
+  parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 },
+};
 
-These functions separate quoting from submission. Display `primary / max / official`, obtain the user's confirmation, and persist the complete request, authorized amount, and business idempotency key together before submitting. Retail credits may follow primary while the procurement budget uses the single-attempt ceiling.
-
-```js
-export async function prepareImage(client, demand) {
-  const quote = await client.quoteImage(demand);
-  if (!quote.has_verifiable_upper_bound || quote.single_attempt_upper_bound === null) {
-    throw new Error("verifiable_budget_required");
-  }
-  return {
-    prices: { primary: quote.primary, max: quote.max, official: quote.official },
-    expiresAt: quote.expires_at,
-    request: { ...demand, max_cost: quote.single_attempt_upper_bound },
-  };
+const quote = await client.quoteImage(request);
+const ceiling = quote.single_attempt_upper_bound;
+if (!quote.supply.available || !quote.has_verifiable_upper_bound || ceiling === null) {
+  throw new Error("No bounded supply for this request");
 }
 
-export async function submitSavedImage(client, saved) {
-  if (!saved.idempotencyKey?.trim() || saved.request.max_cost === undefined) {
-    throw new Error("saved_authorization_required");
-  }
-  return client.submitImage(saved.request, saved.idempotencyKey);
+// Persist the request, max_cost, and key before submitting so you can recover.
+const saved = { request: { ...request, max_cost: ceiling }, idempotencyKey: crypto.randomUUID() };
+
+const job = await client.submitImage(saved.request, saved.idempotencyKey);
+const done = await client.waitForJob(job.id, { timeoutMs: 5 * 60_000 });
+
+console.log(done.status, done.billing?.total_charged_by_yir);
+if (done.result?.availability === "available") {
+  console.log(done.result.files[0].url); // copy to your own storage
 }
 ```
 
-The demand has the shape `{ model, input, parameters, routing }`. For example, image parameters belong in `parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 }`. Multiple images use ordered `input.references`, each with `role: "reference_image"` and exactly one of `url` or `file_id`. An explicitly supplied catalog can validate model-specific support locally.
+```go Go
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
 
-Quotes neither reserve funds nor lock prices. Submission and every recovery attempt check the original authorization. The example stops when no verifiable ceiling exists; unavailable prices are not zero. See [billing](/docs/concepts/billing).
+client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{})
+if err != nil {
+	return err
+}
 
-Persist the returned Job ID. After an unknown network outcome, recover using the original request, amount, and idempotency key. Do not requote and reuse that key with a different amount. Once the Job ID is known, query or wait for that Job.
+request := yir.GenerationRequest{
+	Model:      "openai/gpt-image-2",
+	Input:      yir.GenerationInput{Type: "text", Prompt: "A quiet observatory above a sea of clouds"},
+	Parameters: map[string]any{"resolution": "1K", "aspect_ratio": "1:1", "n": 1},
+}
 
-## Migration contract: status polling and client waiting
+quote, err := client.QuoteImage(ctx, request)
+if err != nil {
+	return err
+}
+if !quote.Supply.Available || !quote.HasVerifiableUpperBound || quote.SingleAttemptUpperBound == nil {
+	return errors.New("no bounded supply for this request")
+}
 
-Published SDK version `0.2.0` includes dedicated status methods (`getJobStatus` in TypeScript, `GetJobStatus` in Go) and the waiting behavior below. When upgrading from `0.1.0`, migrate polling callbacks and timeout metadata to status summaries.
+// Persist the request, MaxCost, and key before submitting so you can recover.
+saved := yir.SubmitRequest{GenerationRequest: request, MaxCost: quote.SingleAttemptUpperBound}
+key := "order-123-image-1"
 
-Ordinary polling queries `GET /v1/jobs/{id}/status`, returning a lightweight `JobStatusResponse` projection (`id`, `status`, `error`, and optional `cancellation`). The six public states remain unchanged. A status summary is not full job detail; upon reaching a terminal state (`succeeded`, `failed`, or `cancelled`), the client fetches `GET /v1/jobs/{id}` for delivered result files and final billing details. Webhook deliveries, by contrast, always send the complete terminal Job directly (with available results on success and billing details).
+job, err := client.SubmitImage(ctx, saved, key)
+if err != nil {
+	return err // An unknown outcome is not a failure: retry with the same saved request and key.
+}
 
-Client waiting requires bounded pacing (interval pacing, attempt limits, and application timeouts). Local timeouts or abort signals only stop local waiting—they never send a remote `POST /v1/jobs/{id}/cancel` and must not trigger a new submit. The updated SDK contracts handle waiting semantics as follows:
+final, err := client.WaitJob(ctx, job.ID, yir.WaitOptions{})
+var failed *yir.JobError
+if errors.As(err, &failed) {
+	return fmt.Errorf("job %s ended %s", failed.Job.ID, failed.Job.Status)
+}
+if err != nil {
+	return err // Local timeout: the Job keeps running. Resume with job.ID later.
+}
+fmt.Println(final.Status, final.Billing.TotalChargedByYir, final.Result.Files[0].URL)
+```
 
-- **TypeScript**: Call `client.getJobStatus(id)` for lightweight status checks. In `waitForJob`, the `onPoll` callback receives a `JobStatusResponse`. When waiting times out, `YirTimeoutError` carries `jobId` and `timeoutMs`, plus `lastStatus` once a status has been received. In contrast, an aborted `AbortSignal` throws `signal.reason` directly without guaranteed metadata. Neither path cancels the remote job or resubmits.
-- **Go**: Call `client.GetJobStatus(ctx, id)` for status summaries. `WaitJob(ctx, id, options)` accepts an `OnPoll` callback receiving `JobStatusResponse`. When the context is cancelled or times out (including wrapped errors during in-flight transport requests), `WaitJob` halts local waiting and returns a zero `Job{}` and a non-nil error, allowing callers to check `errors.Is(err, context.Canceled)` or `errors.Is(err, context.DeadlineExceeded)` without sending a remote cancellation or resubmission.
+</CodeGroup>
 
-## Channel parameter handling
+The Go snippet is the body of a function returning `error`, importing `context`, `errors`, `fmt`, `os`, `time`, and `yir "github.com/yir-ai/sdk/go"`. The repository contains a [compile-checked example](https://github.com/yir-ai/sdk/blob/main/go/client_example_test.go).
 
-The model pricing view includes optional `channel_parameters`: declared rules scoped to a provider, channel variant, operation, and input mode. A parameter may be `supported`, `ignored`, or `rejected`. An omitted rule does not authorize ignoring it. Read the returned descriptions instead of inferring support from the model name. Declared behavior is separate from runtime availability.
+## API overview
 
-Keep the original parameter in the request so Yir can apply channel rules consistently to pricing and execution and report any ignored input. Quote `parameter_notices` describe expected primary-channel behavior; `parameter_handling_may_vary` indicates that fallback may differ. A successful Job and its signed Webhook report actual `parameter_notices` from the adopted attempt snapshot. Historical jobs may omit this field.
+| Capability | TypeScript | Go |
+| --- | --- | --- |
+| Quote | `quoteImage`, `quoteVideo`, `quoteBatch` | `QuoteImage`, `QuoteVideo`, `QuoteBatch` |
+| Submit | `submitImage`, `submitVideo` | `SubmitImage`, `SubmitVideo` |
+| Jobs | `getJob`, `getJobStatus`, `cancelJob`, `waitForJob` | `GetJob`, `GetJobStatus`, `CancelJob`, `WaitJob` |
+| Files | `createFiles`, `uploadFile`, `createAndUploadFile`, `getFile`, `completeFile` | `CreateFiles`, `UploadFile`, `CreateAndUploadFile`, `GetFile`, `CompleteFile` |
+| Webhooks | `verifyWebhookSignature`, `constructWebhookEvent` | `VerifyWebhookSignature`, `ConstructWebhookEvent` |
+| Models | `getModelContracts`, `getModelContract` | `GetModelContracts`, `GetModelContract` |
 
-GPT Image models ignore explicit `quality` by default. To use an official quality tier, explicitly select only the official channel with `routing: { only: ["openai"] }`. A mixed allowlist or automatic fallback to the official channel still ignores quality. Official selection remains subject to supported values, availability, and budget; it does not guarantee execution.
+## Behavior to know
 
-These reminders come from the Go model contract's generated parameter `policy`, rather than model-name checks. TS, Go, and Python clients check declared policies before Quote/Submit; Python uses the `yir_sdk` logger. Rules update with SDK versions. TS/Go still reject invalid types, values and ranges through their existing validators; Python relies on server validation for other parameter constraints. TS `checkParameterPolicies` accepts an operation contract, parameters and optional `routing.only`, returning structured reminders without logging or modifying the request. Static checks do not establish current availability, pricing or execution eligibility.
+- **Idempotency keys.** Submit methods accept an optional key. If you omit it, the SDK generates a random key per call, which protects only that single HTTP call. To recover after a crash or an unknown outcome, persist your own key with the exact request and pass it again. Submit is never retried automatically.
+- **Waiting.** `waitForJob` / `WaitJob` poll the status endpoint with back-off (5 s, then 10 s, then 20 s) and read the full Job once at the end. A timeout or abort only stops local waiting; the Job keeps running. Resume with the saved ID.
+- **Errors.** API errors expose `status`, `code`, `retryable`, and `action`. A failed or cancelled Job raises `YirJobError` (TypeScript) or `JobError` (Go) carrying the complete Job. Branch on `code`, not on messages. See [error codes](/docs/support/error-codes).
+- **Validation.** Local parameter validation needs a model catalog you pass in; otherwise the Gateway validates. See [models and parameters](/docs/guides/models).
+- **Parameter notices.** For GPT Image, the SDKs log a warning when `quality` is sent without pinning the official channel, because it will be ignored.
 
-For Quote and Submit requests that specify quality without this official-only selection, the TS SDK logs a fixed `console.warn` message and the Go SDK uses the standard logger: `[Yir] GPT Image quality is ignored unless routing.only is ["openai"].` Omitted quality and job polling do not produce this reminder. Logs contain no prompts, parameter values, URLs, or credentials. The API notice reason is `quality_requires_official_channel`. The native clients retain structured notices, and the Vercel adapter also returns final notices as generation `warnings`. Ignoring quality does not promise an equivalent official quality tier.
+## Upgrading from 0.1.0
 
-## Vercel AI SDK
+TypeScript 0.2 and Go 0.2 removed bundled model lists and client-side price tables, and switched waiting to the status endpoint (`onPoll` / `OnPoll` now receive a status summary). Go 0.3.0 made the idempotency key argument variadic. Read the [migration guide](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md) before upgrading.
 
-Import `createYirAIProvider` from `@yir-ai/sdk/vercel` and call `createYirAIProvider({ client })`. Select `provider.imageModel(modelId)` or `provider.videoModel(modelId)`. This implementation is tested with `ai@7.0.97` and `@ai-sdk/provider@4.0.13`.
-
-For `generateImage`, `experimental_generateVideo`, or `experimental_startVideo`, pass a persisted `idempotencyKey`, authorized `maxCost`, `parameters`, and optional `routing` in `providerOptions.yir`. Changing the Vercel Gateway Base URL alone is insufficient.
-
-| Vercel field | Yir expression |
-| --- | --- |
-| `aspectRatio` | `parameters.aspect_ratio` |
-| Video `duration / generateAudio` | `parameters.duration / generate_audio` |
-| `frameImages` | First-frame and last-frame roles |
-| `inputReferences` | Image, video, or audio roles from explicit MIME types |
-| Inline bytes | Files upload followed by submission with ready File IDs |
-| `providerOptions.yir.routing.only` | Unordered channel allowlist |
-
-Use `{ data: "https://…", mediaType: "video/mp4" }` for remote video references. The adapter currently rejects unmapped generic options such as `size / seed / fps`; it does not silently ignore them. Each Yir request accepts one output. Schedule multiple outputs as application slots; do not bypass this constraint with AI SDK batch-splitting overrides.
-
-Persist the operation returned by `experimental_startVideo`. After restarting, use the same model with `experimental_getVideoStatus`. AbortSignal and local timeouts stop local waiting. To request a remote stop, call the native `cancelJob`; the current attempt may still succeed and deliver. See [task lifecycle](/docs/concepts/task-lifecycle) and [production integration](/docs/guides/production-integration).
+Python is not an official SDK. Use REST from Python; the [Webhooks guide](/docs/guides/webhooks) includes a Python signature check.

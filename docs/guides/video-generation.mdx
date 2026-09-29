@@ -1,0 +1,112 @@
+---
+title: Video generation
+description: Generate videos from text, first and last frames, or mixed image, video, and audio references.
+---
+
+Submit video Jobs to `POST /v1/videos/generations`. Video Jobs follow the same [lifecycle](/docs/concepts/task-lifecycle), [billing](/docs/concepts/billing), and [routing](/docs/concepts/routing) rules as images, but usually take minutes rather than seconds, so a [Webhook](/docs/guides/webhooks) is often a better fit than polling.
+
+## Input modes
+
+| `input.type` | Use | Reference roles |
+| --- | --- | --- |
+| `text` | Text to video | None |
+| `image` | Animate from a start frame, optionally to an end frame | `first_frame`, `last_frame` |
+| `reference` | Guide the video with mixed media | `reference_image`, `reference_video`, `reference_audio` |
+
+Each reference has a `role` and exactly one of `url` or `file_id`. Image references can use public HTTPS URLs. **Video and audio references must be uploaded as [input files](/docs/guides/input-files)** and passed by `file_id`, because Yir measures their duration before quoting.
+
+Which modes, roles, and counts a model accepts is defined in its contract. For example, Seedance 2.0 accepts `first_frame` plus an optional `last_frame` in `image` mode, and in `reference` mode up to 9 images, 3 videos, and 3 audio clips (at least one image or video).
+
+## Common parameters
+
+| Parameter | Description |
+| --- | --- |
+| `duration` | Output length in seconds, within the model's range. |
+| `resolution` | For example `480p`, `720p`, `1080p`. |
+| `aspect_ratio` | For example `16:9`, `9:16`, `1:1`, or `adaptive` where supported. |
+| `generate_audio` | Generate native audio with the video, where supported. |
+| `return_last_frame` | Seedance 2.0 only: also return the final frame as an image. Requires a channel that supports it. |
+| `n` | Always `1`. |
+
+Read a model's exact values from `GET /v1/models/{creator}/{model}?view=contract`.
+
+## Examples
+
+<Tabs>
+<Tab title="Text to video">
+
+```json
+{
+  "model": "bytedance/seedance-2.0",
+  "input": { "type": "text", "prompt": "A paper boat drifting down a rain-covered city street at dusk" },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+</Tab>
+<Tab title="First and last frame">
+
+```json
+{
+  "model": "bytedance/seedance-2.0",
+  "input": {
+    "type": "image",
+    "prompt": "The flower slowly opens as morning light moves across it",
+    "references": [
+      { "role": "first_frame", "url": "https://example.com/bud.png" },
+      { "role": "last_frame", "url": "https://example.com/bloom.png" }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "adaptive",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+</Tab>
+<Tab title="Mixed references">
+
+```json
+{
+  "model": "bytedance/seedance-2.0",
+  "input": {
+    "type": "reference",
+    "prompt": "The character from the image dances to the music in the style of the video",
+    "references": [
+      { "role": "reference_image", "url": "https://example.com/character.png" },
+      { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
+      { "role": "reference_audio", "file_id": "file_33333333-3333-4333-8333-333333333333" }
+    ]
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "720p",
+    "aspect_ratio": "9:16",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+</Tab>
+</Tabs>
+
+Replace example URLs and file IDs with your own.
+
+## Quote before you submit
+
+Video prices depend on duration, resolution, audio, and references, so quote the exact request with `POST /v1/videos/quotes` first. A quote that includes video or audio references uses their measured durations. Check `supply.available` and, when `supply.requires_max_cost` is `true`, include `max_cost` on submission.
+
+## Results
+
+A successful video Job returns the video in `result.files`. When you request `return_last_frame`, the last frame is an additional image file. If only that extra file cannot be delivered, the Job still succeeds with `result.warnings: ["additional_results_unavailable"]`.

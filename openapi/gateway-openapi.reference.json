@@ -155,6 +155,9 @@
           "402": {
             "$ref": "#/components/responses/InsufficientBalance"
           },
+          "403": {
+            "$ref": "#/components/responses/SpendLimitExceeded"
+          },
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
@@ -350,6 +353,9 @@
           },
           "402": {
             "$ref": "#/components/responses/InsufficientBalance"
+          },
+          "403": {
+            "$ref": "#/components/responses/SpendLimitExceeded"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -892,6 +898,9 @@
         "$ref": "#/components/responses/StandardError"
       },
       "InsufficientBalance": {
+        "$ref": "#/components/responses/StandardError"
+      },
+      "SpendLimitExceeded": {
         "$ref": "#/components/responses/StandardError"
       },
       "Conflict": {

@@ -1,0 +1,94 @@
+---
+title: Vercel AI SDK
+description: Use Yir as an image and video provider in the Vercel AI SDK through the official adapter.
+---
+
+The `@yir-ai/sdk/vercel` adapter lets `generateImage` and the experimental video functions of the [AI SDK](https://ai-sdk.dev) run on Yir. It sends the same Standard API requests as the native SDK, so Jobs, routing, and billing work exactly as described elsewhere in these docs.
+
+The adapter targets AI SDK 7 (Provider V4) and is tested with `ai@7.0.97`. Use it on the server only.
+
+```sh
+pnpm add @yir-ai/sdk@0.2.1 ai@7.0.97
+```
+
+## Images
+
+```ts
+import { generateImage } from "ai";
+import { createYirAIProvider } from "@yir-ai/sdk/vercel";
+
+const yir = createYirAIProvider(); // reads YIR_API_KEY
+
+const { images } = await generateImage({
+  model: yir.imageModel("openai/gpt-image-2"),
+  prompt: "A quiet observatory above a sea of clouds",
+  aspectRatio: "1:1",
+  maxRetries: 0,
+  providerOptions: {
+    yir: {
+      idempotencyKey: "order-123-image-1",
+      maxCost: "0.05",
+      parameters: { resolution: "1K" },
+    },
+  },
+});
+```
+
+The image path submits the Job, waits for it, and downloads the result.
+
+## Videos
+
+For long video Jobs, start the Job and store the returned operation, then check it later, even from another process:
+
+```ts
+import { experimental_startVideo as startVideo, experimental_getVideoStatus as getVideoStatus } from "ai";
+
+const model = yir.videoModel("bytedance/seedance-2.0");
+
+const { operation } = await startVideo({
+  model,
+  prompt: "A paper boat drifting down a rain-covered street",
+  maxRetries: 0,
+  providerOptions: { yir: { idempotencyKey: "order-123-video-1", maxCost: "0.60" } },
+});
+// operation is { jobId, modelId } and is JSON-serializable: persist it.
+
+const status = await getVideoStatus(model, { operation, maxRetries: 0 });
+// status.status is "pending", "completed", or "error"
+```
+
+`experimental_generateVideo` is also supported and waits until the video is ready.
+
+## Provider options
+
+Pass Yir-specific options in `providerOptions.yir`. Unknown keys are rejected.
+
+| Option | Description |
+| --- | --- |
+| `idempotencyKey` | Optional. Generated per call when omitted. Persist and pass your own key to recover after a crash. |
+| `maxCost` | Spending limit for the Job, as a decimal string. See [billing](/docs/concepts/billing#set-a-spending-limit). |
+| `parameters` | Yir model parameters, such as `resolution`, `quality`, or `web_search`. |
+| `routing` | Yir [routing](/docs/concepts/routing) object. `routing.only` is an unordered allowlist. |
+
+## How AI SDK fields map
+
+| AI SDK field | Yir request |
+| --- | --- |
+| `aspectRatio` | `parameters.aspect_ratio` |
+| `n` | `parameters.n` (must be `1`) |
+| Video `duration`, `generateAudio` | `parameters.duration`, `parameters.generate_audio` |
+| `webhookUrl` (video) | `webhook_url` |
+| Prompt images, `frameImages` | Image references, first and last frame roles |
+| `inputReferences` | Image, video, or audio references, chosen by the explicit MIME type |
+| Inline bytes | Uploaded through the Files API first, then referenced by file ID |
+
+For remote video references, pass `{ data: "https://...", mediaType: "video/mp4" }`. If the same parameter is set both as an AI SDK field and in `parameters` with different values, the call is rejected.
+
+Not supported, and rejected rather than silently ignored: image masks, pixel `size`, `seed`, video pixel `resolution`, `fps`, and per-call headers. Use Yir `parameters.resolution` instead of pixel sizes.
+
+## Things to keep in mind
+
+- The adapter does not quote or approve budgets. Call `quoteImage` / `quoteVideo` on the [native client](/docs/guides/clients) first if you need prices.
+- Set `maxRetries: 0`, or always pass a persisted `idempotencyKey`, so AI SDK retries cannot create extra Jobs.
+- Aborting or timing out stops local waiting only. To stop the remote Job, call the native `cancelJob`; the current attempt may still succeed and be charged.
+- Final `parameter_notices` are returned as generation `warnings`. The Job ID and charge are in `providerMetadata.yir`.

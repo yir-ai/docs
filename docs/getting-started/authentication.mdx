@@ -1,34 +1,37 @@
 ---
 title: Authentication
-description: Create a Yir API key and authenticate every Gateway request with a Bearer header.
+description: Authenticate every Yir Gateway request with a Yir API key in a Bearer header.
 ---
 
-Every public Gateway request requires a Yir API key in the standard HTTP Bearer header.
+Every Gateway request uses a Yir API key in the standard HTTP Bearer header:
 
-## Get your default key
+```http
+Authorization: Bearer <YIR_API_KEY>
+```
 
-Open [Yir Console](https://yir.ai/console/api-keys). Every account has a default API key bound to its default routing profile, so you can start without creating or configuring another key.
+`X-API-Key` and query-string keys are not accepted. Requests without a valid key fail with `401 YIR_UNAUTHORIZED` before any Job is created.
 
-The Console hides the full secret by default. You can reveal and copy it again after confirming your identity. Create additional keys when you need separate application, environment, or statistics boundaries.
+## Get your key
 
-Store the key in your secret manager or local environment:
+Every account has a **default API key**, so you can start immediately. Open [Console → API Keys](https://yir.ai/console/api-keys) to reveal and copy it.
+
+Store the key in a secret manager or server environment variable:
 
 ```bash
 export YIR_API_KEY="your-yir-api-key"
 ```
 
-Send it on every request:
+Create additional keys when you want separate environments or applications, each with its own spend limit, expiry, IP allowlist, and usage statistics. See [API Keys in Console](/docs/console/api-keys).
 
-```http
-Authorization: Bearer $YIR_API_KEY
-```
+## Keep keys safe
 
-## Key safety
+- Use keys only in server-side code. Never put them in browser or mobile apps, public repositories, URLs, screenshots, or support tickets.
+- Use a separate key for production, CI, and local development so you can rotate or revoke each one independently.
+- Rotate a key immediately if it may have been exposed. The old secret stops working as soon as rotation succeeds.
+- Do not send provider API keys (for example OpenAI or Google keys) to Yir. Yir uses its own managed provider accounts and never accepts upstream credentials from requests.
 
-- Never put the key in browser source code, a public repository, a URL, or a client-visible error.
-- Use separate keys for production, CI, and local development so each can be revoked independently.
-- Rotate a key in Console if it may have been exposed. Rotation preserves the logical key identity and routing-profile binding while immediately invalidating the old secret.
-- The default key cannot be revoked. Additional keys can be revoked independently.
-- Do not send a KIE, APIMart, or other upstream provider key. Yir does not accept or forward one from client requests.
+## Why a request can be rejected
 
-Use `Authorization`, not `X-API-Key`. Requests without a valid Yir Bearer key are rejected before a task is admitted.
+A key is rejected with `401 YIR_UNAUTHORIZED` when it is wrong, rotated, revoked, expired, or used from an address outside its IP allowlist. The response does not reveal which reason applies. Check the key's status in Console.
+
+A valid key can still be refused when creating a Job: `403 YIR_SPEND_LIMIT_EXCEEDED` means the key reached its monthly spend limit, and `402 YIR_INSUFFICIENT_BALANCE` means the account needs funds. See [error codes](/docs/support/error-codes).

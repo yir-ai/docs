@@ -1,0 +1,92 @@
+---
+title: Input files
+description: Upload reference images, videos, and audio with the Files API and use them in generation requests.
+---
+
+Use the Files API when a reference is not available at a public HTTPS URL, or when it is a video or audio clip (which must always be uploaded). Generation endpoints do not accept Base64, data URLs, or multipart bodies.
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Files per create request | 1–20 |
+| Size per file | Up to 2 GiB |
+| Media types | `image/jpeg`, `image/png`, `image/webp`, `video/mp4`, `video/webm`, `audio/mpeg`, `audio/wav` |
+
+Files are temporary. They expire at `expires_at`, and checking their status does not extend it.
+
+## Upload flow
+
+<Steps>
+  <Step title="Create an upload plan">
+    Send file metadata to `POST /v1/files`. Add an `Idempotency-Key` header so a retried request returns the same plan.
+  </Step>
+  <Step title="Upload the bytes">
+    For each entry in `upload.parts`, `PUT` the matching byte range to its `url`, in `part_number` order. Do not send your Yir API key to these URLs.
+  </Step>
+  <Step title="Complete the file">
+    Call `POST /v1/files/{id}/complete` with an empty JSON body. The file becomes `ready`.
+  </Step>
+  <Step title="Reference it">
+    Use `{ "role": "...", "file_id": "file_..." }` in `input.references` of a quote or generation request.
+  </Step>
+</Steps>
+
+### 1. Create an upload plan
+
+```bash
+curl https://gateway.yir.ai/v1/files \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: upload-first-frame-001" \
+  --data '{ "files": [{ "name": "first-frame.png", "media_type": "image/png", "size": 482133 }] }'
+```
+
+`size` must be the exact byte count. The response lists one File per entry, in the same order:
+
+```json
+{
+  "files": [{
+    "id": "file_11111111-1111-4111-8111-111111111111",
+    "object": "file",
+    "status": "pending_upload",
+    "name": "first-frame.png",
+    "media_type": "image/png",
+    "size": 482133,
+    "upload": {
+      "type": "multipart",
+      "expires_at": 1790000900,
+      "parts": [{ "part_number": 1, "size": 482133, "url": "https://..." }]
+    }
+  }]
+}
+```
+
+If any entry in a batch is invalid, the whole batch is rejected.
+
+### 2. Upload each part
+
+```bash
+curl --request PUT --upload-file first-frame.png "$PART_URL"
+```
+
+For multi-part plans, split the file into consecutive ranges with the listed `size` values. Upload before `upload.expires_at`.
+
+### 3. Complete
+
+```bash
+curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{}'
+```
+
+Only `ready` files can be used in requests. Referencing a file that is not ready, has expired, or does not exist fails with `YIR_FILE_NOT_READY`, `YIR_FILE_EXPIRED`, or `YIR_FILE_NOT_FOUND`.
+
+## Reading a file back
+
+`GET /v1/files/{id}` returns the current status. `GET /v1/files/{id}/content` redirects (`307`) to a short-lived signed URL. Send your API key only to the Gateway, not to the redirect target. The `url` field on a File is a path for this authenticated read, not a reference URL for generation requests.
+
+## With an SDK
+
+The SDKs wrap all three steps: `createAndUploadFile` in TypeScript and `CreateAndUploadFile` in Go. See [SDKs](/docs/guides/clients).

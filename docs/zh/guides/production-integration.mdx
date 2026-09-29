@@ -1,212 +1,86 @@
 ---
-title: 生产集成
-description: 使用幂等提交、有界轮询、安全重试和明确失败处理构建可靠的 Yir Standard API 客户端。
+title: 上线检查清单
+description: 让 Yir 集成可安全重试、崩溃后可恢复、费用有上限，并在并发下保持正确。
 ---
 
 <Badge variant="success">推荐</Badge>
 
-Yir v1 只有一个公开执行合同：Standard API。Provider 特有的请求结构和 Credential 始终位于 Yir 的认证路由与 Adapter 边界之后。
+上线前请逐项确认。每一节都链接到详细说明该规则的页面。
 
-<CardGroup cols={3}>
-  <Card title="安全认证" icon="key-round" href="/zh/docs/getting-started/authentication">
-    Yir API Key 只保存在服务端，并且只作为 Bearer Credential 发送。
-  </Card>
-  <Card title="跟踪一个逻辑请求" icon="fingerprint" href="#提交合同">
-    开始轮询前，先持久化幂等键和 Job ID。
-  </Card>
-  <Card title="安全恢复" icon="refresh-cw" href="#轮询与恢复">
-    重试查询，不要把超时变成另一个生成请求。
-  </Card>
-</CardGroup>
+## 检查清单
 
-## 提交合同
+- API Key 只保存在服务端，每个环境使用独立 Key。
+- 每次提交都有已持久化的幂等键，重试同一请求时复用。
+- 提交前后把请求、幂等键和 Job ID 一起保存。
+- 轮询有上限、会退避，停止时只影响本地。
+- 终态结果按 Job ID 只处理一次，无论来自轮询还是 Webhook。
+- 基于原始字节校验 Webhook 签名，并对事件去重。
+- 结果文件在过期前复制到自己的存储。
+- 通过 `max_cost`、低余额提醒和每个 Key 的月度上限控制支出。
+- 错误处理按 `error.code` 与 `error.action` 分支。
 
-<Steps>
-  <Step title="创建幂等键">
-    一个逻辑生成请求只生成一个不透明值。只有重试完全相同的数据时才能复用。
-  </Step>
-  <Step title="通过 Standard API 提交">
-    发送标准模型和任务规格。不要发送上游 Provider Credential 或 Provider 特有请求结构。
-  </Step>
-  <Step title="保存返回的 Job ID">
-    在启动后台轮询前，把响应 `id` 与本地请求记录一起持久化。
-  </Step>
-  <Step title="轮询状态至终态">
-    使用有界间隔和应用总期限轮询 `GET /v1/jobs/{id}/status`。到达终态后，调用 `GET /v1/jobs/{id}` 获取包含可用结果与计费明细的完整 Job。
-  </Step>
-</Steps>
+## 幂等提交
 
-:::warning
-不要因为提交响应超时就生成新的幂等键。原始请求可能已经被接受，并且仍可能产生计费事实。
-:::
+`Idempotency-Key` Header（最长 200 个字符）让提交可以安全重试：
 
-### 请求 Header
+- 相同的键与相同的请求：返回原来的 Job，不会新建。
+- 相同的键与不同的请求：以 `409 YIR_IDEMPOTENCY_CONFLICT` 拒绝。
+- 不带键：每次请求都创建新 Job。
 
-<TypeTable
-  type={{
-    Authorization: {
-      type: "string",
-      required: true,
-      description: "格式为 Bearer $YIR_API_KEY 的 Yir Credential。",
-    },
-    "Idempotency-Key": {
-      type: "string",
-      required: false,
-      description: "可选，生产环境建议使用；相同逻辑请求的提交重试复用同一个值。",
-    },
-  }}
-/>
+为每个逻辑生成任务生成一个键（例如 `order-123-image-1`），并**在发送前与请求一起保存**。提交超时或进程崩溃后，用相同的键再次发送相同的请求。不要因为响应慢就换新键，第一次请求可能已经被接受。
 
-### 从后端提交
+请保持完整请求不变，包括 `max_cost`、`routing`、参考素材和 `webhook_url`。不要在已有键下重新报价并修改预算。
 
-先按[快速开始](/zh/docs/getting-started/quickstart)完成报价并保存授权请求为 `yir-submission.json`。从持久化业务记录读取原幂等键，不在重试时创建新键或修改预算。TypeScript 与 Go 接入见[客户端指南](/zh/docs/guides/clients)。
+## 保存哪些信息
 
-```bash
-: "${YIR_API_KEY:?}"
-: "${YIR_IDEMPOTENCY_KEY:?}"
-curl --fail-with-body --silent --show-error --max-time 30 \
-  --request POST \
-  --url "https://gateway.yir.ai/v1/images/generations" \
-  --header "Authorization: Bearer $YIR_API_KEY" \
-  --header "Content-Type: application/json" \
-  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
-  --data-binary @yir-submission.json
-```
+每个生成任务一起保存：
 
-<Panel title="一起保存这些事实">
-  保存本地请求 ID、幂等键、Yir Job ID、已提交的 RoutingOverride 和最后一次公开状态。不要把 API Key 与 Job 记录保存在一起。
-</Panel>
-
-<FileTree>
-
-- 生成请求
-  - 本地请求 ID
-  - 幂等键
-  - Yir Job ID
-  - 已提交的 RoutingOverride
-  - 最后一次公开状态
-
-</FileTree>
-
-## 路由控制
-
-在 Standard 请求体中使用可选的 `routing` 对象。`only` 是 1–16 个渠道的无序白名单，选择与恢复不得越出白名单；单元素白名单用于定点测试。保留 `preference` 与 `fallback`，不再接受 `order`。这些控制不能选择 Credential，也不能绕过认证、规格、计费、安全及 Attempt 上限。
-
-```json
-{
-  "routing": {
-    "preference": "cost",
-    "only": ["kie", "apimart"],
-    "fallback": true
-  }
-}
-```
-
-```mermaid
-sequenceDiagram
-  participant App as 应用后端
-  participant Yir as Yir Gateway
-  participant Job as Durable Job
-  App->>Yir: Standard 提交 + Bearer Key + 幂等键
-  Yir-->>App: 稳定 Job ID
-  loop 有界轮询
-    App->>Yir: GET /v1/jobs/{id}/status
-    Yir->>Job: 读取轻量状态
-    Job-->>Yir: 活动或终态摘要
-    Yir-->>App: JobStatusResponse (id, status, error)
-  end
-  opt 到达终态后
-    App->>Yir: GET /v1/jobs/{id}
-    Yir->>Job: 读取完整快照
-    Job-->>Yir: 可用结果与计费明细
-    Yir-->>App: 完整终态 Job
-  end
-```
-
-## 轮询与恢复
-
-普通轮询查询 `GET /v1/jobs/{id}/status`，它返回轻量状态摘要（`id`、`status`、`error` 以及可选 `cancellation`）。六种公开状态保持不变。状态摘要不是完整任务详情；当状态进入终态（`succeeded`、`failed`、`cancelled`）时，客户端再调用 `GET /v1/jobs/{id}` 获取完整交付结果与计费明细。
-
-| 情况 | 安全处理方式 |
+| 字段 | 用途 |
 | --- | --- |
-| 状态查询返回活动状态（`queued`、`running`、`delivering`） | 加入抖动后，继续查询 `GET /v1/jobs/{id}/status`。 |
-| 状态查询请求超时 | 把结果视为未知，并重试状态查询。 |
-| 提交响应超时 | 使用相同幂等键和完全相同的数据重试提交。 |
-| 状态查询返回终态失败（`failed`） | 停止轮询，调用 `GET /v1/jobs/{id}` 获取稳定公开错误与计费明细，并处理错误。 |
-| 状态查询返回终态取消（`cancelled`） | 停止轮询，调用 `GET /v1/jobs/{id}` 获取取消事实与计费明细（注意 `error` 可能为 `null`）。 |
-| 状态查询返回终态成功（`succeeded`） | 调用 `GET /v1/jobs/{id}` 获取可用结果文件和计费明细，并在结果到期前保存（默认 7 天）。 |
-| 终态详情请求（`GET /v1/jobs/{id}`）失败或超时 | 仅重试同一个 Job 的详情请求；绝不发起新 Submit 提交，也不用状态摘要替代业务结算。若遇到 401、403 或 404，应先解决鉴权、资源归属或确认保留期是否过期，避免无限重试。 |
+| 自有请求 ID | 把 Job 关联到你的业务对象。 |
+| 请求体与幂等键 | 用于恢复结果未知的提交。 |
+| Yir Job ID | 查询状态、结果与取消的唯一句柄。 |
+| 最近观察到的状态 | 重启后继续轮询。 |
+| 终态是否已处理 | 防止重复扣费或重复发放积分。 |
 
-<Accordion>
-  <AccordionItem title="应该多快轮询？" icon="timer">
-    采用有界限次、有间隔并加入抖动的轮询策略，在应用侧设置总期限。轮询超时或本地中止仅停止本地等待，不向远端发送取消，也不发起新的提交。
-  </AccordionItem>
-  <AccordionItem title="Job 变慢时要不要重新提交？" icon="circle-slash">
-    不要。继续查询现有 Job ID。除非是相同数据和相同幂等键的重试，否则会成为第二个逻辑请求。
-  </AccordionItem>
-  <AccordionItem title="支持工单可以提供什么？" icon="life-buoy">
-    提供 Yir Job ID、Standard Operation、大致 UTC 时间、HTTP 状态、公开错误码和安全的 Key 前缀；不要提供完整 Key、Prompt、素材或 Provider 原始响应。
-  </AccordionItem>
-</Accordion>
+不要把 API Key 与 Job 记录保存在一起。
 
-:::success
-当实现能够保存两个标识、正确重试提交、持续查询同一个 Job，并且不向浏览器暴露 API Key 时，就可以进行受控测试。
-:::
+## 等待结果
 
-实现请求和响应字段时，可查看<Tooltip tip="由仓库内 Standard OpenAPI 文档直接生成。" headline="API 参考" cta="打开参考" href="/zh/docs/reference">已经评审的 Standard Operations</Tooltip>。
+二选一或组合使用：
 
+- **轮询：** 以退避节奏（5 秒、10 秒、20 秒）查询 `GET /v1/jobs/{id}/status`，进入终态后读取一次 `GET /v1/jobs/{id}`。
+- **Webhook：** 设置 `webhook_url` 并处理终态 Job，见 [Webhook](/zh/docs/guides/webhooks)。
 
-## 视频请求
+常见的稳健做法是以 Webhook 为主信号，并保留低频轮询兜底丢失的回调。无论哪种方式，终态 Job 都要**按 Job ID 只处理一次**。
 
-视频使用 `POST /v1/videos/generations`，随后仍查询同一个 Job 资源。以下示例使用 Standard 视频字段；是否可执行取决于当前模型规格、供应和余额。
+## 恢复对照表
 
-```json
-{
-  "model": "bytedance/seedance-2.0",
-  "input": {"type": "text", "prompt": "A paper boat crossing a rain-covered city street"},
-  "parameters": {
-    "duration": 5,
-    "resolution": "720p",
-    "aspect_ratio": "16:9",
-    "generate_audio": false,
-    "n": 1
-  }
-}
-```
+| 情况 | 处理方式 |
+| --- | --- |
+| 提交超时或连接中断 | 用相同的幂等键重发完全相同的请求。 |
+| 状态查询超时 | 重试状态查询，Job 不受影响。 |
+| 状态为 `queued`、`running` 或 `delivering` | 等待后再查。慢不等于失败。 |
+| 本地等待到达截止时间 | 停止等待，保留 Job ID，稍后继续。不要重新提交。 |
+| 状态为 `succeeded` | 读取完整 Job，复制 `result.files`，记录 `billing.total_charged_by_yir`。 |
+| 状态为 `failed` | 读取完整 Job，处理 `error.code`，不收费。 |
+| 状态为 `cancelled` | 读取完整 Job，`error` 可能为 `null`，不收费。 |
+| 完整 Job 查询失败 | 重试该查询，不要仅凭状态摘要结算。 |
+| `401`、`403` 或 `404` | 修正 Key、上限或 Job ID，不要盲目重试。 |
+| `429 YIR_RATE_LIMITED` 或 `503` | 稍后退避重试。 |
 
-## 输入文件
+所有错误码及建议处理方式见[错误码](/zh/docs/support/error-codes)。
 
-可使用模型合同允许的外部 HTTPS URL，或先通过 Files API 上传输入。不要将 Base64、Data URL 或 multipart 请求体发给生成端点。
+## 控制费用
 
-1. 向 `POST /v1/files` 发送 `files` 元数据和可选 `upload_mode`；当前模式为 `auto | multipart`，自动模式也返回分片计划。
-2. 按返回的每个分片 URL 上传，保留分片编号与 ETag。
-3. 调用 `POST /v1/files/{id}/complete`，提交分片编号与 ETag；只有 ready 文件才能进入生成请求。
-4. 在模型支持的 `input.references` 数组中使用就绪文件的 `id`，例如 `{ "role": "reference_image", "file_id": "file_..." }`。角色随图片、首尾帧及多模态输入确定，每项只使用 `url` 或 `file_id` 之一。文件响应的相对 `url` 仅用于鉴权读取，不填入外部 HTTPS 引用字段；读取时只向 Gateway 内容入口发送 Bearer，不向其重定向目标转发 Yir Key。
+- 对请求报价并设置 `max_cost`。报价返回 `supply.requires_max_cost: true` 时必须提供 `max_cost`。见[报价与计费](/zh/docs/concepts/billing)。
+- 在 Console 为每个 API Key 设置月度支出上限，并开启低余额邮件提醒。
+- 如果更希望只尝试一次而不是自动恢复，可设置 `routing.fallback: false`。
 
-文件短期保留，查询文件状态不会延长有效期。批量元数据非法时整批拒绝；数量、大小、媒体类型与响应字段查阅 [API 参考](/zh/docs/reference)，不要根据上游 Provider 的上传协议组装请求。
+## 安全测试
 
-## 用户回调
+用只含一个渠道的 `routing.only` 定点测试，使用单独的、设置了较低月度上限的 API Key，并选择低成本参数。生成请求始终会创建真实 Job 并产生真实费用。
 
-可在生成请求中提供 `webhook_url`；它接收 Yir 终态 Job，不是 Provider 原始响应。与轮询的轻量状态摘要不同，Webhook 直接投递完整终态 Job，成功时包含可用结果与计费明细。使用独立 Webhook Signing Secret 验证 `Yir-Webhook-Signature`，不使用 Yir API Key。
+## 联系支持
 
-对 `Yir-Webhook-Timestamp + "." + Yir-Webhook-Id + "." + raw_request_body` 计算 HMAC-SHA256，Base64 编码后与签名中的 `v1=` 值进行常量时间比较。在解析 JSON 之前，必须先基于原始请求字节（raw body）校验时间窗口与签名。
-
-`Yir-Webhook-Event` 请求头标识 `job.succeeded`、`job.failed` 或 `job.cancelled`。请求体直接是终态 Job，其中计费投影与 `GET /v1/jobs/{id}` 一致。使用 `billing.total_charged_by_yir` 读取最终用户扣费，使用 `billing.currency` 读取币种（`USD`）。金额是十进制字符串；应用换算积分时应使用十进制定点计算。`billing.max_cost` 是授权上限，不是实际扣费。
-
-新 Job 在结算完成后发送终态通知。成功任务仅在结果交付后收费；失败或已取消任务释放冻结额度，不向用户收费。重试只是通知既有结果，不会再次扣费。去重使用稳定的事件 ID：每次投递的时间戳与签名会变化，临时结果链接也可能刷新。
-
-### 签名密钥与投递记录
-
-在 Console 打开 **Webhook**，查看或轮转账户的签名密钥，并查询投递记录。有密码的账户须先确认密码才能查看或轮转。轮转后，请让接收端使用新密钥校验后续投递。密钥应保存在服务端，与 Yir API Key 分开管理。
-
-继续在每次生成请求中指定 `webhook_url`；Console 不登记默认端点。投递记录展示接收端主机、事件 ID、状态与累计尝试次数。主机展示省略路径、查询参数及凭据，不是完整回调地址。
-
-对于已送达或已失败记录，**重发**会将原事件排入后台投递队列。入队成功不代表接收端已接受通知；等待中的记录不能重复入队。重发保留事件 ID 和累计尝试次数，不重置自动重试预算，也不会重新提交任务或再次扣费。刷新列表查看实际投递结果。
-
-### 接收端幂等
-
-分别说明两层去重与幂等机制：
-1. **Webhook 事件去重**：使用稳定的 `Yir-Webhook-Id`（事件 ID）记录已处理消息，防止网络重发或重试，成功处理后返回 2xx。
-2. **基于 Job ID 的业务终态幂等**：由于 GET 轮询（`GET /v1/jobs/{id}`）与 Webhook 回调可能并发到达产生竞态，业务结算（资产转存、积分结算、扣退费）必须按 `job.id` 保证幂等执行，严禁重复结算。
-
-投递可能重复或延迟，仍保留 `GET /v1/jobs/{id}` 查询机制，以便在回调丢失或延迟时在保留期内主动恢复终态。结果地址会过期，及时保存需要长期保留的结果；回调签名、源文件地址和 Secret 不写入普通日志。
+请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 以及错误响应中的 `request_id`。不要发送完整 API Key、提示词、源素材或签名密钥。

@@ -1,0 +1,54 @@
+---
+title: 模型与参数
+description: 查找支持的模型，读取参数合同，并在提交前校验请求。
+---
+
+模型支持情况与参数规则由 API 提供，新增模型无需升级 SDK。价格和当前可用性来自[报价](/zh/docs/concepts/billing#获取报价)，不属于模型合同。
+
+## 列出模型
+
+```bash
+curl https://gateway.yir.ai/v1/models \
+  --header "Authorization: Bearer $YIR_API_KEY"
+```
+
+精简响应列出模型 ID 和多语言名称。加上 `?include=parameters` 可展开每个模型的操作、输入方式、参考规则和参数。两种响应携带相同的整体合同 `version` 哈希，可据此缓存。
+
+## 读取单个模型的合同
+
+```bash
+curl "https://gateway.yir.ai/v1/models/bytedance/seedance-2.0?view=contract" \
+  --header "Authorization: Bearer $YIR_API_KEY"
+```
+
+合同按操作（`generate_image` 或 `generate_video`）描述：
+
+- **输入方式**（`text`、`image`、`reference`），以及每种方式允许的参考角色和数量上下限。
+- **参数**：类型、是否必填、可选值 `values` 或 `minimum`/`maximum`，以及 `default`。
+- **名称与说明**：英文和简体中文，可直接用于构建表单。
+
+不带 `view=contract` 时，`GET /v1/models/{creator}/{model}` 返回模型的市场详情，包括渠道参数规则（`channel_parameters`）。
+
+## 模型 ID 与别名
+
+规范 ID 采用 `creator/model` 形式，例如 `openai/gpt-image-2` 或 `google/nano-banana-pro`。部分模型还支持别名，例如 `seedance-2.0` 对应 `bytedance/seedance-2.0`。别名可用于报价和生成请求，但 `/v1/models/{creator}/{model}` 等资源路径必须使用规范 ID。所有模型、价格与渠道可在[模型市场](https://yir.ai/zh/models)浏览。
+
+## 合同不能说明的事
+
+参数合法，并不代表每个渠道此刻都能执行，也不代表存在对应价格。请始终对完整请求报价。Gateway 是最终裁决者：违反合同的请求返回 `400 YIR_INVALID_REQUEST`，未知模型返回 `404 YIR_MODEL_NOT_FOUND`。
+
+## 在应用中校验
+
+TypeScript SDK 可以用加载或生成的模型目录在本地校验请求：
+
+```ts
+import { createNodeYirClient } from "@yir-ai/sdk/server";
+import { validateModelParameters } from "@yir-ai/sdk/frontend";
+
+const client = createNodeYirClient();
+const catalog = await client.getModelContracts();
+validateModelParameters("openai/gpt-image-2", "generate_image", "text",
+  { resolution: "1K", aspect_ratio: "1:1", n: 1 }, catalog);
+```
+
+如需在前端随包分发一份快照，可在开发阶段运行 `pnpm exec yir-models --output src/models.ts` 生成。快照只包含参数元数据，不含价格或凭据。需要提供新模型时重新生成即可。

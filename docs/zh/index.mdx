@@ -1,33 +1,55 @@
 ---
-title: Yir 异步 AI Gateway
-description: 使用 Yir Standard API 构建可靠的图片与视频生成工作流。
+title: Yir 统一异步 AI 网关
+description: 用一个 API 完成长耗时图片与视频生成，提供按请求报价、预算内自动恢复和持久化 Job。
 ---
 
 <Badge variant="warning">开发者预览</Badge>
 
-Yir 为长耗时图片与视频生成提供一套 Standard API 与 SDK 合同。应用只提交一次，保存 Yir Job ID，并持续查询同一个 Job 直到公开终态。
-
-:::info
-当前公开 HTTP 预览只包含已进入评审版 Standard OpenAPI 的操作。Provider 来源兼容路由不属于 Yir v1。
-:::
+Yir 是面向图片与视频生成的统一异步 AI 网关。你只需发送一个 Standard API 请求：Yir 会选择合适的供应渠道，某次尝试失败时在你的预算内切换到其他渠道，并始终用同一个持久化 Job 跟踪到结果交付。
 
 <CardGroup cols={2}>
-  <Card title="快速开始" href="/zh/docs/getting-started/quickstart" icon="rocket">
-    提交并查询第一个 Standard 图片生成 Job。
+  <Card title="快速上手" href="/zh/docs/getting-started/quickstart" icon="rocket">
+    几分钟内用 cURL 生成第一张图片。
   </Card>
-  <Card title="生产集成" href="/zh/docs/guides/production-integration" icon="shield-check">
-    正确实现幂等、有界轮询、路由偏好和安全恢复。
+  <Card title="上线检查清单" href="/zh/docs/guides/production-integration" icon="shield-check">
+    幂等、轮询、Webhook、预算与错误处理。
   </Card>
-  <Card title="任务生命周期" href="/zh/docs/concepts/task-lifecycle" icon="activity">
-    理解 queued、running、delivering、终态和未知结果。
+  <Card title="SDK" href="/zh/docs/guides/clients" icon="package">
+    TypeScript 与 Go 客户端，覆盖报价、任务、文件与 Webhook。
   </Card>
   <Card title="API 参考" href="/zh/docs/reference" icon="braces">
-    浏览由 OpenAPI 生成的 Yir Standard 已评审操作。
+    由已审查的 OpenAPI 合同生成的全部公开接口。
   </Card>
 </CardGroup>
 
-## 单一公共任务合同
+## 请求如何流转
 
-- 直接 HTTP 客户端调用 Yir Standard REST。
-- Yir 原生 SDK 封装相同的 Standard 请求。
-- Vercel AI SDK 客户端适配层把媒体调用转换为相同 Standard 请求，不增加第二套 Job、路由或计费合同。
+```mermaid
+sequenceDiagram
+  participant App as 你的后端
+  participant Yir as Yir Gateway
+  participant P as 供应渠道
+  App->>Yir: POST /v1/images/quotes（可选）
+  Yir-->>App: 价格与费用上限
+  App->>Yir: POST /v1/images/generations
+  Yir-->>App: 202 Job（queued）
+  Yir->>P: 发起尝试，失败时在预算内切换渠道
+  P-->>Yir: 结果
+  Yir->>Yir: 将结果复制到 Yir 存储
+  Yir-->>App: Webhook，或 GET /v1/jobs/{id}
+```
+
+- **一个请求对应一个 Job。** 渠道切换在 Job 内部完成，渠道失败时无需重新提交。
+- **只为交付的结果付费。** 失败或已取消的 Job 不收费。见[报价与计费](/zh/docs/concepts/billing)。
+- **无需上游凭据。** 只使用 Yir API Key 认证。见[身份认证](/zh/docs/getting-started/authentication)。
+
+## 按需查阅
+
+| 目标 | 页面 |
+| --- | --- |
+| 生成图片或视频 | [图片生成](/zh/docs/guides/image-generation) · [视频生成](/zh/docs/guides/video-generation) |
+| 使用自己的参考素材 | [输入文件](/zh/docs/guides/input-files) |
+| 查找模型及其参数 | [模型与参数](/zh/docs/guides/models) |
+| 通过回调接收结果 | [Webhook](/zh/docs/guides/webhooks) |
+| 控制执行渠道 | [路由](/zh/docs/concepts/routing) |
+| 处理错误 | [错误码](/zh/docs/support/error-codes) |

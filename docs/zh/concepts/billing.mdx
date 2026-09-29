@@ -1,50 +1,90 @@
 ---
 title: 报价与计费
-description: 理解请求三价、最大单次冻结与成功结算。
+description: 读取请求价格，用 max_cost 设置支出上限，并了解 Job 如何计费。
 ---
 
-:::info
-本页描述正在接入的新合同，不代表生产环境已经升级。当前开发实现已提供固定价格、不可报价和官方仅输出估算；动态整单价格、完整供应规格和跨应用验收仍在推进。
-:::
+Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 最多预留一次尝试所需的资金，Job 结束后释放未使用部分。
 
-## 请求三价
+## 获取报价
 
-仅输出估算示例为 `{"kind":"estimate","amount":"0.042390","estimate":{"scope":"output_only","output_tokens":1413}}`。金额根据本次请求的预计生成输出 Token 数与当前费率计算，不包含输入等其他费用。它不是整单价格或授权上限，不能单独用来冻结零售积分或设置 `max_cost`。缺少用量依据或适用费率时返回不可报价，不虚构估价。
+把准备提交的请求体发送到报价接口：
 
-图片使用 `POST /v1/images/quotes`，视频使用 `POST /v1/videos/quotes`。Quote 与生成接口校验相同的模型、输入和 `parameters`，但不接受 `max_cost` 或 `webhook_url`，不创建 Job、不冻结资金，也不锁价。
+| 操作 | 接口 |
+| --- | --- |
+| 单个图片请求 | `POST /v1/images/quotes` |
+| 单个视频请求 | `POST /v1/videos/quotes` |
+| 最多 20 个图片或视频请求 | `POST /v1/quotes` |
+
+报价与提交使用相同的模型、输入和参数校验，但不创建 Job、不预留资金，也不锁定价格。报价请求不接受仅用于提交的 `max_cost` 和 `webhook_url`。
+
+```json
+{
+  "object": "quote",
+  "model": "openai/gpt-image-2",
+  "currency": "USD",
+  "supply": { "available": true, "requires_max_cost": false, "issues": [] },
+  "primary": { "kind": "fixed", "amount": "0.04" },
+  "max": { "kind": "fixed", "amount": "0.05" },
+  "official": { "kind": "fixed", "amount": "0.053" },
+  "single_attempt_upper_bound": "0.05",
+  "has_verifiable_upper_bound": true,
+  "expires_at": 1790000300
+}
+```
+
+以上数值仅为示意。金额是美元十进制字符串，请使用十进制运算而非浮点数。
+
+### 字段含义
 
 | 字段 | 含义 |
 | --- | --- |
-| `primary` | 当前首选尝试执行整份请求的价格。 |
-| `max` | 当前选中尝试的最高整单价格，不是价格之和或全目录最高价。 |
-| `official` | 同规格官方参考价，不保证存在可执行的官方渠道。 |
+| `primary` | Yir 首选渠道的价格。 |
+| `max` | 本次请求可用渠道中的最高价格，不是多次尝试之和。 |
+| `official` | 模型原厂的参考价格，仅供对比，不代表会使用官方渠道执行。 |
+| `price_difference_percent` | 可选，与 `official` 的对比，负数表示 Yir 更便宜。 |
+| `single_attempt_upper_bound` | 在所有可用渠道上经过验证的单次尝试费用上限；只要有一个渠道无法确定上限即为 `null`。 |
+| `supply.available` | 当前没有渠道能执行此请求时为 `false`，并带有 `issues: ["no_matching_supply"]`。 |
+| `supply.requires_max_cost` | 存在按用量计费的可用渠道时为 `true`，提交时必须携带不低于 `0.01` 的 `max_cost`。 |
 
-金额使用 USD 十进制字符串。固定价格示例为 `{"amount":"0.02","kind":"fixed","reason":""}`；不可报价示例为 `{"amount":null,"kind":"unavailable","reason":"candidate_price_unavailable"}`。未知价格不是零；任一选中尝试价格未知时，`max` 不能用其余已知价格近似。
+每个价格属于以下三类之一：
 
-Quote 只提供本次请求需要的价格与供应信息，不公开内部渠道列表、排名、采购折扣或容量。参数合同随 SDK 版本静态提供，不在运行时下载校验代码。节省比例由接入方自行计算。
+- `fixed`：本次请求的完整价格。
+- `estimate`：仅覆盖**生成输出**，用于按用量计费的模型（`estimate.output_tokens` 或 `estimate.output_megapixels` 说明估算假设）。不含输入及其他费用，不能当作总价或支出上限。
+- `unavailable`：`amount` 为 `null`。未知价格绝不等于零。
 
-## 授权与冻结
+## 设置支出上限
 
-生成请求的 `max_cost` 是整单授权上限，例如 `"0.25"` 表示最多 US$0.25，使用非负十进制字符串，最多六位小数。Submit 重新检查当前供应和价格，Quote 未过期也不保证原价格可执行。
+生成请求中的 `max_cost` 是整个 Job 可收取的最高金额，例如 `"0.25"` 表示 0.25 美元，最多六位小数。
 
-价格与费用上界不同。只有 `has_verifiable_upper_bound` 为真时，才能将 `single_attempt_upper_bound` 作为选中尝试的最大单次费用上界。否则该字段为 `null`，不能当作零或空字符串。估算价格不能承诺最终费用上限。
+- **省略时：** Yir 在准入时采用可用渠道中经过验证的最高单次尝试上限。
+- **必须提供：** 报价返回 `requires_max_cost: true` 时。
+- **过低时：** 低于首选渠道价格的上限会被拒绝。切换渠道时会跳过超出上限的渠道；没有剩余渠道时，Job 以 `YIR_BUDGET_EXCEEDED` 失败。
 
-新 Job 按可准入尝试的最大单次费用上界冻结一次，后续顺序尝试共用冻结，不累加各次上界。不传 `max_cost` 时按准入时的最大单次上界固化授权；显式授权更大金额不会冻结全部多余金额。无法证明费用上界时，不应自动提交。
+提交时会重新检查价格。之前获得的报价不保证相同的价格或可用性；价格上涨也不会让 Job 收费超过你的授权。
 
-后续路线仍须满足原授权与冻结额度，不因涨价追加扣款；没有可执行路线时失败，预算不足可返回 `YIR_BUDGET_EXCEEDED`。`routing.fallback: false` 关闭后续尝试。
+## Job 如何计费
 
-目标策略为最多两个不同非官方渠道，再由一个官方渠道兜底，依次执行。所有路线均受规格、凭据、容量和预算约束；提交前跳过的路线不计 Attempt。存在官方参考价不代表兜底一定可用。
+1. **准入**时预留一笔金额：可用渠道中最高的单次尝试上限，并受 `max_cost` 约束。多次尝试共用这一笔预留，不会累加。
+2. **成功**时只收取交付结果那次尝试的费用，释放其余部分。
+3. **失败或取消**时释放全部预留，客户费用为零。
+4. 尝试进行中**请求停止**：该次尝试仍可能成功并收费。见[取消](/zh/docs/concepts/task-lifecycle#取消)。
 
-## 结算与停止
+Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 
-上游明确失败不收费。成功交付只结算交付结果对应费用并释放余额；最终失败或取消释放全部冻结。新 Job 到达终态时客户费用同时确定，无需另行轮询财务状态。历史任务保留原有结算事实。
+| 字段 | 含义 |
+| --- | --- |
+| `billing.total_charged_by_yir` | 此 Job 的最终收费金额。 |
+| `billing.currency` | 固定为 `USD`。 |
+| `billing.max_cost` | 适用的授权上限，不是收费金额。 |
+| `billing.savings` | 可选，与官方参考价的对比。 |
 
-短暂超时不能直接认定失败或重复提交。长时间仍无法确认的异常由 Yir 按失败零收费处理，并冻结异常渠道、通知管理员。迟到的上游成本由 Yir 内部承担，不追加客户费用。
+失败尝试的成本，以及 Yir 关闭 Job 后才到达的渠道结果成本，均由 Yir 承担。
 
-用户停止后显示“已请求停止”：停止后续尝试，当前尝试仍可能成功并交付、结算。已按最终超时失败处理的任务不会因迟到结果再次扣款。SDK 本地 Abort 只停止本地等待或网络操作，不代替远程取消，也不代表退款完成。
+## 账户与 Key 的限制
 
-## 应用定价与恢复
+- **余额。** Job 需要足够的可用余额完成预留，否则以 `402 YIR_INSUFFICIENT_BALANCE` 拒绝。请在 Console 充值；Yir 不会自动扣款或自动充值。可以在账单页设置低余额邮件提醒。
+- **每个 API Key 的月度支出上限。** 可选，在 [Console → API Keys](/zh/docs/console/api-keys) 设置。准入时把新 Job 的预留加上该 Key 当前 UTC 自然月已结算费用和在途预留；超过上限时请求以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，不创建 Job。进行中的 Job 不会被中断。
 
-应用可以自行制定面向客户的积分价格和退款规则。将这些规则与 Yir 的任务授权及结算分开，并对每个终态结果执行幂等处理。
+## 为自己的产品定价
 
-提交前持久化请求与幂等键。响应丢失时使用相同请求、相同键恢复；修改金额或参数属于新请求，不能为了绕过未知提交状态直接换键重试。终态 Job 的 `billing.max_cost` 返回固化授权；历史缺失值不能用当前价格补写。
+如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的授权分开。常见做法是：按 `primary` 向用户收费，用 `single_attempt_upper_bound` 授权 Yir，并对每个 Job 只核对一次 `total_charged_by_yir`。

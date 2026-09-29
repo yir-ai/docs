@@ -1,0 +1,68 @@
+---
+title: 路由与渠道切换
+description: 控制哪些供应渠道和渠道版本可以执行请求，以及失败后如何切换渠道。
+---
+
+Yir 上的一个模型可能由多个**供应渠道**提供：模型原厂的官方 API，以及其他经过认证的供应商。每个 Job 由 Yir 选择合适的渠道；某次尝试被确认失败时，可以在你的预算内切换到其他渠道。
+
+你可以在报价和生成请求中使用可选的 `routing` 对象影响这一过程。不提供时，使用 API Key 绑定的 Routing Profile（见 [Console 路由](/zh/docs/console/routing)）。
+
+```json
+{
+  "routing": {
+    "preference": "cost",
+    "only": ["official", "fal"],
+    "variants": { "fal": "standard" },
+    "fallback": true
+  }
+}
+```
+
+## 字段
+
+| 字段 | 取值 | 作用 |
+| --- | --- | --- |
+| `preference` | `balanced`、`cost` | `cost` 优先选择可比规格下的最低价；`balanced` 综合价格与 Yir 已认证的渠道事实。默认取 Key 的 Routing Profile。 |
+| `only` | 1–16 个渠道 ID | 无序白名单，选择与切换都限定在其中。只写一个渠道可用于定点测试。 |
+| `variants` | 渠道 ID → 版本 的映射 | 选择渠道的特定版本，见下文。 |
+| `fallback` | `true`、`false` | `false` 表示只允许一次渠道尝试。默认取 Key 的 Routing Profile。 |
+
+不支持自定义顺序（`order`）。无效的路由参数返回 `400 YIR_INVALID_ROUTING_OVERRIDE`。
+
+## 渠道 ID 与 official 别名
+
+渠道 ID 是小写标识，例如 `openai`、`google`、`fal`、`kie`。[模型市场](https://yir.ai/zh/models)的模型详情页列出了每个模型可用的渠道和版本。
+
+`official` 是当前模型原厂渠道的别名，Yir 会在校验前解析。例如在 OpenAI 模型上，`only: ["official"]` 与 `only: ["openai"]` 等价。响应中始终返回真实渠道 ID，例如 `final_provider`。
+
+## 渠道版本
+
+部分渠道对同一模型提供多个版本，例如标准版和更快或更便宜的版本，各自对应不同的上游型号、价格与能力，但模型的公开参数不变。
+
+- **未指定某渠道：** 该渠道所有符合条件的版本都可能参与。
+- **`"standard"`：** 只使用该渠道的标准版。
+- **其他版本名：** 只使用该版本。版本不存在或不可用时，不会替换为同一渠道的其他版本；白名单中的其他渠道仍按切换规则参与。
+
+同时提供 `only` 时，`variants` 中的每个渠道都必须在 `only` 内。
+
+## 渠道切换规则
+
+只有当前尝试被**确认失败**后，Yir 才会切换渠道；慢或结果未知的尝试不会为了切换而被放弃。默认情况下，一个 Job 最多先尝试两个不同的第三方渠道，再尝试官方渠道，同时受以下条件约束：
+
+- 你的 `only` 与 `variants`，以及 Key 所绑定 Routing Profile 的限制；
+- 各渠道支持的模型与参数；
+- 渠道当前的可用性；
+- 你的 `max_cost` 与 Job 的预留金额。
+
+提交前被跳过的渠道不计为尝试。报价中存在官方参考价，不代表一定会使用官方渠道。
+
+## 渠道相关的参数差异
+
+少数参数在不同渠道上的处理方式不同。当渠道忽略你的某个参数时，Yir 会明确告知而不是隐瞒：
+
+- 报价包含首选渠道的 `parameter_notices`；若切换渠道后处理可能不同，还会返回 `parameter_handling_may_vary: true`。
+- 成功的 Job 及其 Webhook 包含实际产出结果那次尝试的 `parameter_notices`。
+
+例如 GPT Image 模型会忽略 `quality`，除非请求通过 `routing.only: ["openai"]`（或 `["official"]`）限定为官方渠道，对应原因为 `quality_requires_official_channel`。请在请求中保留原始参数，确保报价与执行一致。
+
+路由无法绕过认证、余额、支出上限、规格校验或 Yir 的尝试次数限制，也不能指定凭据。

@@ -1,0 +1,92 @@
+---
+title: 输入文件
+description: 用 Files API 上传参考图片、视频和音频，并在生成请求中引用。
+---
+
+当参考素材没有公网 HTTPS 地址，或者是视频、音频（必须上传）时，请使用 Files API。生成接口不接受 Base64、Data URL 或 multipart 请求体。
+
+## 限制
+
+| 项目 | 限制 |
+| --- | --- |
+| 每次创建的文件数 | 1–20 |
+| 单个文件大小 | 最大 2 GiB |
+| 媒体类型 | `image/jpeg`、`image/png`、`image/webp`、`video/mp4`、`video/webm`、`audio/mpeg`、`audio/wav` |
+
+文件是临时的，在 `expires_at` 到期；查询状态不会延长有效期。
+
+## 上传流程
+
+<Steps>
+  <Step title="创建上传计划">
+    把文件元数据发送到 `POST /v1/files`。携带 `Idempotency-Key` Header，重试时会返回同一份计划。
+  </Step>
+  <Step title="上传内容">
+    按 `part_number` 顺序，把对应字节段 `PUT` 到 `upload.parts` 中每个分片的 `url`。不要向这些地址发送 Yir API Key。
+  </Step>
+  <Step title="完成文件">
+    用空 JSON 请求体调用 `POST /v1/files/{id}/complete`，文件变为 `ready`。
+  </Step>
+  <Step title="引用文件">
+    在报价或生成请求的 `input.references` 中使用 `{ "role": "...", "file_id": "file_..." }`。
+  </Step>
+</Steps>
+
+### 1. 创建上传计划
+
+```bash
+curl https://gateway.yir.ai/v1/files \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: upload-first-frame-001" \
+  --data '{ "files": [{ "name": "first-frame.png", "media_type": "image/png", "size": 482133 }] }'
+```
+
+`size` 必须是准确的字节数。响应按相同顺序为每个条目返回一个 File：
+
+```json
+{
+  "files": [{
+    "id": "file_11111111-1111-4111-8111-111111111111",
+    "object": "file",
+    "status": "pending_upload",
+    "name": "first-frame.png",
+    "media_type": "image/png",
+    "size": 482133,
+    "upload": {
+      "type": "multipart",
+      "expires_at": 1790000900,
+      "parts": [{ "part_number": 1, "size": 482133, "url": "https://..." }]
+    }
+  }]
+}
+```
+
+批量中只要有一个条目无效，整批请求都会被拒绝。
+
+### 2. 上传每个分片
+
+```bash
+curl --request PUT --upload-file first-frame.png "$PART_URL"
+```
+
+多分片计划需按列出的 `size` 把文件切成连续字节段，并在 `upload.expires_at` 之前完成上传。
+
+### 3. 完成
+
+```bash
+curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{}'
+```
+
+只有 `ready` 状态的文件能用于请求。引用未完成、已过期或不存在的文件，分别返回 `YIR_FILE_NOT_READY`、`YIR_FILE_EXPIRED` 或 `YIR_FILE_NOT_FOUND`。
+
+## 读取文件
+
+`GET /v1/files/{id}` 返回当前状态。`GET /v1/files/{id}/content` 以 `307` 重定向到短期签名地址。API Key 只发送给 Gateway，不要发送给重定向目标。File 上的 `url` 字段是用于这种认证读取的路径，不能作为生成请求中的参考地址。
+
+## 使用 SDK
+
+SDK 封装了全部三个步骤：TypeScript 为 `createAndUploadFile`，Go 为 `CreateAndUploadFile`。见 [SDK](/zh/docs/guides/clients)。
