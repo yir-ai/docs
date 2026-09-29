@@ -96,6 +96,23 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
 
 ## 使用 SDK
 
-SDK 封装了全部三个步骤：TypeScript 为 `createAndUploadFile`，Go 为 `CreateAndUploadFile`。见 [SDK](/zh/docs/guides/clients)。
+SDK 封装了全部三个步骤。Go 中 `CreateAndUploadFile` 是 client 方法；TypeScript 中 `createAndUploadFile` 是从 `@yir-ai/sdk/server` 导出的函数，第一个参数传入 client：
+
+```ts
+import { readFile } from "node:fs/promises";
+import { createAndUploadFile, createNodeYirClient } from "@yir-ai/sdk/server";
+
+const client = createNodeYirClient();
+const bytes = await readFile("reference.png");
+const file = await createAndUploadFile(
+  client,
+  { name: "reference.png", media_type: "image/png", size: bytes.byteLength },
+  new Blob([bytes]),
+  "upload-reference-001",
+);
+console.log(file.id, file.status); // "ready": reference it by file.id
+```
+
+请持久化该幂等键，崩溃后用同一个键恢复。见 [SDK](/zh/docs/guides/clients)。
 
 TypeScript SDK 0.4.0 和 Go SDK 0.5.0 上传辅助函数会等待分析，默认超时五分钟。可用 `waitForFileReady` / `WaitForFileReady` 继续等待；本地超时不会取消服务端分析。

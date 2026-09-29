@@ -82,7 +82,7 @@ Pass Yir-specific options in `providerOptions.yir`. Unknown keys are rejected.
 | `inputReferences` | Image, video, or audio references, chosen by the explicit MIME type |
 | Inline bytes | Uploaded through the Files API first, then referenced by file ID |
 
-For remote video references, pass `{ data: "https://...", mediaType: "video/mp4" }`. If the same parameter is set both as an AI SDK field and in `parameters` with different values, the call is rejected.
+Media inputs must be bytes (`Uint8Array`) or Base64 data; the adapter uploads them through the Files API first. URL media inputs, including remote video references, are rejected before any request is sent. If the same parameter is set both as an AI SDK field and in `parameters` with different values, the call is rejected.
 
 Not supported, and rejected rather than silently ignored: image masks, pixel `size`, `seed`, video pixel `resolution`, `fps`, and per-call headers. Use Yir `parameters.resolution` instead of pixel sizes.
 

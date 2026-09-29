@@ -126,6 +126,8 @@ Go 代码片段是一个返回 `error` 的函数体，需要导入 `context`、`
 | Webhook | `verifyWebhookSignature`、`constructWebhookEvent` | `VerifyWebhookSignature`、`ConstructWebhookEvent` |
 | 模型 | `getModelContracts`、`getModelContract` | `GetModelContracts`、`GetModelContract` |
 
+TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是从 `@yir-ai/sdk/server` 导出的函数，不是 client 方法，调用时把 client 作为第一个参数传入，例如 `createAndUploadFile(client, metadata, data, key)`。Go 中它们是 client 方法。见[输入文件](/zh/docs/guides/input-files#使用-sdk)。
+
 ## 需要了解的行为
 
 - **幂等键。** API 要求每个生成请求都携带幂等键。省略键参数时，SDK 会为这次调用生成随机键，它只能保护这一次 HTTP 调用；再次无键调用可能创建另一笔收费 Job。请传入自己持久化的键，并在进程崩溃或结果未知后与完整请求一起复用。SDK 不会自动重试提交。

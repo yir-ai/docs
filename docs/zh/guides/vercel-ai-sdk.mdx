@@ -82,7 +82,7 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 | `inputReferences` | 按显式 MIME 类型映射为图片、视频或音频参考 |
 | 内联字节 | 先通过 Files API 上传，再以文件 ID 引用 |
 
-远程视频参考请传入 `{ data: "https://...", mediaType: "video/mp4" }`。同一参数若同时通过 AI SDK 字段和 `parameters` 设置且取值不同，调用会被拒绝。
+媒体输入须为字节（`Uint8Array`）或 Base64 数据，适配器会先通过 Files API 上传。URL 形式的媒体输入（包括远程视频参考）会在发出请求前被拒绝。同一参数若同时通过 AI SDK 字段和 `parameters` 设置且取值不同，调用会被拒绝。
 
 以下能力不支持，会直接拒绝而不是静默忽略：图片 mask、像素 `size`、`seed`、视频像素 `resolution`、`fps` 以及单次调用的 headers。请用 Yir 的 `parameters.resolution` 代替像素尺寸。
 

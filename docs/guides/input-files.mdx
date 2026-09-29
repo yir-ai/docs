@@ -96,6 +96,23 @@ Only `ready` files can be used in requests. A referenced file that is missing, n
 
 ## With an SDK
 
-The SDKs wrap all three steps: `createAndUploadFile` in TypeScript and `CreateAndUploadFile` in Go. See [SDKs](/docs/guides/clients).
+The SDKs wrap all three steps. In Go, `CreateAndUploadFile` is a client method. In TypeScript, `createAndUploadFile` is a function exported from `@yir-ai/sdk/server` that takes the client as its first argument:
+
+```ts
+import { readFile } from "node:fs/promises";
+import { createAndUploadFile, createNodeYirClient } from "@yir-ai/sdk/server";
+
+const client = createNodeYirClient();
+const bytes = await readFile("reference.png");
+const file = await createAndUploadFile(
+  client,
+  { name: "reference.png", media_type: "image/png", size: bytes.byteLength },
+  new Blob([bytes]),
+  "upload-reference-001",
+);
+console.log(file.id, file.status); // "ready": reference it by file.id
+```
+
+Persist the key and reuse it to recover after a crash. See [SDKs](/docs/guides/clients).
 
 TypeScript SDK 0.4.0 and Go SDK 0.5.0 upload helpers wait for analysis with a five-minute default timeout. Resume with `waitForFileReady` / `WaitForFileReady`; a local timeout does not cancel analysis.

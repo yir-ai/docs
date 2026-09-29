@@ -126,6 +126,8 @@ The Go snippet is the body of a function returning `error`, importing `context`,
 | Webhooks | `verifyWebhookSignature`, `constructWebhookEvent` | `VerifyWebhookSignature`, `ConstructWebhookEvent` |
 | Models | `getModelContracts`, `getModelContract` | `GetModelContracts`, `GetModelContract` |
 
+In TypeScript, `uploadFile`, `createAndUploadFile`, and `waitForFileReady` are functions exported from `@yir-ai/sdk/server`, not client methods. Pass the client as the first argument, for example `createAndUploadFile(client, metadata, data, key)`. In Go they are client methods. See [Input files](/docs/guides/input-files#with-an-sdk).
+
 ## Behavior to know
 
 - **Idempotency keys.** The API requires a key on every generation request. If you omit the key argument, the SDK generates a random one for that call, which protects only that single HTTP call; calling again without a key can create another billable Job. Pass your own persisted key, and reuse it with the exact request to recover after a crash or an unknown outcome. Submit is never retried automatically.
