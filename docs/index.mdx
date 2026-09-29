@@ -1,33 +1,55 @@
 ---
 title: Yir asynchronous AI gateway
-description: Build durable image and video generation workflows with Yir Standard API.
+description: One API for long-running image and video generation, with request-specific quotes, budget-bounded fallback, and durable Jobs.
 ---
 
 <Badge variant="warning">Developer preview</Badge>
 
-Yir provides one Standard API and SDK contract for long-running image and video generation. Submit once, persist the Yir Job ID, and query the same Job until it reaches a public terminal state.
-
-:::info
-The current published HTTP preview exposes only operations present in the reviewed Standard OpenAPI. Provider-specific source-compatible routes are not part of Yir v1.
-:::
+Yir is a unified asynchronous AI gateway for image and video generation. You send one Standard API request; Yir selects an eligible provider channel, tries another channel within your budget if an attempt fails, and gives you one durable Job to follow until the result is delivered.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" href="/docs/getting-started/quickstart" icon="rocket">
-    Submit and query your first Standard image-generation Job.
+    Generate your first image with cURL in a few minutes.
   </Card>
-  <Card title="Production integration" href="/docs/guides/production-integration" icon="shield-check">
-    Add idempotency, bounded polling, routing preferences, and safe recovery.
+  <Card title="Production checklist" href="/docs/guides/production-integration" icon="shield-check">
+    Idempotency, polling, Webhooks, budgets, and error handling.
   </Card>
-  <Card title="Task lifecycle" href="/docs/concepts/task-lifecycle" icon="activity">
-    Understand queued, running, delivering, terminal, and unknown outcomes.
+  <Card title="SDKs" href="/docs/guides/clients" icon="package">
+    TypeScript and Go clients for quotes, jobs, files, and Webhooks.
   </Card>
   <Card title="API reference" href="/docs/reference" icon="braces">
-    Browse the reviewed Yir Standard operations generated from OpenAPI.
+    Every public operation, generated from the reviewed OpenAPI contract.
   </Card>
 </CardGroup>
 
-## One public task contract
+## How a request flows
 
-- Direct HTTP clients call Yir Standard REST.
-- Native Yir SDKs wrap the same Standard requests.
-- The Vercel AI SDK adapter converts media calls into the same Standard requests; it does not introduce a second Job, routing, or billing contract.
+```mermaid
+sequenceDiagram
+  participant App as Your backend
+  participant Yir as Yir Gateway
+  participant P as Provider channels
+  App->>Yir: POST /v1/images/quotes (optional)
+  Yir-->>App: Prices and spending ceiling
+  App->>Yir: POST /v1/images/generations
+  Yir-->>App: 202 Job (queued)
+  Yir->>P: Attempt, then fallback within budget if it fails
+  P-->>Yir: Result
+  Yir->>Yir: Copy result to Yir storage
+  Yir-->>App: Webhook, or GET /v1/jobs/{id}
+```
+
+- **One Job per request.** Fallback attempts happen inside the Job. You never resubmit to recover from a provider failure.
+- **Pay for delivered results only.** Failed and cancelled Jobs are not charged. See [quotes and billing](/docs/concepts/billing).
+- **No provider credentials.** Authenticate with your Yir API key only. See [authentication](/docs/getting-started/authentication).
+
+## Find what you need
+
+| Goal | Page |
+| --- | --- |
+| Generate images or videos | [Images](/docs/guides/image-generation) · [Videos](/docs/guides/video-generation) |
+| Use your own reference media | [Input files](/docs/guides/input-files) |
+| Discover models and their parameters | [Models and parameters](/docs/guides/models) |
+| Receive results by callback | [Webhooks](/docs/guides/webhooks) |
+| Control which channels run | [Routing](/docs/concepts/routing) |
+| Handle an error | [Error codes](/docs/support/error-codes) |

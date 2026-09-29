@@ -1,31 +1,25 @@
 ---
-title: 路由
-description: 为异步生成任务配置可复用的渠道偏好和失败后继续尝试规则。
+title: Routing Profile
+description: 为绑定到每个 Routing Profile 的 API Key 设置默认的渠道偏好与渠道切换。
 ---
 
-RoutingProfile 定义 Yir 为 Job 选择合格渠道供应时使用的长期默认值。既有绑定保留，API Key 不再提供 Profile 选择入口，也不再创建新 Profile。默认及已有 Profile 的偏好、恢复策略和模型限制仍可编辑。
+**Routing Profile** 保存绑定到它的所有 API Key 的默认路由。在 [Console → 路由](https://yir.ai/zh/console/routing)中管理。
 
-## 路由偏好
+## Profile 的设置
 
-- **平衡模式**：允许 Yir 根据平台认证事实评估完整合格计划。
-- **成本优先**：在请求规格可比较时优先考虑较低的公开用户价。
+| 设置 | 作用 |
+| --- | --- |
+| **模式** | **均衡**综合价格与 Yir 已认证的渠道事实；**成本优先**选择可比规格下的最低价。 |
+| **渠道切换** | 尝试被确认失败后，是否允许 Yir 切换到其他渠道。建议开启。 |
 
-不再提供自定义渠道排序，由 Yir 自动选择合格渠道。
+每个账户都有一个默认 Profile。你可以创建更多 Profile、重命名或编辑，并删除不再需要的 Profile。每个 API Key 绑定一个 Profile，在创建或编辑 Key 时选择。Profile 列表显示每个 Profile 关联的 Key 数量。
 
-## 渠道范围和 fallback
+较早创建的 Profile 可能还带有模型或渠道限制。这些限制会显示在 Profile 上并继续生效；请求级路由只能收窄、不能放宽它们。
 
-使用 `routing.only` 指定 1–16 个渠道组成的无序白名单，选择与恢复始终留在白名单内。单元素白名单用于定点测试。旧严格 Profile 限制仍保留，请求只能进一步收窄其范围。
+不支持自定义渠道顺序，Yir 会在合格渠道中自动选择。
 
-Fallback 决定当前 Attempt 被确认失败后，Yir 是否可以继续计划中的下一条路线。任务变慢或结果未知不会仅为触发 fallback 而被当作失败。
+## 按请求覆盖
 
-## 渠道版本
+请求中的 `routing` 对象在该请求中优先于 Profile：可以修改 `preference` 和 `fallback`，用 `only` 限定渠道，并选择 `variants`。完整规则见[路由与渠道切换](/zh/docs/concepts/routing)。
 
-`routing.variants` 按渠道指定一个已登记的版本。省略某渠道的版本时，只使用它的标准版（`standard`）。同一渠道的不同版本分别绑定上游型号、价格和能力；选择版本不会改变模型公共参数。
-
-同时提供 `routing.only` 时，版本映射中的渠道必须位于白名单内。指定版本不可用时，不会自动改用同渠道的其他版本；其他允许渠道仍遵循 fallback 规则。可用版本以模型目录为准。
-
-## 请求级覆盖
-
-Standard API 或 Playground 请求可以覆盖偏好和 fallback，并用 `routing.only` 收窄渠道范围。显式空列表无效；省略时使用默认允许范围。它不能突破认证、规格兼容、授权供应、运行状态、计费、安全检查和 Yir 的 Attempt 上限。
-
-请求不能选择 Credential、AccessProvider、内部接入路径、采购价格、健康评分或任意 Attempt 数量。
+路由不能指定凭据，也不能绕过认证、余额、支出上限、规格校验或尝试次数限制。

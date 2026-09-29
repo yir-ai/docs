@@ -1,0 +1,112 @@
+---
+title: 视频生成
+description: 从文本、首尾帧，或图片、视频、音频混合参考生成视频。
+---
+
+视频 Job 提交到 `POST /v1/videos/generations`。视频遵循与图片相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)和[路由](/zh/docs/concepts/routing)规则，但通常需要数分钟而不是数秒，因此 [Webhook](/zh/docs/guides/webhooks) 往往比轮询更合适。
+
+## 输入方式
+
+| `input.type` | 用途 | 参考角色 |
+| --- | --- | --- |
+| `text` | 文生视频 | 无 |
+| `image` | 从首帧开始生成，可选指定尾帧 | `first_frame`、`last_frame` |
+| `reference` | 用多种素材引导视频 | `reference_image`、`reference_video`、`reference_audio` |
+
+每个参考项包含 `role`，并且只能提供 `url` 或 `file_id` 之一。图片参考可以使用公网 HTTPS 地址；**视频和音频参考必须先上传为[输入文件](/zh/docs/guides/input-files)**，再以 `file_id` 引用，因为 Yir 需要在报价前测量其时长。
+
+模型支持哪些输入方式、角色和数量由其合同决定。例如 Seedance 2.0 在 `image` 模式下接受一个 `first_frame` 和可选的 `last_frame`；在 `reference` 模式下最多接受 9 张图片、3 段视频和 3 段音频（至少一张图片或一段视频）。
+
+## 常用参数
+
+| 参数 | 说明 |
+| --- | --- |
+| `duration` | 输出时长（秒），需在模型范围内。 |
+| `resolution` | 例如 `480p`、`720p`、`1080p`。 |
+| `aspect_ratio` | 例如 `16:9`、`9:16`、`1:1`，支持时可用 `adaptive`。 |
+| `generate_audio` | 支持时随视频生成原生音频。 |
+| `return_last_frame` | 仅 Seedance 2.0：额外返回最后一帧图片，需要支持该选项的渠道。 |
+| `n` | 固定为 `1`。 |
+
+模型的具体取值可通过 `GET /v1/models/{creator}/{model}?view=contract` 查询。
+
+## 示例
+
+<Tabs>
+<Tab title="文生视频">
+
+```json
+{
+  "model": "bytedance/seedance-2.0",
+  "input": { "type": "text", "prompt": "黄昏时分，一只纸船漂过被雨水覆盖的城市街道" },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+</Tab>
+<Tab title="首尾帧">
+
+```json
+{
+  "model": "bytedance/seedance-2.0",
+  "input": {
+    "type": "image",
+    "prompt": "晨光掠过，花苞缓缓绽放",
+    "references": [
+      { "role": "first_frame", "url": "https://example.com/bud.png" },
+      { "role": "last_frame", "url": "https://example.com/bloom.png" }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "adaptive",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+</Tab>
+<Tab title="混合参考">
+
+```json
+{
+  "model": "bytedance/seedance-2.0",
+  "input": {
+    "type": "reference",
+    "prompt": "图片中的角色按视频的风格随音乐起舞",
+    "references": [
+      { "role": "reference_image", "url": "https://example.com/character.png" },
+      { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
+      { "role": "reference_audio", "file_id": "file_33333333-3333-4333-8333-333333333333" }
+    ]
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "720p",
+    "aspect_ratio": "9:16",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+</Tab>
+</Tabs>
+
+请把示例 URL 和文件 ID 替换为你自己的。
+
+## 提交前先报价
+
+视频价格取决于时长、分辨率、音频和参考素材，因此请先用 `POST /v1/videos/quotes` 对完整请求报价。包含视频或音频参考的报价会使用其实测时长。检查 `supply.available`；当 `supply.requires_max_cost` 为 `true` 时，提交需携带 `max_cost`。
+
+## 结果
+
+成功的视频 Job 在 `result.files` 中返回视频。请求 `return_last_frame` 时，尾帧作为额外的图片文件返回。如果只有这个额外文件未能交付，Job 仍然成功，并带有 `result.warnings: ["additional_results_unavailable"]`。

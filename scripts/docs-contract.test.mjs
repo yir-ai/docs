@@ -38,17 +38,24 @@ const requiredPages = [
   'console/routing',
   'console/api-keys',
   'console/logs',
+  'console/alerts',
   'guides/production-integration',
   'guides/image-generation',
+  'guides/video-generation',
+  'guides/input-files',
+  'guides/models',
+  'guides/webhooks',
   'guides/clients',
+  'guides/vercel-ai-sdk',
   'concepts/task-lifecycle',
   'concepts/providers',
+  'concepts/routing',
   'concepts/billing',
+  'support/error-codes',
   'support/troubleshooting',
 ]
 
 const reviewedOperations = [
-  'POST /v1/quotes',
   'POST /v1/images/quotes',
   'POST /v1/images/generations',
   'POST /v1/videos/quotes',
@@ -57,8 +64,9 @@ const reviewedOperations = [
   'POST /v1/files/{id}/complete',
   'GET /v1/files/{id}',
   'GET /v1/files/{id}/content',
-  'GET /v1/models/{creator}/{model}',
   'GET /v1/models',
+  'GET /v1/models/{creator}/{model}',
+  'POST /v1/quotes',
   'GET /v1/jobs/{id}',
   'GET /v1/jobs/{id}/status',
   'POST /v1/jobs/{id}/cancel',
@@ -221,8 +229,8 @@ test(
       assert.equal(issue.searchParams.get('page'), `https://yir.ai${pagePath}`)
       assert.ok(issue.searchParams.get('title').startsWith('[Docs] '))
     }
-    assert.match(englishGuide, /Production integration/)
-    assert.match(chineseGuide, /生产集成/)
+    assert.match(englishGuide, /Production checklist/)
+    assert.match(chineseGuide, /上线检查清单/)
     assert.match(englishProviders, /Providers and managed supply/)
     assert.match(chineseProviders, /服务商与托管供应/)
     assert.match(reference, /Yir Standard Async AIGC API/)
@@ -440,7 +448,7 @@ test('builds a standalone static site without deployment hooks', async () => {
   await assert.rejects(readFile(path.join(docsRoot, 'wrangler.jsonc'), 'utf8'))
 })
 
-test('teaches safe Bearer authentication and optional generation keys', async () => {
+test('teaches safe Bearer authentication and required generation keys', async () => {
   const [authentication, quickstart] = await Promise.all([
     readFile(
       path.join(docsRoot, 'docs', 'getting-started', 'authentication.mdx'),
@@ -452,17 +460,14 @@ test('teaches safe Bearer authentication and optional generation keys', async ()
     ),
   ])
 
-  assert.match(authentication, /Authorization:\s*Bearer \$YIR_API_KEY/)
-  assert.match(authentication, /Every account has a default API key/i)
-  assert.match(
-    authentication,
-    /reveal and copy it again after confirming your identity/i,
-  )
-  assert.match(authentication, /default key cannot be revoked/i)
-  assert.match(authentication, /immediately invalidating the old secret/i)
-  assert.equal(/--header "Idempotency-Key:/.test(quickstart), false)
-  assert.match(quickstart, /Idempotency-Key` is optional/)
-  assert.match(quickstart, /another POST without a key could create a duplicate/)
+  assert.match(authentication, /Authorization: Bearer <YIR_API_KEY>/)
+  assert.match(authentication, /Every account has a \*\*default API key\*\*/i)
+  assert.match(authentication, /reveal and copy it/i)
+  assert.match(authentication, /old secret stops working as soon as rotation succeeds/i)
+  assert.match(authentication, /never accepts upstream credentials/i)
+  assert.equal(quickstart.match(/--header "Idempotency-Key: \$YIR_IDEMPOTENCY_KEY"/g)?.length, 1)
+  assert.match(quickstart, /same key and body return the original Job/)
+  assert.match(quickstart, /Requests without a key are rejected with `400 YIR_INVALID_REQUEST`/)
   assert.match(quickstart, /"model": "openai\/gpt-image-2"/)
   assert.match(quickstart, /gateway\.yir\.ai\/v1\/jobs\/\$YIR_JOB_ID/)
   assert.equal(/\/kie\/|\/apimart\//i.test(quickstart), false)

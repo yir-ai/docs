@@ -1,0 +1,68 @@
+---
+title: Routing and fallback
+description: Control which provider channels and channel variants may run a request, and how fallback works.
+---
+
+A model on Yir can be served by several **provider channels**: the model maker's official API and other certified suppliers. For each Job, Yir picks an eligible channel, and if an attempt is confirmed failed, it can fall back to another channel within your budget.
+
+You influence this with the optional `routing` object on quote and generation requests. Without it, the Routing Profile bound to your API key applies (see [Console routing](/docs/console/routing)).
+
+```json
+{
+  "routing": {
+    "preference": "cost",
+    "only": ["official", "fal"],
+    "variants": { "fal": "standard" },
+    "fallback": true
+  }
+}
+```
+
+## Fields
+
+| Field | Values | Effect |
+| --- | --- | --- |
+| `preference` | `balanced`, `cost` | `cost` prefers the lowest comparable price; `balanced` weighs price together with Yir's certified channel facts. Defaults to the key's Routing Profile. |
+| `only` | 1–16 channel IDs | Unordered allowlist. Selection and fallback stay inside it. A single entry pins one channel, which is useful for testing. |
+| `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
+| `fallback` | `true`, `false` | `false` allows only one provider attempt. Defaults to the key's Routing Profile. |
+
+Custom ordering (`order`) is not supported. Invalid routing values fail with `400 YIR_INVALID_ROUTING_OVERRIDE`.
+
+## Channel IDs and the official alias
+
+Channel IDs are lowercase identifiers such as `openai`, `google`, `fal`, or `kie`. Model detail pages in [Model Market](https://yir.ai/models) list the channels and variants that serve each model.
+
+`official` is an alias for the current model maker's own channel. Yir resolves it before validation, so `only: ["official"]` on an OpenAI model is the same as `only: ["openai"]`. Responses always report the real channel ID, for example in `final_provider`.
+
+## Channel variants
+
+Some channels offer more than one version of a model, for example a standard and a faster or cheaper variant, each with its own upstream model, price, and capabilities. The public parameters of the model stay the same.
+
+- **No entry for a channel:** all of its eligible variants may be used.
+- **`"standard"`:** only the channel's standard version.
+- **Another variant name:** only that variant. If it is unknown or unavailable, Yir does not substitute another variant of the same channel; other allowed channels still follow the fallback rules.
+
+When `only` is present, every channel in `variants` must also be in `only`.
+
+## How fallback works
+
+Yir moves to another channel only after the current attempt is **confirmed failed**. Slow or unknown attempts are never abandoned to trigger fallback. By default a Job may try up to two distinct third-party channels followed by the official channel, subject to:
+
+- your `only` and `variants` choices, and any restriction on the key's Routing Profile;
+- the model and parameters each channel supports;
+- current channel availability;
+- your `max_cost` and the Job's reservation.
+
+Channels skipped before submission do not count as attempts. An official reference price in a quote does not guarantee that the official channel will run.
+
+## Parameters that differ by channel
+
+A few parameters are handled differently by different channels. When a channel ignores one of your parameters, Yir reports it instead of hiding it:
+
+- Quotes include `parameter_notices` for the first channel and `parameter_handling_may_vary: true` if fallback channels may behave differently.
+- Successful Jobs and their Webhooks include the `parameter_notices` of the attempt that produced the result.
+
+For example, GPT Image models ignore `quality` unless the request is pinned to the official channel with `routing.only: ["openai"]` (or `["official"]`); the notice reason is `quality_requires_official_channel`. Keep the original parameter in your request so pricing and execution stay consistent.
+
+Routing cannot bypass authentication, balance, spend limits, specification checks, or Yir's attempt limits, and it cannot select credentials.

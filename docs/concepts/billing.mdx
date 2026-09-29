@@ -1,50 +1,93 @@
 ---
 title: Quotes and billing
-description: Understand request prices, shared reservations, and delivery charges.
+description: Read request prices, set a spending limit with max_cost, and understand how Jobs are charged.
 ---
 
-:::info
-This page describes the new contract under integration, not a completed production upgrade. Development supports fixed and unavailable prices and official output-only estimates. Complete dynamic request prices, full supply specifications, and cross-application verification remain in progress.
-:::
+Yir charges only for results it delivers. Before submitting, you can ask for a quote; when you submit, Yir reserves at most one attempt's worth of funds and releases whatever is not used when the Job ends.
 
-## Three request prices
+## Get a quote
 
-An output-only estimate uses `{"kind":"estimate","amount":"0.042390","estimate":{"scope":"output_only","output_tokens":1413}}`. The amount is calculated from the current request's estimated generated output tokens and current rates. Input and other charges are excluded. It is neither a whole-request price nor an authorization ceiling; do not use it alone to set retail credits or `max_cost`. Missing usage assumptions or applicable rates produce an unavailable price, never a fabricated estimate.
+Send the same body you would submit to a quote endpoint:
 
-Use `POST /v1/images/quotes` or `POST /v1/videos/quotes`. Quotes validate the same model, input, and `parameters` as generation requests, but do not accept `max_cost` or `webhook_url`. They create no Job or reservation and do not lock prices.
+| Operation | Endpoint |
+| --- | --- |
+| One image request | `POST /v1/images/quotes` |
+| One video request | `POST /v1/videos/quotes` |
+| Up to 20 image or video requests | `POST /v1/quotes` |
+
+Quotes validate the model, input, and parameters exactly like a submission, but create no Job, reserve no funds, and do not lock prices. They reject `max_cost` and `webhook_url`, which belong to submission only.
+
+```json
+{
+  "object": "quote",
+  "model": "openai/gpt-image-2",
+  "currency": "USD",
+  "supply": { "available": true, "requires_max_cost": false, "issues": [] },
+  "primary": { "kind": "fixed", "amount": "0.04" },
+  "max": { "kind": "fixed", "amount": "0.05" },
+  "official": { "kind": "fixed", "amount": "0.053" },
+  "single_attempt_upper_bound": "0.05",
+  "has_verifiable_upper_bound": true,
+  "expires_at": 1790000300
+}
+```
+
+The values above are illustrative. Amounts are USD decimal strings; use decimal arithmetic, not floating point.
+
+### Reading the prices
 
 | Field | Meaning |
 | --- | --- |
-| `primary` | The whole-request price of the first selected attempt. |
-| `max` | The highest whole-request price among selected attempts, not their sum or the catalog maximum. |
-| `official` | A comparable official reference price, not a promise of an executable official route. |
+| `primary` | Price of the channel Yir would try first. |
+| `max` | Highest price among the channels Yir could use for this request. It is not a sum of attempts. |
+| `official` | The model maker's own reference price, for comparison. It does not mean the official channel will run. |
+| `price_difference_percent` | Optional comparison with `official`. Negative means Yir is cheaper. |
+| `single_attempt_upper_bound` | The most one attempt can cost, verified across all eligible channels. `null` if any channel cannot be bounded. |
+| `supply.available` | `false` with `issues: ["no_matching_supply"]` when no channel can run this request right now. |
+| `supply.requires_max_cost` | `true` when an eligible usage-billed channel has no verifiable whole-request upper bound. Submit must then include `max_cost` of at least `0.01`. |
 
-Amounts are USD decimal strings. A fixed price is `{"amount":"0.02","kind":"fixed","reason":""}`; an unavailable price is `{"amount":null,"kind":"unavailable","reason":"candidate_price_unavailable"}`. Unknown prices are not zero. If any selected attempt has an unknown price, `max` must not approximate it from known candidates alone.
+Each price has one of three kinds:
 
-Quotes provide request-specific prices and supply information without internal channel lists, rankings, procurement discounts, or capacity. Model contracts ship statically with SDK versions; validation code is not downloaded at runtime. Clients calculate savings themselves.
+- `fixed`: the complete price for the request.
+- `estimate`: covers **generated output only**, for usage-billed models (`estimate.output_tokens` or `estimate.output_megapixels` shows the assumption). Input and other charges are excluded, so do not use it as a total or a spending limit.
+- `unavailable`: `amount` is `null`. An unknown price is never zero.
 
-## Authorization and reservation
+## Set a spending limit
 
-Generation `max_cost` authorizes a whole-job limit, such as `"0.25"` for US$0.25. Use a non-negative decimal string with at most six decimal places. Submit checks current supply and prices again; an unexpired Quote does not guarantee execution at its earlier price.
+`max_cost` on a generation request is the most the whole Job may charge, for example `"0.25"` for US$0.25 (up to six decimal places).
 
-A price is different from a verified spending ceiling. Use `single_attempt_upper_bound` as the highest selected single-attempt ceiling only when `has_verifiable_upper_bound` is true. Otherwise the ceiling is `null`, not zero or an empty string. An estimate cannot promise a final spending ceiling.
+- **Omitted:** Yir uses the highest verified single-attempt ceiling among eligible channels at admission.
+- **Required:** when the quote reports `requires_max_cost: true`.
+- **Too low:** a limit below the first channel's price is rejected. Channels whose price exceeds the limit are skipped during fallback; when none are left, the Job fails with `YIR_BUDGET_EXCEEDED`.
 
-New Jobs reserve the highest eligible single-attempt ceiling once. Sequential attempts share that reservation rather than adding their ceilings together. If `max_cost` is omitted, admission fixes authorization at that ceiling. A larger explicit limit does not reserve the entire excess. Do not submit automatically without a verifiable ceiling.
+Submission checks prices again. A quote you obtained earlier does not guarantee the same price or availability, and a price increase never lets a Job charge more than your authorization.
 
-Subsequent routes must fit the original authorization and reservation; price increases cannot add customer spending beyond them. With no executable route, the Job fails; insufficient budget can produce `YIR_BUDGET_EXCEEDED`. Set `routing.fallback: false` to disable subsequent attempts.
+## How a Job is charged
 
-The target policy is up to two distinct unofficial channels followed by one official fallback, executed sequentially. Specifications, credentials, capacity, and budget still apply. Routes skipped before submission do not consume Attempts. An official reference price alone does not guarantee a fallback.
+1. **Admission** reserves one amount: the highest single-attempt ceiling among eligible channels, capped by `max_cost`. Fallback attempts share this reservation; they are never added together.
+2. **Success** charges only the attempt whose result was delivered and releases the rest.
+3. **Failure or cancellation** releases the whole reservation. The customer charge is zero.
+4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
 
-## Settlement and stopping
+For usage-billed channels without a verifiable upper bound, Yir reserves the explicit `max_cost` in full. An output-only estimate does not determine this reservation.
 
-Confirmed upstream failures are not charged. Successful delivery settles only the delivered result and releases the remainder. Final failure or cancellation releases the entire reservation. Customer billing is final when a new Job reaches its terminal state; no separate billing polling loop is needed. Historical Jobs retain their recorded settlements.
+Billing is final when the Job reaches a terminal state. Read the terminal Job's `billing` object:
 
-A short timeout does not establish failure or justify duplicate submission. If an outcome remains unknown for too long, Yir treats the task as failed with no customer charge, freezes the affected channel, and alerts administrators. Late upstream costs are absorbed internally without additional customer charges.
+| Field | Meaning |
+| --- | --- |
+| `billing.total_charged_by_yir` | The final amount charged for this Job. |
+| `billing.currency` | Always `USD`. |
+| `billing.max_cost` | The authorization limit that applied. It is not the charge. |
+| `billing.savings` | Optional comparison with the user price frozen at admission. It can be negative after fallback. |
+| `billing.official_comparison` | Optional comparison with the complete official price frozen at admission for this request. |
 
-Show “Stop requested” after cancellation is requested: future attempts stop, but the current attempt may still succeed, deliver, and be charged. Tasks already finalized as timeout failures cannot charge again for late results. A local SDK Abort stops local waiting or network operations; it does not replace remote cancellation or confirm a refund.
+Costs from failed attempts, and from provider results that arrive after Yir has already closed a Job, are absorbed by Yir.
 
-## Application pricing and recovery
+## Account and key limits
 
-Applications can define their own customer-facing credit prices and refund policies. Keep these separate from Yir's job authorization and settlement, and process each terminal result idempotently.
+- **Balance.** A Job needs enough available balance for its reservation, otherwise it is rejected with `402 YIR_INSUFFICIENT_BALANCE`. Top up in Console; Yir never charges your payment method automatically. You can set a low-balance email alert on the Billing page.
+- **Monthly spend limit per API key.** Optional, set in [Console → API Keys](/docs/console/api-keys). Admission adds the new Job's reservation to the key's settled charges and in-flight reservations for the current UTC month. If the total would exceed the limit, the request fails with `403 YIR_SPEND_LIMIT_EXCEEDED` and no Job is created. Running Jobs are never interrupted.
 
-Persist the request and idempotency key before submission. Recover a lost response with the same request and key. Changed parameters or budgets form a new request; do not change keys merely to bypass an uncertain submission. Terminal Job `billing.max_cost` reports fixed authorization. Never fill missing historical values with current prices.
+## Pricing your own product
+
+If you resell generation to your users, keep your retail prices and refund rules separate from Yir's authorization. You can use a `fixed` `primary` price as a pricing input; an `estimate` covers output only and cannot serve as a complete price. Use `single_attempt_upper_bound` for authorization only when `has_verifiable_upper_bound` is `true`; otherwise choose an explicit `max_cost` that your business can accept. Reconcile `total_charged_by_yir` once per Job.

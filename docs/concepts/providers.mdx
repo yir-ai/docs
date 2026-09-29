@@ -1,20 +1,22 @@
 ---
 title: Providers and managed supply
-description: Understand Yir Cloud managed supply, provider selection, and credential boundaries.
+description: How Yir supplies generation through managed provider accounts, and what that means for your credentials.
 ---
 
-A **provider** is an upstream platform that supplies the compute and APIs for image and video generation. Yir only displays and integrates providers and capabilities that Yir has certified and supports.
+A **provider** (or channel) is an upstream platform that runs a model: the model maker's own API, or a certified third-party supplier. Yir only lists channels and models that it has integrated and verified.
 
 ## Managed supply
 
-Yir Cloud supplies generation through platform-managed provider accounts. Fund your Yir wallet before submitting tasks. Each provider submission requires sufficient balance and authorization; charges follow confirmed billable usage.
+Yir Cloud runs every Job on provider accounts that Yir manages and pays for. You fund one Yir wallet; Yir handles provider accounts, capacity, and billing, and charges you only for delivered results (see [quotes and billing](/docs/concepts/billing)).
 
-Use Routing Profiles to express provider preferences. A listed provider does not guarantee that every model or specification is currently available: execution depends on current supply, supported specifications, and your authorized budget.
+A channel being listed for a model does not guarantee it can run your request right now. Execution depends on the parameters it supports, its current availability, and your budget. A quote tells you whether any channel can currently serve a specific request.
 
-## Credential safety
+## Your credentials
 
-Task requests use your Yir API key. Yir manages upstream credentials on the server; they are never returned to you. Yir Cloud does not accept your own upstream API keys or support BYOK.
+- Requests use your Yir API key only.
+- Yir does not accept your own provider keys (BYOK), custom base URLs, custom providers, or model mappings.
+- Provider credentials stay on Yir's servers and never appear in responses, logs, or Webhooks.
 
-## Supported providers only
+## Choosing channels
 
-Yir does not accept arbitrary base URLs, custom providers, or user-defined model mappings. Only supported providers and capabilities can participate in routing and fallback.
+Use the `routing` object to prefer lower prices, restrict a request to specific channels, or pick a channel variant. See [routing and fallback](/docs/concepts/routing).

@@ -1,113 +1,139 @@
 ---
-title: 客户端与兼容性
-description: 使用静态校验的 Yir SDK、实时报价与持久化任务接入图片和视频生成。
+title: SDK
+description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获取 Yir Job。
 ---
 
-TypeScript `0.2.1` 和 Go `0.3.0` SDK 已公开发布，源码见 [Yir SDK 仓库](https://github.com/yir-ai/sdk)。[快速开始](/zh/docs/getting-started/quickstart)提供无需 SDK 的 REST 调用。
+官方 SDK 开源于 [yir-ai/sdk](https://github.com/yir-ai/sdk)，覆盖报价、生成、Job 等待、取消、文件上传和 Webhook 校验。你也可以直接调用 REST API，[快速上手](/zh/docs/getting-started/quickstart)使用的就是 cURL。
 
-## 安装与合同
+| 语言 | 包 | 当前版本 |
+| --- | --- | --- |
+| TypeScript | `@yir-ai/sdk` | `0.3.1` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.4.1` |
 
-安装 TypeScript SDK：
+两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
-```sh
-pnpm add @yir-ai/sdk@0.2.1
+## 安装
+
+<CodeGroup>
+
+```sh TypeScript
+pnpm add @yir-ai/sdk@0.3.1
 ```
 
-从 `@yir-ai/sdk/server` 导入 `createNodeYirClient`；`@yir-ai/sdk/frontend` 可对显式提供的模型目录做本地校验，Vercel 适配器使用 `@yir-ai/sdk/vercel`。`@yir-ai/sdk/model-contracts` 保留历史快照入口；浏览器便利层不计算价格。API 调用和密钥应留在服务端。
-
-Go 模块为 `github.com/yir-ai/sdk/go`，包名 `yir`：
-
-```sh
-go get github.com/yir-ai/sdk/go@v0.3.0
+```sh Go
+go get github.com/yir-ai/sdk/go@v0.4.1
 ```
 
-`0.2.0` 通过 TypeScript 的 `getModelContracts / getModelContract` 或 Go 的 `GetModelContracts / GetModelContract` 读取模型合同，不再仅因新模型未进入内置目录而拒绝请求。TypeScript 可对显式提供的目录或应用生成的快照做本地校验。支持参数、价格与执行资格以 Gateway 当前事实为准；模型被收录不代表有可执行渠道。
+</CodeGroup>
+
+TypeScript 包为 ESM，需要支持原生 `fetch`、Web Crypto 和 `Blob` 的运行时（Node.js 22 及以上）。Go 模块需要 Go 1.25 及以上。
+
+## 端到端生成一张图片
+
+<CodeGroup>
+
+```ts TypeScript
+import { createNodeYirClient } from "@yir-ai/sdk/server";
+import type { StandardImageGenerationRequest } from "@yir-ai/sdk/shared";
+
+const client = createNodeYirClient(); // reads YIR_API_KEY
+
+const request: StandardImageGenerationRequest = {
+  model: "openai/gpt-image-2",
+  input: { type: "text", prompt: "A quiet observatory above a sea of clouds" },
+  parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 },
+};
+
+const quote = await client.quoteImage(request);
+const ceiling = quote.single_attempt_upper_bound;
+if (!quote.supply.available || !quote.has_verifiable_upper_bound || ceiling === null) {
+  throw new Error("No bounded supply for this request");
+}
+
+// Persist the request, max_cost, and key before submitting so you can recover.
+const saved = { request: { ...request, max_cost: ceiling }, idempotencyKey: crypto.randomUUID() };
+
+const job = await client.submitImage(saved.request, saved.idempotencyKey);
+const done = await client.waitForJob(job.id, { timeoutMs: 5 * 60_000 });
+
+console.log(done.status, done.billing?.total_charged_by_yir);
+if (done.result?.availability === "available") {
+  console.log(done.result.files[0].url); // copy to your own storage
+}
+```
+
+```go Go
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+
+client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{})
+if err != nil {
+	return err
+}
+
+request := yir.GenerationRequest{
+	Model:      "openai/gpt-image-2",
+	Input:      yir.GenerationInput{Type: "text", Prompt: "A quiet observatory above a sea of clouds"},
+	Parameters: map[string]any{"resolution": "1K", "aspect_ratio": "1:1", "n": 1},
+}
+
+quote, err := client.QuoteImage(ctx, request)
+if err != nil {
+	return err
+}
+if !quote.Supply.Available || !quote.HasVerifiableUpperBound || quote.SingleAttemptUpperBound == nil {
+	return errors.New("no bounded supply for this request")
+}
+
+// Persist the request, MaxCost, and key before submitting so you can recover.
+saved := yir.SubmitRequest{GenerationRequest: request, MaxCost: quote.SingleAttemptUpperBound}
+key := "order-123-image-1"
+
+job, err := client.SubmitImage(ctx, saved, key)
+if err != nil {
+	return err // An unknown outcome is not a failure: retry with the same saved request and key.
+}
+
+final, err := client.WaitJob(ctx, job.ID, yir.WaitOptions{})
+var failed *yir.JobError
+if errors.As(err, &failed) {
+	return fmt.Errorf("job %s ended %s", failed.Job.ID, failed.Job.Status)
+}
+if err != nil {
+	return err // Local timeout: the Job keeps running. Resume with job.ID later.
+}
+fmt.Println(final.Status, final.Billing.TotalChargedByYir, final.Result.Files[0].URL)
+```
+
+</CodeGroup>
+
+Go 代码片段是一个返回 `error` 的函数体，需要导入 `context`、`errors`、`fmt`、`os`、`time` 和 `yir "github.com/yir-ai/sdk/go"`。仓库中有[经过编译检查的示例](https://github.com/yir-ai/sdk/blob/main/go/client_example_test.go)。
+
+## API 一览
 
 | 能力 | TypeScript | Go |
 | --- | --- | --- |
-| 图片、视频报价 | `quoteImage / quoteVideo` | `QuoteImage / QuoteVideo` |
-| 提交 | `submitImage / submitVideo` | `SubmitImage / SubmitVideo` |
-| 查询、停止、等待 | `getJob / getJobStatus / cancelJob / waitForJob` | `GetJob / GetJobStatus / CancelJob / WaitJob` |
-| 素材 | Files 创建、查询、完成与分片上传便利层 | 同样提供 Files 与上传便利层 |
-| Webhook | 原始字节验签 | 原始字节验签 |
+| 报价 | `quoteImage`、`quoteVideo`、`quoteBatch` | `QuoteImage`、`QuoteVideo`、`QuoteBatch` |
+| 提交 | `submitImage`、`submitVideo` | `SubmitImage`、`SubmitVideo` |
+| Job | `getJob`、`getJobStatus`、`cancelJob`、`waitForJob` | `GetJob`、`GetJobStatus`、`CancelJob`、`WaitJob` |
+| 文件 | `createFiles`、`uploadFile`、`createAndUploadFile`、`getFile`、`completeFile` | `CreateFiles`、`UploadFile`、`CreateAndUploadFile`、`GetFile`、`CompleteFile` |
+| Webhook | `verifyWebhookSignature`、`constructWebhookEvent` | `VerifyWebhookSignature`、`ConstructWebhookEvent` |
+| 模型 | `getModelContracts`、`getModelContract` | `GetModelContracts`、`GetModelContract` |
 
-Python 保留历史实现，当前未作为新客户端推荐；新项目建议优先使用 Go、TypeScript 或 REST。若在已有维护场景中涉及带有 `on_poll` 或 `last_status` 的 Python 实现，注意其基于标准库 `urllib` 无法实施严格的跨网络墙钟中断。
+## 需要了解的行为
 
-## 报价与提交分开持久化
+- **幂等键。** API 要求每个生成请求都携带幂等键。省略键参数时，SDK 会为这次调用生成随机键，它只能保护这一次 HTTP 调用；再次无键调用可能创建另一笔收费 Job。请传入自己持久化的键，并在进程崩溃或结果未知后与完整请求一起复用。SDK 不会自动重试提交。
+- **等待。** `waitForJob` / `WaitJob` 以退避节奏（5 秒、10 秒、20 秒）轮询状态接口，结束时读取一次完整 Job。超时或中止只停止本地等待，Job 继续运行；用保存的 ID 继续即可。
+- **错误。** API 错误提供 `status`、`code`、`retryable` 和 `action`。失败或取消的 Job 会抛出携带完整 Job 的 `YirJobError`（TypeScript）或 `JobError`（Go）。请按 `code` 分支，不要依赖错误消息。见[错误码](/zh/docs/support/error-codes)。
+- **校验。** 本地参数校验需要传入模型目录，否则由 Gateway 校验。见[模型与参数](/zh/docs/guides/models)。
+- **参数提示。** 对 GPT Image 发送 `quality` 但未限定官方渠道时，SDK 会输出一条警告，因为该参数会被忽略。
 
-REST 生成接口的 `Idempotency-Key` 可选。TypeScript `0.2.1` 和 Go `0.3.0` 在省略键时每次调用生成随机键：单次提交可直接使用 `client.submitImage(request)` 或 `client.SubmitImage(ctx, request)`，视频方法同样支持。再次调用会生成不同键，跨调用或跨进程恢复仍需保存键和完整请求。同一 Job 内的故障转移不依赖客户端传键，但仍受路由、供应和预算约束。
+## 升级
 
-Go `0.3.0` 将生成方法的最后一个参数由 `string` 改为 `...string`。普通带键调用仍可编译；固定签名的自定义接口和方法函数赋值须按[迁移说明](https://github.com/yir-ai/sdk/blob/main/go/docs/zh-CN/README.md#030-迁移)调整。SDK 不会自动重试 Submit。
+**TypeScript 0.3.0 / Go 0.4.0。** 等待改为退避轮询（5 秒、10 秒、20 秒），不再每 2 秒查询一次；如需固定间隔，设置 `pollIntervalMs` / `WaitOptions.PollInterval`。新增 `constructWebhookEvent` / `ConstructWebhookEvent`，调用签名不变。
 
-服务端通过 `createNodeYirClient({ apiKey })` 创建客户端；Go 使用 `yir.NewClient(apiKey, yir.ClientOptions{})`。API Key 留在服务端。
+**TypeScript 0.3.1 / Go 0.4.1。** `constructWebhookEvent` / `ConstructWebhookEvent` 同样拒绝 `getJob` / `GetJob` 不接受的 Job ID（须匹配 `^[1-9][0-9]*$`）；`pollDelayMs` / `PollDelay` 的 `poll` 参数为刚完成那次查询的 0 基序号。调用签名不变。
 
-下面两个函数演示应用边界。先报价并展示 `primary / max / official`，用户确认后把完整请求、授权金额与业务幂等键一起持久化，再调用提交函数。用户积分可以按 primary 定价，采购预算可以采用单次上限，两者不必相同。
+**从 0.1.0 升级。** TypeScript 0.2 与 Go 0.2 移除了内置模型清单和客户端价格表，等待改为轮询状态接口（`onPoll` / `OnPoll` 现在接收状态摘要）。Go 0.3.0 把幂等键参数改为可变参数。升级前请阅读[迁移指南](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md)。
 
-```js
-export async function prepareImage(client, demand) {
-  const quote = await client.quoteImage(demand);
-  if (!quote.has_verifiable_upper_bound || quote.single_attempt_upper_bound === null) {
-    throw new Error("verifiable_budget_required");
-  }
-  return {
-    prices: { primary: quote.primary, max: quote.max, official: quote.official },
-    expiresAt: quote.expires_at,
-    request: { ...demand, max_cost: quote.single_attempt_upper_bound },
-  };
-}
-
-export async function submitSavedImage(client, saved) {
-  if (!saved.idempotencyKey?.trim() || saved.request.max_cost === undefined) {
-    throw new Error("saved_authorization_required");
-  }
-  return client.submitImage(saved.request, saved.idempotencyKey);
-}
-```
-
-`demand` 使用统一形状：`{ model, input, parameters, routing }`。例如图片参数放在 `parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 }` 中。多参考图使用有序的 `input.references`，每项写明 `role: "reference_image"` 以及互斥的 `url` 或 `file_id`。模型支持范围由静态合同校验。
-
-报价不冻结资金，也不锁价。正式提交和每次恢复都会检查原授权。没有可验证上限时，上例停止并交回应用处理，不能把未知价格当作零。更多规则见[计费](/zh/docs/concepts/billing)。
-
-保存提交返回的 Job ID。网络结果不明时，保留原请求、原金额和原幂等键重试；不要重新报价后用同一键提交不同金额。已知 Job ID 后使用查询或等待恢复，避免再创建任务。
-
-## 迁移合同：状态轮询与客户端等待
-
-已发布的 SDK `0.2.0` 包含独立状态端点方法（TypeScript 的 `getJobStatus`、Go 的 `GetJobStatus`）和以下等待行为。从 `0.1.0` 升级时，需要将轮询回调与超时元数据迁移为状态摘要。
-
-普通轮询使用轻量端点 `GET /v1/jobs/{id}/status`，返回 `JobStatusResponse` 结构的状态摘要（仅包含 `id`、`status`、`error` 及可选 `cancellation`）。六种公开状态保持不变。状态摘要不是完整任务详情；只有在到达终态（`succeeded`、`failed`、`cancelled`）后，客户端才调用 `GET /v1/jobs/{id}` 获取交付文件与计费明细。与之不同，Webhook 通知总是直接投递完整终态 Job（成功时包含可用结果与计费明细）。
-
-客户端等待必须是有界限次且有间隔的（设置轮询间隔、限制次数与应用总超时）。本地超时或中止（abort）仅停止本地等待，绝不向远端发送 `POST /v1/jobs/{id}/cancel`，也绝不能发起新的 Submit 提交。更新后的 SDK 等待语义如下：
-
-- **TypeScript**：调用 `client.getJobStatus(id)` 查询状态摘要。`waitForJob` 的 `onPoll` 回调接收 `JobStatusResponse`。当等待超时时，`YirTimeoutError` 携带 `jobId` 与 `timeoutMs`，已收到过状态时还附带 `lastStatus`；而通过 `AbortSignal` 中止时直接抛出 `signal.reason`，不保证附加元数据。两种情况均不触发远端取消或重新提交。
-- **Go**：调用 `client.GetJobStatus(ctx, id)` 读取状态摘要。`WaitJob(ctx, id, options)` 的 `OnPoll` 选项回调接收 `JobStatusResponse`。当 context 被取消或超时中断时（包括在途网络请求返回的包裹错误），`WaitJob` 停止本地等待并返回零值 `Job{}` 与非空 error，调用方可使用 `errors.Is(err, context.Canceled)` 或 `errors.Is(err, context.DeadlineExceeded)` 进行判定，既不发送远端取消，也不触发重复提交。
-
-## 渠道参数处理
-
-模型价格视图的可选 `channel_parameters` 按 Provider、渠道变体、操作和输入模式提供参数规则：`supported` 支持、`ignored` 接受但不发送、`rejected` 拒绝显式传入。省略规则不代表允许忽略。直接读取返回的说明，不按模型名称推断支持情况；规则声明与实时可用性分开。
-
-请求保留用户原始参数，由 Yir 对每个渠道统一处理计价与执行，并报告被忽略的输入。Quote 的 `parameter_notices` 表示预计主渠道行为，`parameter_handling_may_vary` 表示恢复时可能不同。成功 Job 及其签名 Webhook 的 `parameter_notices` 来自最终采用的 Attempt 快照，代表实际处理；历史任务可能没有此字段。
-
-GPT Image 系列默认忽略显式 `quality`。只有使用 `routing: { only: ["openai"] }` 单独指定官方渠道时才使用官方画质档位。混合白名单或自动恢复到官方渠道仍忽略画质。指定官方后仍需满足该路线支持值、可用性及预算，不保证一定执行。
-
-提醒规则来自 Go 模型合同生成的参数 `policy`，SDK 不按模型名称判断。TS、Go、Python 均在 Quote/Submit 前检查已声明策略，Python 使用 `yir_sdk` logger。规则随 SDK 版本更新。TS/Go 原有类型、取值与范围校验仍拒绝非法参数；Python 其他参数约束仍由服务端校验。TS 的 `checkParameterPolicies` 接受操作合同、参数和可选的 `routing.only`，返回结构化提醒，不写日志、不修改请求。静态检查不代表当前可用性、价格或执行资格。
-
-带画质且未单独指定官方的 Quote/Submit 调用，TS SDK 通过 `console.warn`、Go SDK 通过标准日志输出固定提醒：`[Yir] GPT Image quality is ignored unless routing.only is ["openai"].` 省略画质和查询轮询不输出此提醒，日志不包含 Prompt、参数值、URL 或凭据。API 通知原因码为 `quality_requires_official_channel`。原生客户端保留结构化通知，Vercel 适配器也将最终通知放入生成结果的 `warnings`；忽略画质不能视为兑现官方对应档位。
-
-## Vercel AI SDK
-
-使用 `createYirAIProvider({ client })`（从 `@yir-ai/sdk/vercel` 导入），图片选择 `provider.imageModel(modelId)`，视频选择 `provider.videoModel(modelId)`。本批验证的依赖为 `ai@7.0.97` 与 `@ai-sdk/provider@4.0.13`。
-
-调用 `generateImage`、`experimental_generateVideo` 或 `experimental_startVideo` 时，在 `providerOptions.yir` 传入持久化的 `idempotencyKey`、已授权的 `maxCost`、`parameters` 和可选 `routing`。不能只替换 Vercel Gateway 的 Base URL。
-
-| Vercel 字段 | Yir 表达 |
-| --- | --- |
-| `aspectRatio` | `parameters.aspect_ratio` |
-| 视频 `duration / generateAudio` | `parameters.duration / generate_audio` |
-| `frameImages` | 首帧、尾帧角色 |
-| `inputReferences` | 按显式 MIME 类型映射图片、视频、音频引用 |
-| 内联素材字节 | 通过 Files 上传，再以就绪 File ID 提交 |
-| `providerOptions.yir.routing.only` | 无序渠道白名单 |
-
-视频远程引用用 `{ data: "https://…", mediaType: "video/mp4" }`。当前适配器拒绝通用 `size / seed / fps` 等未映射选项；不能静默忽略。单个 Yir 请求只接受一个输出，多输出由应用逐槽位调度。不要用 AI SDK 的批次拆分覆盖选项绕过这一约束。
-
-`experimental_startVideo` 返回的 operation 应持久化；进程恢复后用同一模型与 `experimental_getVideoStatus` 查询。AbortSignal 或本地等待超时只停止本地等待。用户要求远端停止时调用原生 `cancelJob`，当前尝试仍可能成功并交付。参见[任务生命周期](/zh/docs/concepts/task-lifecycle)与[生产集成](/zh/docs/guides/production-integration)。
+Python 没有官方 SDK，可直接调用 REST；[Webhook 指南](/zh/docs/guides/webhooks)提供了 Python 签名校验示例。

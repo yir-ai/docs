@@ -1,0 +1,69 @@
+---
+title: 错误码
+description: Yir 所有稳定错误码、出现位置以及应用应如何处理。
+---
+
+无论来自 HTTP 请求还是出现在失败的 Job 上，错误都使用同一种结构：
+
+```json
+{
+  "error": {
+    "code": "YIR_INSUFFICIENT_BALANCE",
+    "message": "The wallet balance is insufficient.",
+    "retryable": false,
+    "action": "add_funds"
+  },
+  "request_id": "example-request-id"
+}
+```
+
+- `code` 是稳定的，请据此分支；不要解析可能变化的 `message`。
+- `retryable` 表示稍后再试是否可能成功。
+- `action` 建议下一步：`fix_request`、`add_funds`、`retry_later` 或 `contact_support`。
+- `request_id` 标识这次 HTTP 请求，联系支持时请提供。
+
+Job 失败时，`GET /v1/jobs/{id}` 与 `GET /v1/jobs/{id}/status` 中都有相同的 `error` 对象（不含 `request_id`）。
+
+## 请求错误
+
+HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建 Job、不冻结额度，也不会收费。
+
+| 错误码 | HTTP | 含义 | 处理方式 |
+| --- | --- | --- | --- |
+| `YIR_INVALID_REQUEST` | 400 | 请求体、参数或参考素材不符合 API 或模型合同，或生成请求缺少 `Idempotency-Key`。生成请求引用不存在、未完成或已过期的输入文件时，也返回此错误码（报价则返回 `supply.available: false`）。 | 修正请求，查看模型[合同](/zh/docs/guides/models)。 |
+| `YIR_INVALID_ROUTING_OVERRIDE` | 400 | `routing` 对象无效，例如 `only` 为空，或 `variants` 中的渠道不在 `only` 内。 | 修正 `routing`，见[路由](/zh/docs/concepts/routing)。 |
+| `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | 该 Key 不允许所请求的路由。 | 移除或收窄覆盖。 |
+| `YIR_UNAUTHORIZED` | 401 | Key 缺失、错误、已轮换、已吊销、已过期，或来源 IP 不被允许。 | 在 Console 检查 Key 及其设置，不要原样重试。 |
+| `YIR_INSUFFICIENT_BALANCE` | 402 | 可用余额不足以完成 Job 预留。 | 充值后再提交。 |
+| `YIR_SPEND_LIMIT_EXCEEDED` | 403 | 会超出该 Key 的月度支出上限。 | 提高上限，或等到下一个 UTC 自然月。 |
+| `YIR_MODEL_NOT_FOUND` | 404 | 模型路径中的模型 ID 不存在。 | 使用 `GET /v1/models` 返回的规范 ID。 |
+| `YIR_JOB_NOT_FOUND` | 404 | 该账户下没有此 Job，或已超过 90 天。 | 检查 Job ID 和 Key 所属账户。 |
+| `YIR_FILE_NOT_FOUND` | 404 | 仅 Files 接口：该账户下没有此输入文件。 | 检查文件 ID，或重新上传。 |
+| `YIR_IDEMPOTENCY_CONFLICT` | 409 | 该幂等键已用于另一个不同的请求。 | 重发原始请求；若是新请求，使用新键。 |
+| `YIR_FILE_NOT_READY` | 409 | 仅 Files 接口（`/complete`、`/content`）：文件尚未完成上传。`GET /v1/files/{id}` 则返回 `200` 并在 `status` 中体现。 | 完成上传并调用 `/complete`。 |
+| `YIR_JOB_NOT_CANCELLABLE` | 409 | Job 已成功或已失败。 | 无需取消，读取 Job 即可。 |
+| `YIR_FILE_EXPIRED` | 410 | 仅 Files 接口（`/complete`、`/content`）：输入文件已过期。`GET /v1/files/{id}` 则返回 `200` 且 `status` 为 `expired`。 | 重新上传。 |
+| `YIR_NO_EXECUTABLE_ROUTE` | 422 | 当前没有渠道能在约束内执行此请求。 | 稍后重试、放宽 `routing` 或调整参数；报价可查看 `supply`。 |
+| `YIR_RATE_LIMITED` | 429 | 账户进行中的 Job 过多。 | 等待 Job 结束后退避重试。 |
+| `YIR_TEMPORARILY_UNAVAILABLE` | 503 | 临时的服务问题。 | 退避重试；提交请求请复用同一个幂等键。 |
+
+## Job 错误
+
+出现在状态为 `failed` 的 Job 上。失败的 Job 不收费。
+
+| 错误码 | 含义 | 处理方式 |
+| --- | --- | --- |
+| `YIR_EXECUTION_FAILED` | 所有可用尝试均失败。 | 检查提示词和输入后提交新请求；持续出现请联系支持。 |
+| `YIR_NO_EXECUTABLE_ROUTE` | 准入后没有渠道能执行，或所有可用渠道均已用尽。 | 稍后重新提交，或放宽 `routing`。 |
+| `YIR_TEMPORARILY_UNAVAILABLE` | 容量或网络问题导致无法执行。 | 稍后重新提交。 |
+| `YIR_BUDGET_EXCEEDED` | 没有更多尝试能满足 Job 的 `max_cost`。 | 如接受更高价格，在新请求中提高 `max_cost`。 |
+| `YIR_INSUFFICIENT_BALANCE` | 余额在 Job 继续前耗尽。 | 充值后重新提交。 |
+| `YIR_RATE_LIMITED` | Job 被限流。 | 稍后重新提交。 |
+| `YIR_OUTCOME_TIMEOUT` | 渠道始终未确认结果，Yir 已关闭该 Job 且不收费；迟到的结果同样不收费。 | 不可重试（`action: contact_support`），请提供 Job ID 联系支持。如仍需要结果，属于新请求，请用新的幂等键提交。 |
+| `YIR_RESULT_DELIVERY_FAILED` | 结果已生成，但未能复制到 Yir 存储。 | 稍后重新提交。 |
+
+Job 错误上的 `retryable: true` 表示**新的**请求可能成功，绝不表示同一个 Job 会被重试。用原幂等键重新提交只会返回同一个失败的 Job，因此新尝试请使用新键。
+
+## 不在列表中的错误
+
+遇到未知 `code` 时：`retryable` 为 `true` 则按 `YIR_TEMPORARILY_UNAVAILABLE` 处理，否则视为需要人工处理的请求问题。SDK 在发送前的校验错误有各自的错误码，见 [SDK 文档](https://github.com/yir-ai/sdk)。

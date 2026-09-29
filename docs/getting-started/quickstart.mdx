@@ -1,141 +1,103 @@
 ---
 title: Quickstart
-description: Generate your first image with Yir, follow its Job, and save the result.
+description: Generate your first image with the Yir Standard API, follow its Job, and download the result.
 ---
 
-Generate one image with GPT Image 2 using the Standard API. A submission returns a Job ID; you then query that Job and download the finished image.
+This walkthrough generates one image with GPT Image 2 using cURL. It takes three requests: submit, check status, download.
 
 ## Before you begin
 
-Use a backend terminal with Bash, cURL 7.76 or later, and `jq`. Windows users can run these commands in a Bash environment. Use a new local directory for this example.
-
-Get your [Yir API key](/docs/getting-started/authentication), add funds in Console, and set the key in your shell:
+- A Yir account with funds added in [Console](https://yir.ai/console/billing).
+- Your API key from [Console → API Keys](https://yir.ai/console/api-keys). See [authentication](/docs/getting-started/authentication).
+- A terminal with `curl` and `jq`.
 
 ```bash
 export YIR_API_KEY="your-yir-api-key"
 ```
 
-Keep the key on your server. The example uses HTTP directly and does not require an SDK package. Current model supply and pricing determine whether the request can run.
+Keep the key on your server. Never ship it in browser or mobile code.
 
-## 1. Prepare one request
+## 1. Submit a generation
 
-Save the request before submitting:
+Every generation needs an `Idempotency-Key`. Create one and keep it for this request:
 
 ```bash
-cat > yir-request.json <<'JSON'
+export YIR_IDEMPOTENCY_KEY="quickstart-$(date +%s)"
+```
+
+```bash
+curl https://gateway.yir.ai/v1/images/generations \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
+  --data '{
+    "model": "openai/gpt-image-2",
+    "input": { "type": "text", "prompt": "A quiet observatory above a sea of clouds" },
+    "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "n": 1 }
+  }' | tee job.json
+```
+
+Yir responds with HTTP `202` and a Job:
+
+```json
 {
+  "id": "1234567890",
+  "object": "job",
+  "status": "queued",
   "model": "openai/gpt-image-2",
-  "input": {
-    "type": "text",
-    "prompt": "A quiet observatory above a sea of clouds"
-  },
-  "parameters": {
-    "resolution": "1K",
-    "aspect_ratio": "1:1",
-    "n": 1
-  },
-  "routing": { "preference": "cost", "fallback": true }
+  "error": null,
+  "created_at": 1790000000,
+  "urls": { "get": "/v1/jobs/1234567890", "cancel": "/v1/jobs/1234567890/cancel" }
 }
-JSON
-
 ```
 
-`Idempotency-Key` is optional. This example omits it: each generation POST creates a new Job. For safe retries across calls or process restarts, save a key before the first POST and reuse it with the exact request; see [production integration](/docs/guides/production-integration).
-
-This example enables fallback. After a confirmed recoverable failure, Yir can try another eligible channel within the same Job and authorized budget, even without a client idempotency key. Recovery depends on eligible supply; it does not guarantee success. Multiple attempts share one hold and are not added together for customer billing; only successful delivery is charged. Quotes do not lock prices. See [quotes and billing](/docs/concepts/billing).
-
-Before the first submission, read the current request prices and save the authorized request:
+Save the `id`. It is the only handle you need from now on.
 
 ```bash
-curl --fail-with-body --silent --show-error --max-time 30 \
-  --request POST \
-  --url "https://gateway.yir.ai/v1/images/quotes" \
-  --header "Authorization: Bearer $YIR_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data-binary @yir-request.json \
-  --output yir-quote.json
-
-jq '{primary, max, official, single_attempt_upper_bound}' yir-quote.json
+export YIR_JOB_ID="$(jq -r '.id' job.json)"
 ```
 
-Review the prices before continuing. The following command requires a verified single-attempt ceiling and saves it as `max_cost`. If it fails, stop and inspect the quote; do not replace an unavailable price with zero.
+:::info
+The key makes the submission safe to retry. If the request times out, run the same command again in the same shell: the same key and body return the original Job instead of creating a second one. A new key would create a new, separately charged Job. Requests without a key are rejected with `400 YIR_INVALID_REQUEST`. See [idempotent submission](/docs/guides/production-integration#idempotent-submission).
+:::
+
+## 2. Wait for the Job to finish
+
+Query the lightweight status endpoint until the Job reaches a terminal state:
 
 ```bash
-YIR_MAX_COST="$(jq -er '
-  select(.has_verifiable_upper_bound == true)
-  | .single_attempt_upper_bound
-  | strings | select(test("^[0-9]+(\\.[0-9]+)?$"))
-' yir-quote.json)" &&
-jq --arg max_cost "$YIR_MAX_COST" '. + {max_cost: $max_cost}' \
-  yir-request.json > yir-submission.json
-```
-
-Submit rechecks current supply against this authorization. Keep `yir-submission.json` as the record of what you authorized. `max_cost` limits the single charge for this Job, rather than a sum of attempt costs.
-
-## 2. Submit and save the Job ID
-
-```bash
-curl --fail-with-body --silent --show-error --max-time 30 \
-  --request POST \
-  --url "https://gateway.yir.ai/v1/images/generations" \
-  --header "Authorization: Bearer $YIR_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data-binary @yir-submission.json \
-  --output yir-submit.json
-```
-
-A successful submission returns HTTP `202` with a Job. Continue only after cURL succeeds and the response contains an `id`:
-
-```bash
-export YIR_JOB_ID="$(jq -er '.id' yir-submit.json)"
-```
-
-Keep `yir-submit.json` so you can recover this ID later. Treat it as a string.
-
-If submission times out, its outcome is unknown. Stop and check your Console logs for the submitted Job; another POST without a key could create a duplicate. If you saved and sent a key before the first POST, recover with that same key and exact request as described in [production integration](/docs/guides/production-integration). For an HTTP error, inspect the public `error.code` and `error.action` before proceeding.
-
-## 3. Wait for the same Job
-
-This loop makes at most 60 queries, pauses five seconds between active responses, and stops on a terminal state or query error:
-
-```bash
-for ((attempt = 1; attempt <= 60; attempt++)); do
-  curl --fail-with-body --silent --show-error --max-time 30 \
-    --url "https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID" \
-    --header "Authorization: Bearer $YIR_API_KEY" \
-    --output yir-job.json || break
-
-  status="$(jq -er '.status' yir-job.json)" || break
-  printf 'Job status: %s\n' "$status"
+while true; do
+  status="$(curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID/status \
+    --header "Authorization: Bearer $YIR_API_KEY" | jq -r '.status')"
+  echo "status: $status"
   case "$status" in
     succeeded|failed|cancelled) break ;;
-    queued|running|delivering) sleep 5 ;;
-    *) break ;;
+    *) sleep 5 ;;
   esac
 done
 ```
 
-`queued`, `running`, and `delivering` are active states. Download the result only after `succeeded`. If the loop ends while active or a query times out, resume querying this Job ID; stopping local polling does not cancel the Job. `failed` and `cancelled` are terminal states. See [task lifecycle](/docs/concepts/task-lifecycle) for recovery and cancellation.
+A Job moves through `queued` → `running` → `delivering` → `succeeded`. Image Jobs usually finish in tens of seconds; videos can take several minutes. See [Job lifecycle](/docs/concepts/task-lifecycle).
 
-## 4. Save the image
+## 3. Download the result
 
-Download only an available result from a successful Job:
+Fetch the complete Job and download the file:
 
 ```bash
-if YIR_RESULT_URL="$(jq -er '
-  select(.status == "succeeded" and .result.availability == "available")
-  | .result.files[0].url
-' yir-job.json)"; then
-  curl --fail --silent --show-error --location --max-time 120 \
-    --url "$YIR_RESULT_URL" --output generated-image
-  jq -r '.result.files[0].media_type' yir-job.json
-else
-  printf 'No downloadable result. Check the Job status, result availability, and error.\n'
-fi
+curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID \
+  --header "Authorization: Bearer $YIR_API_KEY" > job.json
+
+jq '{status, error, charged: .billing.total_charged_by_yir, file: .result.files[0]}' job.json
+
+curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 ```
 
-The file is saved as `generated-image`; add an extension matching `media_type`, such as `.png` for `image/png`. The download uses the returned result URL and does not send your Yir API key to the file host.
+The result URL is a short-lived signed link: do not send your API key to it. Copy the file to your own storage. Results are kept for 7 days after the Job is created (see [results and retention](/docs/concepts/task-lifecycle#results-and-retention)).
 
-Save the image before the result expires, normally 7 days after Job creation. Existing results may expire earlier. Individual URLs can expire sooner: query the same Job for a fresh URL while the result is still retained. Once `result.availability` becomes `expired`, the Job remains successful but its files are no longer available. Job queries stop returning the log after 90 days.
+If the Job `failed`, read `error.code` and `error.action` and look it up in [error codes](/docs/support/error-codes). Failed Jobs are not charged.
 
-Continue with [image generation and parameters](/docs/guides/image-generation), [production integration](/docs/guides/production-integration), or the [API reference](/docs/reference).
+## Next steps
+
+- **Check the price first.** Call `POST /v1/images/quotes` with the same body to see the price and spending ceiling before you submit. See [quotes and billing](/docs/concepts/billing).
+- **Use an SDK.** The [TypeScript and Go SDKs](/docs/guides/clients) handle polling back-off, errors, and file uploads.
+- **Go to production.** Follow the [production checklist](/docs/guides/production-integration).

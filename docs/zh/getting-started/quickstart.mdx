@@ -1,141 +1,103 @@
 ---
-title: 快速开始
-description: 使用 Yir 生成第一张图片，查询任务并保存结果。
+title: 快速上手
+description: 使用 Yir Standard API 生成第一张图片，跟踪 Job 并下载结果。
 ---
 
-通过 Standard API 使用 GPT Image 2 生成一张图片。提交后获得 Job ID，再查询同一个任务并下载完成的图片。
+本文用 cURL 调用 GPT Image 2 生成一张图片，只需三步：提交、查询状态、下载。
 
-## 开始之前
+## 准备工作
 
-准备有 Bash、cURL 7.76 或更新版本和 `jq` 的后端终端。Windows 用户可在 Bash 环境中运行这些命令。请在一个新的本地目录中运行示例。
-
-获取 [Yir API Key](/zh/docs/getting-started/authentication)，在 Console 充值，然后在终端设置密钥：
+- 已在 [Console](https://yir.ai/zh/console/billing) 充值的 Yir 账户。
+- 从 [Console → API Keys](https://yir.ai/zh/console/api-keys) 获取的 API Key，见[身份认证](/zh/docs/getting-started/authentication)。
+- 安装了 `curl` 和 `jq` 的终端。
 
 ```bash
 export YIR_API_KEY="your-yir-api-key"
 ```
 
-密钥保存在服务端。示例直接使用 HTTP，无需安装 SDK。当前模型供应与价格决定请求能否执行。
+API Key 只能保存在服务端，不要放进浏览器或移动端代码。
 
-## 1. 准备一次请求
+## 1. 提交生成请求
 
-提交前保存请求：
+每个生成请求都需要 `Idempotency-Key`。先生成一个键，并在本次请求中一直使用它：
 
 ```bash
-cat > yir-request.json <<'JSON'
+export YIR_IDEMPOTENCY_KEY="quickstart-$(date +%s)"
+```
+
+```bash
+curl https://gateway.yir.ai/v1/images/generations \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: $YIR_IDEMPOTENCY_KEY" \
+  --data '{
+    "model": "openai/gpt-image-2",
+    "input": { "type": "text", "prompt": "云海之上一座安静的天文台" },
+    "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "n": 1 }
+  }' | tee job.json
+```
+
+Yir 返回 HTTP `202` 和一个 Job：
+
+```json
 {
+  "id": "1234567890",
+  "object": "job",
+  "status": "queued",
   "model": "openai/gpt-image-2",
-  "input": {
-    "type": "text",
-    "prompt": "A quiet observatory above a sea of clouds"
-  },
-  "parameters": {
-    "resolution": "1K",
-    "aspect_ratio": "1:1",
-    "n": 1
-  },
-  "routing": { "preference": "cost", "fallback": true }
+  "error": null,
+  "created_at": 1790000000,
+  "urls": { "get": "/v1/jobs/1234567890", "cancel": "/v1/jobs/1234567890/cancel" }
 }
-JSON
-
 ```
 
-`Idempotency-Key` 可选。本例省略该请求头，每次生成 POST 都会创建新 Job。需要跨调用或跨进程安全重试时，在首次 POST 前保存键，并始终复用该键和完整请求，见[生产集成](/zh/docs/guides/production-integration)。
-
-本例开启自动恢复。遇到可恢复的明确失败后，Yir 可在同一 Job 和授权预算内尝试其他合格渠道，即使客户端没有传幂等键。恢复取决于合格供应，不保证成功。多次尝试共用一笔冻结额度，不累加向用户收费；只对成功交付收费。Quote 不锁价，详见[报价与计费](/zh/docs/concepts/billing)。
-
-首次提交前查询本次请求的当前价格，并保存授权请求：
+保存 `id`，之后只需要它。
 
 ```bash
-curl --fail-with-body --silent --show-error --max-time 30 \
-  --request POST \
-  --url "https://gateway.yir.ai/v1/images/quotes" \
-  --header "Authorization: Bearer $YIR_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data-binary @yir-request.json \
-  --output yir-quote.json
-
-jq '{primary, max, official, single_attempt_upper_bound}' yir-quote.json
+export YIR_JOB_ID="$(jq -r '.id' job.json)"
 ```
 
-查看价格后再继续。以下命令要求存在可验证的单次费用上界，并将其保存为 `max_cost`。命令失败时停止并检查报价，不能把不可报价替换成零。
+:::info
+幂等键让提交可以安全重试。请求超时后，在同一个终端中再次运行同一条命令即可：相同的键和请求体会返回原来的 Job，而不是新建一个。换新键会创建另一个单独收费的 Job。不带键的请求会以 `400 YIR_INVALID_REQUEST` 拒绝。见[幂等提交](/zh/docs/guides/production-integration#幂等提交)。
+:::
+
+## 2. 等待 Job 完成
+
+轮询轻量状态接口，直到 Job 进入终态：
 
 ```bash
-YIR_MAX_COST="$(jq -er '
-  select(.has_verifiable_upper_bound == true)
-  | .single_attempt_upper_bound
-  | strings | select(test("^[0-9]+(\\.[0-9]+)?$"))
-' yir-quote.json)" &&
-jq --arg max_cost "$YIR_MAX_COST" '. + {max_cost: $max_cost}' \
-  yir-request.json > yir-submission.json
-```
-
-Submit 会按此授权重新检查当前供应。保留 `yir-submission.json` 作为授权记录。`max_cost` 限制本 Job 的单笔用户费用，不是多次尝试成本的累加值。
-
-## 2. 提交并保存 Job ID
-
-```bash
-curl --fail-with-body --silent --show-error --max-time 30 \
-  --request POST \
-  --url "https://gateway.yir.ai/v1/images/generations" \
-  --header "Authorization: Bearer $YIR_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data-binary @yir-submission.json \
-  --output yir-submit.json
-```
-
-提交成功返回 HTTP `202` 和 Job。仅在 cURL 成功且响应包含 `id` 后继续：
-
-```bash
-export YIR_JOB_ID="$(jq -er '.id' yir-submit.json)"
-```
-
-保留 `yir-submit.json`，便于稍后恢复 ID。将 Job ID 作为字符串处理。
-
-提交超时意味着结果未知。停止提交，先在 Console 日志中查找已提交的 Job；再次发出无键 POST 可能创建重复任务。如果首次 POST 前已保存并发送了键，可按[生产集成](/zh/docs/guides/production-integration)复用原键和完整请求恢复。收到 HTTP 错误时，先检查公开的 `error.code` 和 `error.action`。
-
-## 3. 等待同一个任务
-
-以下循环最多查询 60 次，活动状态之间等待五秒；遇到终态或查询错误时停止：
-
-```bash
-for ((attempt = 1; attempt <= 60; attempt++)); do
-  curl --fail-with-body --silent --show-error --max-time 30 \
-    --url "https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID" \
-    --header "Authorization: Bearer $YIR_API_KEY" \
-    --output yir-job.json || break
-
-  status="$(jq -er '.status' yir-job.json)" || break
-  printf 'Job status: %s\n' "$status"
+while true; do
+  status="$(curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID/status \
+    --header "Authorization: Bearer $YIR_API_KEY" | jq -r '.status')"
+  echo "status: $status"
   case "$status" in
     succeeded|failed|cancelled) break ;;
-    queued|running|delivering) sleep 5 ;;
-    *) break ;;
+    *) sleep 5 ;;
   esac
 done
 ```
 
-`queued`、`running` 和 `delivering` 都是活动状态。只有 `succeeded` 后才下载结果。循环结束时任务仍在运行，或查询超时，可以继续查询这个 Job ID；停止本地轮询不会取消任务。`failed` 和 `cancelled` 是终态。恢复与取消规则见[任务生命周期](/zh/docs/concepts/task-lifecycle)。
+Job 依次经历 `queued` → `running` → `delivering` → `succeeded`。图片通常几十秒完成，视频可能需要数分钟。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。
 
-## 4. 保存图片
+## 3. 下载结果
 
-仅下载成功任务中仍然可用的结果：
+读取完整 Job 并下载文件：
 
 ```bash
-if YIR_RESULT_URL="$(jq -er '
-  select(.status == "succeeded" and .result.availability == "available")
-  | .result.files[0].url
-' yir-job.json)"; then
-  curl --fail --silent --show-error --location --max-time 120 \
-    --url "$YIR_RESULT_URL" --output generated-image
-  jq -r '.result.files[0].media_type' yir-job.json
-else
-  printf 'No downloadable result. Check the Job status, result availability, and error.\n'
-fi
+curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID \
+  --header "Authorization: Bearer $YIR_API_KEY" > job.json
+
+jq '{status, error, charged: .billing.total_charged_by_yir, file: .result.files[0]}' job.json
+
+curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 ```
 
-文件保存为 `generated-image`。根据 `media_type` 添加扩展名，例如 `image/png` 对应 `.png`。下载仅使用返回的结果 URL，不向文件域名发送 Yir API Key。
+结果地址是短期签名链接，不要向它发送 API Key。请把文件复制到自己的存储。结果自 Job 创建起保留 7 天，见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
 
-请在结果到期前保存图片，默认保留至任务创建后第 7 天；已有结果可能更早到期。单个 URL 可能更早过期：结果仍在保留期内时，可以查询同一个 Job 获取新链接。`result.availability` 变为 `expired` 后，任务仍然成功，但文件已不可用。任务创建满 90 天后，查询不再返回该日志。
+如果 Job 为 `failed`，读取 `error.code` 与 `error.action`，并在[错误码](/zh/docs/support/error-codes)中查阅。失败的 Job 不收费。
 
-接下来阅读[图片生成与参数](/zh/docs/guides/image-generation)、[生产集成](/zh/docs/guides/production-integration)，或查询 [API 参考](/zh/docs/reference)。
+## 下一步
+
+- **先看价格。** 用相同请求体调用 `POST /v1/images/quotes`，提交前查看价格与费用上限。见[报价与计费](/zh/docs/concepts/billing)。
+- **使用 SDK。** [TypeScript 与 Go SDK](/zh/docs/guides/clients) 已处理轮询退避、错误和文件上传。
+- **准备上线。** 按[上线检查清单](/zh/docs/guides/production-integration)逐项确认。

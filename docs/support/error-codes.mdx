@@ -1,0 +1,69 @@
+---
+title: Error codes
+description: Every stable Yir error code, where it appears, and how your application should respond.
+---
+
+Errors use one stable shape, whether they come back from an HTTP request or appear on a failed Job:
+
+```json
+{
+  "error": {
+    "code": "YIR_INSUFFICIENT_BALANCE",
+    "message": "The wallet balance is insufficient.",
+    "retryable": false,
+    "action": "add_funds"
+  },
+  "request_id": "example-request-id"
+}
+```
+
+- `code` is stable. Branch on it. Do not parse `message`, which may change.
+- `retryable` says whether trying again later can succeed.
+- `action` suggests what to do next: `fix_request`, `add_funds`, `retry_later`, or `contact_support`.
+- `request_id` identifies the HTTP request. Include it when contacting support.
+
+On a failed Job, the same `error` object (without `request_id`) is in both `GET /v1/jobs/{id}` and `GET /v1/jobs/{id}/status`.
+
+## Request errors
+
+Returned immediately by an HTTP call. When a generation request is rejected this way, no Job is created, no funds are reserved, and nothing is charged.
+
+| Code | HTTP | Meaning | What to do |
+| --- | --- | --- | --- |
+| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`. A generation request that references a missing, unfinished, or expired input file also returns this code (a quote returns `supply.available: false` instead). | Fix the request. Check the model's [contract](/docs/guides/models). |
+| `YIR_INVALID_ROUTING_OVERRIDE` | 400 | The `routing` object is invalid, for example an empty `only` or a variant outside `only`. | Fix `routing`. See [routing](/docs/concepts/routing). |
+| `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | The requested routing is not permitted for this key. | Remove or narrow the override. |
+| `YIR_UNAUTHORIZED` | 401 | Missing, wrong, rotated, revoked, or expired key, or a disallowed source IP. | Check the key and its settings in Console. Do not retry unchanged. |
+| `YIR_INSUFFICIENT_BALANCE` | 402 | Not enough available balance for the Job's reservation. | Add funds, then submit again. |
+| `YIR_SPEND_LIMIT_EXCEEDED` | 403 | The key's monthly spend limit would be exceeded. | Raise the limit or wait for the next UTC month. |
+| `YIR_MODEL_NOT_FOUND` | 404 | Unknown model ID in a model path. | Use a canonical ID from `GET /v1/models`. |
+| `YIR_JOB_NOT_FOUND` | 404 | No such Job for this account, or it is older than 90 days. | Check the Job ID and the key's account. |
+| `YIR_FILE_NOT_FOUND` | 404 | Files API only: no such input file for this account. | Check the file ID, or upload again. |
+| `YIR_IDEMPOTENCY_CONFLICT` | 409 | This idempotency key was already used with a different request. | Resend the original request, or use a new key for a new request. |
+| `YIR_FILE_NOT_READY` | 409 | Files API only (`/complete`, `/content`): the file has not been completed. `GET /v1/files/{id}` returns `200` with `status` instead. | Finish uploading and call `/complete`. |
+| `YIR_JOB_NOT_CANCELLABLE` | 409 | The Job already succeeded or failed. | Nothing to cancel. Read the Job. |
+| `YIR_FILE_EXPIRED` | 410 | Files API only (`/complete`, `/content`): the input file has expired. `GET /v1/files/{id}` returns `200` with `status: "expired"` instead. | Upload it again. |
+| `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
+| `YIR_RATE_LIMITED` | 429 | Too many Jobs are in progress for your account. | Wait for Jobs to finish, then retry with back-off. |
+| `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |
+
+## Job errors
+
+Appear on a Job whose status is `failed`. Failed Jobs are never charged.
+
+| Code | Meaning | What to do |
+| --- | --- | --- |
+| `YIR_EXECUTION_FAILED` | Every eligible attempt failed. | Review the prompt and inputs, then submit a new request. Contact support if it keeps happening. |
+| `YIR_NO_EXECUTABLE_ROUTE` | No channel could run the Job after admission, or all eligible channels were used up. | Submit again later, or widen `routing`. |
+| `YIR_TEMPORARILY_UNAVAILABLE` | Capacity or network problems prevented execution. | Submit again later. |
+| `YIR_BUDGET_EXCEEDED` | No further attempt fits the Job's `max_cost`. | Raise `max_cost` on a new request if you accept the higher price. |
+| `YIR_INSUFFICIENT_BALANCE` | Balance ran out before the Job could continue. | Add funds and submit again. |
+| `YIR_RATE_LIMITED` | The Job was rate limited. | Submit again later. |
+| `YIR_OUTCOME_TIMEOUT` | A provider never confirmed the outcome, so Yir closed the Job with no charge. A late result is not charged either. | Not retryable (`action: contact_support`). Contact support with the Job ID. If you still need the output, that is a new request: submit it with a new idempotency key. |
+| `YIR_RESULT_DELIVERY_FAILED` | A result was generated but could not be copied to Yir storage. | Submit again later. |
+
+`retryable: true` on a Job error means a **new** request may succeed. It never means the same Job will be retried; resubmitting under the original idempotency key returns the same failed Job, so use a new key for the new attempt.
+
+## Errors outside this list
+
+Treat an unknown `code` like `YIR_TEMPORARILY_UNAVAILABLE` if `retryable` is `true`, and like a request that needs attention otherwise. SDK validation errors (raised before any request is sent) have their own codes; see the [SDK documentation](https://github.com/yir-ai/sdk).

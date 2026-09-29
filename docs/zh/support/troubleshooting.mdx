@@ -1,19 +1,48 @@
 ---
-title: 排错与支持边界
-description: 在不泄露密钥、Prompt 或素材的前提下排查认证、提交和查询问题。
+title: 故障排查
+description: 排查认证、提交、轮询、结果和 Webhook 的常见问题。
 ---
 
+具体错误码请查阅[错误码](/zh/docs/support/error-codes)。下列问题请从第一项检查开始。
+
 <Accordion>
-  <AccordionItem title="Gateway 返回 401">
-    确认请求使用 `Authorization: Bearer ...`，Secret 没有被轮转，并且排查时没有打印完整 Key。
+  <AccordionItem title="所有请求都返回 401">
+    确认 Header 为 `Authorization: Bearer <key>`，而不是 `X-API-Key`。在 Console 检查该 Key 是否已轮换、吊销或过期，以及 IP 白名单是否包含服务器的出口地址。调试时不要打印完整 Key。
   </AccordionItem>
-  <AccordionItem title="提交响应超时">
-    使用相同幂等键和完全相同的数据重试。新幂等键可能创建第二个逻辑任务和第二条计费事实。
+  <AccordionItem title="提交返回 402 或 403">
+    `402 YIR_INSUFFICIENT_BALANCE` 表示账户余额不足以完成 Job 预留。`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度上限，可在 Console → API Keys 提高。
   </AccordionItem>
-  <AccordionItem title="任务看起来很慢">
-    继续查询同一个任务 ID。慢或未知不是已确认失败，不能据此提交替代任务。
+  <AccordionItem title="提交返回 422 YIR_NO_EXECUTABLE_ROUTE">
+    当前没有渠道能执行这个具体请求。先报价并检查 `supply`，然后移除过严的 `routing.only` 或 `variants`、提高 `max_cost`，或尝试其他参数。
   </AccordionItem>
-  <AccordionItem title="可以给支持人员什么信息？">
-    提供 Yir 任务 ID、路由、大致 UTC 时间、HTTP 状态、公错误码和安全的 Key 前缀。不要提供完整 Key、Prompt、素材或 Provider 原始响应。
+  <AccordionItem title="提交请求超时">
+    用相同的幂等键重发完全相同的请求。如果之前已被接受，会返回原来的 Job。换新键可能产生第二个 Job 和第二笔费用。
+  </AccordionItem>
+  <AccordionItem title="重试时返回 409 YIR_IDEMPOTENCY_CONFLICT">
+    两次请求的内容不同。重试必须是完全相同的请求：参数、参考素材、`routing`、`max_cost` 和 `webhook_url` 都相同。请读取已保存的请求，而不是重新构建。
+  </AccordionItem>
+  <AccordionItem title="Job 运行了很久">
+    继续查询同一个 Job ID。慢或未确认的尝试不代表失败，替代请求会单独执行并单独收费。视频可能需要数分钟。若渠道始终未确认，Yir 会以 `YIR_OUTCOME_TIMEOUT` 将 Job 关闭为失败，且不收费。
+  </AccordionItem>
+  <AccordionItem title="已经取消，但 Job 仍然成功并收费">
+    向渠道提交之后，取消只会停止后续的渠道切换，正在进行的尝试仍可能成功并因此收费。见[取消](/zh/docs/concepts/task-lifecycle#取消)。
+  </AccordionItem>
+  <AccordionItem title="结果地址返回 403 或已过期">
+    结果地址是短期链接。重新查询 `GET /v1/jobs/{id}` 获取新地址。如果 `result.availability` 为 `expired`，说明 7 天保留期已结束，文件已不可用。
+  </AccordionItem>
+  <AccordionItem title="某个参数似乎没有生效">
+    查看报价和已完成 Job 中的 `parameter_notices`。部分渠道会忽略某些参数，例如 GPT Image 只有在限定官方渠道时才使用 `quality`。
+  </AccordionItem>
+  <AccordionItem title="Webhook 签名始终校验失败">
+    必须在任何 JSON 解析或重新序列化之前，用原始请求字节校验。使用 Console → Webhooks 中的签名密钥而不是 API Key，签名内容为 `timestamp + "." + id + "." + body`。确认服务器时钟误差在 300 秒以内。
+  </AccordionItem>
+  <AccordionItem title="同一个 Job 被处理了两次">
+    轮询与 Webhook，或 Webhook 与其重投，可能报告同一个终态 Job。请按 `Yir-Webhook-Id` 对事件去重，并按 `job.id` 只执行一次业务动作。
   </AccordionItem>
 </Accordion>
+
+## 联系支持
+
+请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 和 `request_id`，可以附上 Key 的前几位字符。不要发送完整 API Key、Webhook 密钥、提示词或源素材。
+
+发现文档错误？请点击任意页面顶部的**报告文档错误**。

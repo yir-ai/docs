@@ -1,47 +1,79 @@
 ---
-title: Task lifecycle
-description: Understand asynchronous task IDs, polling, terminal states, progress, and unknown outcomes.
+title: Job lifecycle
+description: Job states, polling, cancellation, unknown outcomes, and how long results are kept.
 ---
 
-Yir's Standard REST surface exposes six public states: `queued`, `running`, `delivering`, `succeeded`, `failed`, and `cancelled`. Internal orchestration states and Provider response shapes are not public Job states.
+Every generation request creates one **Job**. The Job keeps the same ID from submission to its final result, even when Yir tries more than one provider channel behind the scenes.
+
+## States
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| `queued` | Accepted and waiting to start. | No |
+| `running` | A provider attempt is in progress. Fallback attempts also happen in this state. | No |
+| `delivering` | The provider returned a result; Yir is copying it to its own storage. | No |
+| `succeeded` | The result is delivered and available under `result`. | Yes |
+| `failed` | No attempt produced a deliverable result. See `error.code`. | Yes |
+| `cancelled` | Cancelled before any provider submission started. | Yes |
 
 ```mermaid
 stateDiagram-v2
   [*] --> queued
   queued --> running
-  running --> delivering
-  delivering --> succeeded
   queued --> cancelled
+  queued --> failed
+  running --> delivering
   running --> failed
+  delivering --> succeeded
   delivering --> failed
 ```
 
+These six states are the whole public contract. Provider-specific states and internal orchestration steps are never exposed.
+
+## Polling
+
+Use two endpoints:
+
+- `GET /v1/jobs/{id}/status` returns a small summary (`id`, `status`, `error`, optional `cancellation`). Use it for repeated polling.
+- `GET /v1/jobs/{id}` returns the complete Job, including `result`, `billing`, `usage`, and `parameter_notices`. Read it once the status is terminal.
+
+Recommended pacing, also used by the SDKs: every 5 seconds for the first 30 seconds, every 10 seconds until about 90 seconds, then every 20 seconds. Always set an overall deadline in your application.
+
 :::warning
-A slow request, transport timeout, or temporarily unknown provider outcome is not proof of failure. Continue querying the same task until Yir returns a terminal fact or your application deadline expires.
+A slow Job, a request timeout, or a provider that has not answered yet is **not** a failure. Keep querying the same Job ID. Do not submit a replacement request.
 :::
 
-<Panel title="Result retention">
-  A v1 result is retained until 7 days after Job creation; existing results may expire earlier. While retained, `result.availability` is `available` and `result.files` contains download links. At expiry, the Job remains `succeeded` but returns `result.availability: "expired"` without files. Expiry does not itself confirm physical deletion. Summary logs are available until day 90, after which Job queries return not found. Independent accounting records remain. Persist results you need; Yir is not a permanent asset library.
-</Panel>
+Stopping your local polling (a timeout, an `AbortSignal`, a cancelled context, a closed browser tab) only stops waiting. It does not cancel the Job, and it does not mean the Job failed. Save the Job ID and resume later.
 
-## Status polling and terminal details
+To avoid polling entirely, set `webhook_url` and receive the terminal Job by [Webhook](/docs/guides/webhooks).
 
-Regular polling queries `GET /v1/jobs/{id}/status`. It returns a minimal projection containing only `id`, `status`, `error`, and optional `cancellation`, without loading attempts, billing details, or result assets. The six public states remain unchanged.
+## Cancellation
 
-A status summary is not the full job detail. When the status reaches a terminal state (`succeeded`, `failed`, or `cancelled`), the client fetches the complete snapshot via `GET /v1/jobs/{id}` to obtain delivered files (`result`), billing details (`billing`), and usage metrics (`usage`).
+Request cancellation with `POST /v1/jobs/{id}/cancel`. The effect depends on how far the Job has progressed:
 
-In contrast to polling summaries, webhook notifications always deliver the complete terminal Job snapshot directly, containing available results on success along with billing details.
+- **Before any provider submission**, the Job becomes `cancelled` immediately and its reserved funds are released.
+- **After a provider submission**, the response carries `cancellation.status: "stop_requested"`. Yir starts no further fallback attempts, but the current attempt keeps running. If it succeeds, the result is delivered and charged; if it fails, the Job ends as `failed` with no charge.
 
-## Stop requests and local timeouts
+Show "Stop requested" in your UI in the second case and keep polling. Cancelling a Job that is already `succeeded` or `failed` returns `409 YIR_JOB_NOT_CANCELLABLE`. Repeating a cancel request is safe. If a cancel request fails or times out, the cancellation may already have taken effect: query the Job to see its current `status` and `cancellation`.
 
-Request a remote stop with `POST /v1/jobs/{id}/cancel`. Before execution authorization, the Job can become `cancelled`. After authorization, `cancellation.status: "stop_requested"` means later attempts are stopped; it does not mean the running attempt has failed. Display “Stop requested” and continue querying. If the current attempt succeeds, Yir still delivers the result and settles its charge.
+## Unknown outcomes
 
-Implement bounded polling with explicit intervals and an overall application timeout. An AbortSignal, context deadline, disconnected browser, or local polling timeout only halts local waiting. It does not send a remote `POST /v1/jobs/{id}/cancel`, nor does it authorize creating a new submit request. Keep the Job ID and resume querying later. Do not refund credits merely because your local wait ended.
+Occasionally a provider does not confirm whether an attempt succeeded. Yir keeps the Job active while it reconciles. If the outcome stays unknown for too long, Yir closes the Job as `failed` with `YIR_OUTCOME_TIMEOUT` and charges nothing. A result that arrives later does not reopen or charge the Job.
 
-## Terminal customer billing
+## Results and retention
 
-For the new contract under integration, the terminal Job and its customer billing settle together. Successful delivery charges the winning attempt once and releases the unused hold. Final failure or cancellation releases the hold with zero customer charge; there is no second customer-billing wait.
+| What | Available until |
+| --- | --- |
+| Result files | 7 days after the Job was created (can be earlier for some results) |
+| Individual result URL | `result.files[].expires_at`, often sooner than the file itself |
+| Job record and summary log | 90 days after creation; afterwards queries return `404` |
 
-A temporarily unknown upstream outcome remains active. If Yir ultimately closes a long-unknown attempt as a failed Job, customer billing stays final at zero; late upstream costs are absorbed by Yir and do not reopen the customer bill. This differs from a user's stop request while an attempt is still active.
+While a result is kept, `result.availability` is `available` and `result.files` lists signed download URLs. If a URL has expired, query the Job again for a fresh one. When the retention window ends, the Job stays `succeeded` but `result.availability` becomes `expired` and no files are returned.
 
-Applications must process the same terminal fact idempotently whether it arrives through polling or a webhook. Polling queries (`GET /v1/jobs/{id}`) and webhook deliveries may race concurrently; business systems must ensure that terminal settlement and credit updates are applied exactly once per Job ID. If a webhook delivery is delayed or lost, querying `GET /v1/jobs/{id}` within the retention window safely recovers the terminal state. Save delivered files before their retention expires. See [billing](/docs/concepts/billing).
+Yir is not an asset library. Copy every result you need to your own storage as soon as the Job succeeds.
+
+A successful Job can carry `result.warnings: ["additional_results_unavailable"]` when an optional extra output (for example a video's last frame) could not be delivered. The Job is still successful and is charged normally.
+
+## Applying terminal results once
+
+The same terminal Job can reach you twice: once from polling and once from a Webhook, or from a Webhook redelivery. Make your business actions (saving files, updating credits, marking orders complete) idempotent by Job ID so each Job is applied exactly once.
