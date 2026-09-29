@@ -81,7 +81,7 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
   --data '{}'
 ```
 
-Only `ready` files can be used in requests. Referencing a file that is not ready, has expired, or does not exist fails with `YIR_FILE_NOT_READY`, `YIR_FILE_EXPIRED`, or `YIR_FILE_NOT_FOUND`.
+Only `ready` files can be used in requests. A quote or generation request that references a file that is not ready, has expired, or does not exist fails with `400 YIR_INVALID_REQUEST`. The Files endpoints themselves report these states as `YIR_FILE_NOT_READY` (409), `YIR_FILE_EXPIRED` (410), or `YIR_FILE_NOT_FOUND` (404).
 
 ## Reading a file back
 

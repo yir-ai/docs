@@ -81,7 +81,7 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
   --data '{}'
 ```
 
-只有 `ready` 状态的文件能用于请求。引用未完成、已过期或不存在的文件，分别返回 `YIR_FILE_NOT_READY`、`YIR_FILE_EXPIRED` 或 `YIR_FILE_NOT_FOUND`。
+只有 `ready` 状态的文件能用于请求。报价或生成请求引用未完成、已过期或不存在的文件时，返回 `400 YIR_INVALID_REQUEST`。Files 接口本身则分别以 `YIR_FILE_NOT_READY`（409）、`YIR_FILE_EXPIRED`（410）或 `YIR_FILE_NOT_FOUND`（404）报告这些状态。
 
 ## 读取文件
 

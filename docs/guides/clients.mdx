@@ -122,7 +122,7 @@ The Go snippet is the body of a function returning `error`, importing `context`,
 
 ## Behavior to know
 
-- **Idempotency keys.** The API requires a key on every generation request. If you omit the key argument, the SDK generates a random one for that call (newer versions also log a warning), which protects only that single HTTP call; calling again without a key can create another billable Job. Pass your own persisted key, and reuse it with the exact request to recover after a crash or an unknown outcome. Submit is never retried automatically.
+- **Idempotency keys.** The API requires a key on every generation request. If you omit the key argument, the SDK generates a random one for that call, which protects only that single HTTP call; calling again without a key can create another billable Job. Pass your own persisted key, and reuse it with the exact request to recover after a crash or an unknown outcome. Submit is never retried automatically.
 - **Waiting.** `waitForJob` / `WaitJob` poll the status endpoint with back-off (5 s, then 10 s, then 20 s) and read the full Job once at the end. A timeout or abort only stops local waiting; the Job keeps running. Resume with the saved ID.
 - **Errors.** API errors expose `status`, `code`, `retryable`, and `action`. A failed or cancelled Job raises `YirJobError` (TypeScript) or `JobError` (Go) carrying the complete Job. Branch on `code`, not on messages. See [error codes](/docs/support/error-codes).
 - **Validation.** Local parameter validation needs a model catalog you pass in; otherwise the Gateway validates. See [models and parameters](/docs/guides/models).

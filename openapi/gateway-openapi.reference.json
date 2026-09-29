@@ -850,7 +850,7 @@
         "name": "Idempotency-Key",
         "in": "header",
         "required": true,
-        "description": "Required. Missing or blank keys are rejected with a non-retryable 400 before creating a resource or reserving funds. Replaying the same key with an identical standardized request returns the original result; reusing a key with a changed request is rejected. Generation SDK methods accept an omitted key, generate a random key per call, and log a warning recommending an explicit caller-persisted key; they do not automatically retry Submit. Persist one key per logical request before submitting and reuse it with the original request when the outcome is unknown. Separate SDK calls without an explicit key can create separate billable Jobs. Server-side fallback within an accepted Job is independent of this header.",
+        "description": "Required. Missing or blank keys are rejected with a non-retryable 400 before creating a resource or reserving funds. Replaying the same key with an identical standardized request returns the original result; reusing a key with a changed request is rejected. Generation SDK methods accept an omitted key and generate a random key per call; they do not automatically retry Submit. Persist one key per logical request before submitting and reuse it with the original request when the outcome is unknown. Separate SDK calls without an explicit key can create separate billable Jobs. Server-side fallback within an accepted Job is independent of this header.",
         "schema": {
           "type": "string",
           "minLength": 1,
