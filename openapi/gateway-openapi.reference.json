@@ -2534,7 +2534,7 @@
       },
       "ComputeCharge": {
         "type": "object",
-        "description": "Read-only billing facts. New Yir Cloud jobs use managed supply only. Historical jobs may retain byok/provider/external facts; these values do not enable BYOK submission.",
+        "description": "Read-only billing facts for managed supply billed by Yir.",
         "additionalProperties": false,
         "required": [
           "supply_type",
@@ -2547,35 +2547,22 @@
           "supply_type": {
             "type": "string",
             "enum": [
-              "managed",
-              "byok"
-            ],
-            "description": "managed for new Cloud jobs; byok is retained only for historical billing records."
+              "managed"
+            ]
           },
           "billed_by": {
             "type": "string",
             "enum": [
-              "yir",
-              "provider"
+              "yir"
             ]
           },
           "amount": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Decimal"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/Decimal"
           },
           "amount_basis": {
             "type": "string",
             "enum": [
-              "provider_reported",
-              "yir_price_rule",
-              "public_price_estimate",
-              "unknown"
+              "yir_price_rule"
             ]
           },
           "usage": {
@@ -2588,7 +2575,6 @@
             "type": "string",
             "enum": [
               "settled",
-              "external",
               "waived"
             ]
           }
@@ -2639,7 +2625,7 @@
       "OfficialComparison": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Successful jobs only. Complete fixed USD official price frozen at admission for the exact request. Savings is baseline minus all Yir charges, including recovery attempts; it may be negative. Omitted for historical jobs, dynamic prices, missing baselines and external billing.",
+        "description": "Successful jobs only. Complete fixed USD official price frozen at admission for the exact request. Savings is baseline minus all Yir charges, including recovery attempts; it may be negative. Omitted for historical jobs, dynamic prices and missing baselines.",
         "required": [
           "baseline_amount",
           "savings_amount"
