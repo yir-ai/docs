@@ -37,7 +37,7 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
     必须在任何 JSON 解析或重新序列化之前，用原始请求字节校验。使用 Console → Webhooks 中的签名密钥而不是 API Key，签名内容为 `timestamp + "." + id + "." + body`。确认服务器时钟误差在 300 秒以内。
   </AccordionItem>
   <AccordionItem title="同一个 Job 被处理了两次">
-    轮询与 Webhook，或 Webhook 与其重投，可能报告同一个终态 Job。请按 `Yir-Webhook-Id` 对事件去重，并按 `job.id` 只执行一次业务动作。
+    轮询与 Webhook，或 Webhook 与其重试，可能报告同一个终态 Job。请按 `Yir-Webhook-Id` 对事件去重，并按 `job.id` 只执行一次业务动作。
   </AccordionItem>
 </Accordion>
 

@@ -76,4 +76,4 @@ A successful Job can carry `result.warnings: ["additional_results_unavailable"]`
 
 ## Applying terminal results once
 
-The same terminal Job can reach you twice: once from polling and once from a Webhook, or from a Webhook redelivery. Make your business actions (saving files, updating credits, marking orders complete) idempotent by Job ID so each Job is applied exactly once.
+The same terminal Job can reach you twice: once from polling and once from a Webhook, or from a Webhook retry. Make your business actions (saving files, updating credits, marking orders complete) idempotent by Job ID so each Job is applied exactly once.

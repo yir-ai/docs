@@ -4,5 +4,5 @@ export default defineMeta({
   title: "Console",
   icon: "layout-dashboard",
   order: 4,
-  pages: ["api-keys", "routing", "playground", "logs", "alerts"],
+  pages: ["api-keys", "routing", "playground", "logs", "webhooks", "alerts"],
 });

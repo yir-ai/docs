@@ -14,7 +14,7 @@ Set `webhook_url` on a generation request to receive the Job when it reaches `su
 }
 ```
 
-The URL must use HTTPS. You can also register up to 5 endpoints in **Console → Webhooks**; every enabled endpoint receives all terminal events for your account. A request's `webhook_url` is delivered in addition to those endpoints, and a URL that matches a registered endpoint is delivered only once. All deliveries are signed with the same account signing secret.
+The URL must use HTTPS. You can also register up to 5 endpoints in [Console → Webhooks](/docs/console/webhooks); every enabled endpoint receives all terminal events for your account. A request's `webhook_url` is delivered in addition to those endpoints, and a URL that matches a registered endpoint is delivered only once. All deliveries are signed with the same account signing secret.
 
 ## Delivery headers
 
@@ -97,16 +97,11 @@ Deduplicate at two levels:
 
 Read `billing.total_charged_by_yir` for the final charge. Result URLs in a delivery are short-lived and can differ between deliveries of the same event; download files promptly.
 
-## Retries and redelivery
+## Retries
 
-If your endpoint does not answer with a `2xx` status, Yir retries automatically. Retries carry the same event ID with a new timestamp and signature. They never resubmit or charge the Job again.
+If your endpoint does not answer with a `2xx` status, Yir retries automatically. Retries carry the same event ID with a new timestamp and signature. They never resubmit or charge the Job again. There is no manual redelivery.
 
-In **Console → Webhooks** you can:
-
-- add, edit, enable, disable, or delete endpoints, and see each endpoint's delivery counts and latest status;
-- reveal or rotate the signing secret. After rotation, verify new deliveries with the new secret;
-- inspect delivery records: receiving origin (without path or query), event ID, status, and attempt count;
-- **Redeliver** a delivered or failed event. Redelivery keeps the event ID and queues it in the background; refresh the list to see the outcome.
+Manage endpoints and the signing secret, and inspect deliveries, in [Console → Webhooks](/docs/console/webhooks).
 
 If a callback is lost, `GET /v1/jobs/{id}` always returns the same terminal Job while it is retained. Many integrations treat the Webhook as a wake-up signal and keep slow polling as a fallback.
 
