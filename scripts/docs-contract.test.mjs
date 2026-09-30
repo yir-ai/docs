@@ -38,6 +38,7 @@ const requiredPages = [
   'console/routing',
   'console/api-keys',
   'console/logs',
+  'console/webhooks',
   'console/alerts',
   'guides/production-integration',
   'guides/image-generation',

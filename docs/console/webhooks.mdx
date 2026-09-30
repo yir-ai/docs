@@ -1,0 +1,38 @@
+---
+title: Webhooks
+description: Register Webhook endpoints, manage the signing secret, and inspect deliveries.
+---
+
+[Console → Webhooks](https://yir.ai/console/webhooks) holds the account-wide Webhook settings. For the payload, headers, and signature verification, see [Webhooks](/docs/guides/webhooks).
+
+## Endpoints
+
+An endpoint receives every terminal Job event for your account (`job.succeeded`, `job.failed`, `job.cancelled`), including Jobs submitted without `webhook_url`.
+
+| Setting | Rules |
+| --- | --- |
+| **URL** | A public HTTPS URL, up to 1000 characters. Each URL can be registered once. |
+| **Description** | Optional, up to 200 characters. |
+| **Enabled** | Only enabled endpoints receive deliveries. Disable an endpoint to pause it without deleting it. |
+
+You can register up to 5 endpoints. Deleting an endpoint stops new deliveries to it and keeps its existing delivery records.
+
+A request's `webhook_url` is delivered in addition to your endpoints. If it matches a registered endpoint URL, that Job is delivered to it only once.
+
+## Signing secret
+
+All deliveries, to endpoints and to request-level URLs, are signed with one account signing secret. You can reveal and copy it, or rotate it. Rotation takes effect immediately and the previous secret stops working, so update your receiver right after rotating.
+
+## Deliveries
+
+Each endpoint shows its total deliveries, success rate, and latest delivery. **View Deliveries** lists its recent deliveries, which you can filter by status:
+
+| Status | Meaning |
+| --- | --- |
+| Delivered | Your endpoint answered with a `2xx` status. |
+| Retrying | The delivery failed and Yir will retry it automatically; the next retry time is shown. |
+| Failed | Retries are exhausted, or the address was rejected (for example, not a public HTTPS host) and is not retried. |
+
+Each record shows the event, the Job it belongs to (linked to its [Logs](/docs/console/logs) entry), the last HTTP status or error, and the attempt count. Deliveries to a request-level `webhook_url` appear in that Job's detail in Logs.
+
+There is no manual redelivery. If a delivery failed, read the Job with `GET /v1/jobs/{id}`, which returns the same terminal Job while it is retained. When the latest delivery to an endpoint fails, [Alerts](/docs/console/alerts) shows a warning.
