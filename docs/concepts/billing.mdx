@@ -64,12 +64,24 @@ Submission checks prices again. A quote you obtained earlier does not guarantee 
 
 ## How a Job is charged
 
+The reservation rules below apply when `billing_mode` is omitted. Explicit actual billing uses the collection rules in the next section.
+
 1. **Admission** reserves one amount: the highest single-attempt ceiling among eligible channels, capped by `max_cost`. Fallback attempts share this reservation; they are never added together.
 2. **Success** charges only the attempt whose result was delivered and releases the rest.
 3. **Failure or cancellation** releases the whole reservation. The customer charge is zero.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
 
 For usage-billed channels without a verifiable upper bound, Yir reserves the explicit `max_cost` in full. An output-only estimate does not determine this reservation.
+
+## Pay the actual cost
+
+For supported channels, put `"billing_mode": "actual"` on both your quote and generation requests. This explicitly authorizes the complete cost of the successful delivered result, including charges known only after generation. Do not send `max_cost` with this mode: there is no customer spending cap.
+
+The initial supported combinations are Kling 2.6 or 3.0 Motion Control with `routing.only` selecting KIE and/or APIMart, and FLUX 2 Pro image editing with `routing.only: ["fal"]`. You must specify the channels explicitly. Other models or channels reject this mode; normal input and file requirements still apply.
+
+Yir requires a positive available wallet balance and no outstanding debt before admitting a new Job. It does not reserve an estimated total. After successful delivery, Yir records one final charge based on the task's authoritative bill and the discount frozen for that attempt. If your wallet cannot cover it, the unpaid amount becomes Job debt. A future manual recharge repays the oldest debt first; repayment does not charge the same Job again. Outstanding debt blocks new Jobs, while already admitted Jobs continue under their saved authorization. This does not enable automatic card charging.
+
+Failed, cancelled and non-winning attempts remain Yir's cost. Missing or conflicting bills enter billing reconciliation; an unknown bill is never treated as zero or replaced with an estimate. `billing.billing_mode: "actual"` identifies the saved authorization in the Job response. Retrying with the same idempotency key cannot change the billing mode. Existing Jobs and requests that omit this field keep their original billing contract.
 
 Billing is final when the Job reaches a terminal state. Read the terminal Job's `billing` object:
 

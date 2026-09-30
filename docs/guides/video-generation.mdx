@@ -107,6 +107,8 @@ Replace the example file IDs with your own ready files.
 
 Video prices depend on duration, resolution, audio, and references, so quote the exact request with `POST /v1/videos/quotes` first. A quote that includes video or audio references uses their measured durations. Check `supply.available` and, when `supply.requires_max_cost` is `true`, include `max_cost` on submission.
 
+Supported Kling Motion Control channels also accept explicit `billing_mode: "actual"` with `routing.only`, without `max_cost`. This accepts the delivered winner's actual fee, including wallet debt; a quote provides no guaranteed spending ceiling. See [actual-cost billing](/docs/concepts/billing).
+
 ## Results
 
 A successful video Job returns the video in `result.files`. When you request `return_last_frame`, the last frame is an additional image file. If only that extra file cannot be delivered, the Job still succeeds with `result.warnings: ["additional_results_unavailable"]`.

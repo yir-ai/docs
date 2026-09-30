@@ -107,6 +107,8 @@ description: 从文本、首尾帧，或图片、视频、音频混合参考生�
 
 视频价格取决于时长、分辨率、音频和参考素材，因此请先用 `POST /v1/videos/quotes` 对完整请求报价。包含视频或音频参考的报价会使用其实测时长。检查 `supply.available`；当 `supply.requires_max_cost` 为 `true` 时，提交需携带 `max_cost`。
 
+支持的 Kling Motion Control 渠道也接受显式 `billing_mode: "actual"` 与 `routing.only`，不携带 `max_cost`。这表示承担成功交付的 winner 实际费用，包括钱包欠款；报价不提供保证的支出上限，见[按实际费用计费](/zh/docs/concepts/billing)。
+
 ## 结果
 
 成功的视频 Job 在 `result.files` 中返回视频。请求 `return_last_frame` 时，尾帧作为额外的图片文件返回。如果只有这个额外文件未能交付，Job 仍然成功，并带有 `result.warnings: ["additional_results_unavailable"]`。
