@@ -35,7 +35,7 @@ stateDiagram-v2
 使用两个接口：
 
 - `GET /v1/jobs/{id}/status` 返回精简摘要（`id`、`status`、`error`，以及可选的 `cancellation`），用于反复轮询。
-- `GET /v1/jobs/{id}` 返回完整 Job，包括 `result`、`billing`、`usage` 和 `parameter_notices`，在状态进入终态后读取一次。
+- `GET /v1/jobs/{id}` 返回完整 Job，包括 `result`、`billing`、`usage`、`final_provider`、`urls` 和 `parameter_notices`，在状态进入终态后读取一次。
 
 推荐节奏（SDK 默认相同）：前 30 秒每 5 秒一次，约 90 秒内每 10 秒一次，之后每 20 秒一次。应用侧务必设置总体截止时间。
 
