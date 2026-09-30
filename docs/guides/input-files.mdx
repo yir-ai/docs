@@ -115,4 +115,4 @@ console.log(file.id, file.status); // "ready": reference it by file.id
 
 Persist the key and reuse it to recover after a crash. See [SDKs](/docs/guides/clients).
 
-TypeScript SDK 0.4.0 and Go SDK 0.5.0 upload helpers wait for analysis with a five-minute default timeout. Resume with `waitForFileReady` / `WaitForFileReady`; a local timeout does not cancel analysis.
+Since TypeScript SDK 0.4.0 and Go SDK 0.5.0, upload helpers wait for analysis with a five-minute default timeout. Resume with `waitForFileReady` / `WaitForFileReady`; a local timeout does not cancel analysis. To read a ready file back, `getFileContentURL` / `GetFileContentURL` (TypeScript 0.5.0 / Go 0.6.0) return its signed URL without sending your API key to storage.

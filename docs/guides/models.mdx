@@ -27,7 +27,7 @@ A contract describes, for each operation (`generate_image` or `generate_video`):
 - **Parameters** with type, whether required, allowed `values` or `minimum`/`maximum`, and `default`.
 - **Labels and descriptions** in English and Simplified Chinese, for building forms.
 
-Without `view=contract`, `GET /v1/models/{creator}/{model}` returns the model's market detail, including channel parameter rules (`channel_parameters`).
+Without `view=contract`, `GET /v1/models/{creator}/{model}` returns the model's market detail, including channel parameter rules (`channel_parameters`). The SDKs read it with `getModel` / `GetModel`; its prices are for display only, so quote before submitting.
 
 ## Model IDs and aliases
 

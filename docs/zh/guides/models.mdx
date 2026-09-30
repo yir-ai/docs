@@ -27,7 +27,7 @@ curl "https://gateway.yir.ai/v1/models/bytedance/seedance-2.0?view=contract" \
 - **参数**：类型、是否必填、可选值 `values` 或 `minimum`/`maximum`，以及 `default`。
 - **名称与说明**：英文和简体中文，可直接用于构建表单。
 
-不带 `view=contract` 时，`GET /v1/models/{creator}/{model}` 返回模型的市场详情，包括渠道参数规则（`channel_parameters`）。
+不带 `view=contract` 时，`GET /v1/models/{creator}/{model}` 返回模型的市场详情，包括渠道参数规则（`channel_parameters`）。SDK 用 `getModel` / `GetModel` 读取；其中价格仅供展示，提交前仍需报价。
 
 ## 模型 ID 与别名
 
