@@ -35,7 +35,7 @@ These six states are the whole public contract. Provider-specific states and int
 Use two endpoints:
 
 - `GET /v1/jobs/{id}/status` returns a small summary (`id`, `status`, `error`, optional `cancellation`). Use it for repeated polling.
-- `GET /v1/jobs/{id}` returns the complete Job, including `result`, `billing`, `usage`, and `parameter_notices`. Read it once the status is terminal.
+- `GET /v1/jobs/{id}` returns the complete Job, including `result`, `billing`, `usage`, `final_provider`, `urls`, and `parameter_notices`. Read it once the status is terminal.
 
 Recommended pacing, also used by the SDKs: every 5 seconds for the first 30 seconds, every 10 seconds until about 90 seconds, then every 20 seconds. Always set an overall deadline in your application.
 

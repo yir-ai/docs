@@ -76,6 +76,8 @@ Billing is final when the Job reaches a terminal state. Read the terminal Job's 
 | Field | Meaning |
 | --- | --- |
 | `billing.total_charged_by_yir` | The final amount charged for this Job. |
+| `billing.compute_charges` | Compute line items. A new Job has one `managed` item billed by `yir`, with `status` `settled`, or `waived` with amount `0.000` when the charge is waived. The array can be empty. Historical Jobs may show `byok` items with `status` `external`, which Yir did not charge. |
+| `billing.gateway_fee` | The gateway fee: `amount` and `status` (`settled` or `waived`). |
 | `billing.currency` | Always `USD`. |
 | `billing.max_cost` | The authorization limit that applied. It is not the charge. |
 | `billing.savings` | Optional comparison with the user price frozen at admission. It can be negative after fallback. |
