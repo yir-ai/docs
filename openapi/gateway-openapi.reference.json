@@ -1072,6 +1072,11 @@
           }
         }
       },
+      "ActualBillingMode": {
+        "type": "string",
+        "const": "actual",
+        "description": "Explicit consent to the authoritative final cost of the successful delivered Job, without a max_cost cap. Only KIE/APIMart Kling 2.6/3.0 Motion Control and FAL FLUX 2 Pro image editing are supported; routing.only must explicitly select these channels. Cannot be combined with max_cost. Insufficient wallet funds become Job debt repaid by future manual recharge; outstanding debt blocks new Jobs. Failed, cancelled and non-winning attempts are not charged to the user. Omit to retain ordinary capped billing."
+      },
       "StandardImageGenerationRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -1081,6 +1086,9 @@
           "parameters"
         ],
         "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
           "max_cost": {
             "$ref": "#/components/schemas/MaxCost"
           },
@@ -1161,6 +1169,9 @@
           "parameters"
         ],
         "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
           "model": {
             "type": "string",
             "minLength": 1
@@ -1518,6 +1529,9 @@
           "parameters"
         ],
         "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
           "max_cost": {
             "$ref": "#/components/schemas/MaxCost"
           },
@@ -1592,6 +1606,9 @@
           "parameters"
         ],
         "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
           "model": {
             "type": "string",
             "minLength": 1
@@ -1795,6 +1812,9 @@
               "$ref": "#/components/schemas/ParameterNotice"
             },
             "description": "Expected primary-channel handling; actual handling is reported by the successful Job."
+          },
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
           },
           "parameter_handling_may_vary": {
             "type": "boolean",
@@ -2505,6 +2525,9 @@
           "total_charged_by_yir"
         ],
         "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
           "currency": {
             "type": "string",
             "const": "USD"
