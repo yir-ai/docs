@@ -76,7 +76,7 @@ Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 | 字段 | 含义 |
 | --- | --- |
 | `billing.total_charged_by_yir` | 此 Job 的最终收费金额。 |
-| `billing.compute_charges` | 算力费用明细。新 Job 有一条由 `yir` 计费的 `managed` 条目，`status` 为 `settled`；费用免除时为 `waived`，金额为 `0.000`。数组可以为空。历史 Job 可能出现 `status` 为 `external` 的 `byok` 条目，Yir 未对其收费。 |
+| `billing.compute_charges` | 算力费用明细。新 Job 有一条由 `yir` 计费的 `managed` 条目，`status` 为 `settled`；费用免除时为 `waived`，金额为 `0.000`。数组可以为空。 |
 | `billing.gateway_fee` | 网关费用：`amount` 与 `status`（`settled` 或 `waived`）。 |
 | `billing.currency` | 固定为 `USD`。 |
 | `billing.max_cost` | 适用的授权上限，不是收费金额。 |
