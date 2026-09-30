@@ -15,7 +15,7 @@ description: 创建、显示、轮换、限额、设置到期和吊销用于认�
 
 | 设置 | 作用 |
 | --- | --- |
-| **Routing Profile** | 使用该 Key 的请求默认采用的[路由](/zh/docs/console/routing)。请求中的 `routing` 可以进一步收窄。 |
+| **Routing Profile** | 使用该 Key 的请求默认采用的[路由](/zh/docs/console/routing)。请求中的 `routing` 可以进一步收窄。修改后只影响之后准入的 Job，已准入的 Job 沿用准入时冻结的路由；Key 的 Secret 不变。 |
 | **月度支出上限** | 可选，针对当前 UTC 自然月。会超出上限的新 Job 以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，进行中的 Job 不会被中断。Key 列表显示当月已用金额。 |
 | **到期时间** | 永不过期，或自保存时起 30、90、365 天。到期后请求以 `401 YIR_UNAUTHORIZED` 拒绝，可随时延长已过期的 Key。 |
 | **IP 白名单** | 可选，仅接受来自匹配的 IPv4、IPv6 或 CIDR 网段的请求。出口 IP 不固定、本地开发或 Serverless 环境请保持关闭。 |

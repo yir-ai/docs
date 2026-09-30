@@ -15,7 +15,7 @@ Create extra keys for separate applications or environments. Each key has its ow
 
 | Setting | Effect |
 | --- | --- |
-| **Routing Profile** | The default [routing](/docs/console/routing) for requests made with this key. Request-level `routing` can narrow it. |
+| **Routing Profile** | The default [routing](/docs/console/routing) for requests made with this key. Request-level `routing` can narrow it. Changing it applies to Jobs admitted afterward; admitted Jobs keep the routing frozen at admission. The key secret does not change. |
 | **Monthly spend limit** | Optional cap for the current UTC month. New Jobs that would exceed it fail with `403 YIR_SPEND_LIMIT_EXCEEDED`; running Jobs are not interrupted. The key list shows spend so far. |
 | **Expiration** | Never, or 30, 90, or 365 days from when you save. After expiry, requests fail with `401 YIR_UNAUTHORIZED`. You can extend an expired key at any time. |
 | **IP allowlist** | Optional. Only requests from matching IPv4, IPv6, or CIDR ranges are accepted. Leave it off for dynamic egress, local development, or serverless platforms. |
