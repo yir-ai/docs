@@ -7,8 +7,8 @@ The official SDKs are open source in [yir-ai/sdk](https://github.com/yir-ai/sdk)
 
 | Language | Package | Current version |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.4.0` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.5.0` |
+| TypeScript | `@yir-ai/sdk` | `0.5.0` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.6.0` |
 
 Both clients read `YIR_API_KEY` from your server and default to `https://gateway.yir.ai`. Keep them on the server; the browser entry points of the TypeScript package contain only pure helpers and types.
 
@@ -17,11 +17,11 @@ Both clients read `YIR_API_KEY` from your server and default to `https://gateway
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.4.0
+pnpm add @yir-ai/sdk@0.5.0
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.5.0
+go get github.com/yir-ai/sdk/go@v0.6.0
 ```
 
 </CodeGroup>
@@ -122,9 +122,9 @@ The Go snippet is the body of a function returning `error`, importing `context`,
 | Quote | `quoteImage`, `quoteVideo`, `quoteBatch` | `QuoteImage`, `QuoteVideo`, `QuoteBatch` |
 | Submit | `submitImage`, `submitVideo` | `SubmitImage`, `SubmitVideo` |
 | Jobs | `getJob`, `getJobStatus`, `cancelJob`, `waitForJob` | `GetJob`, `GetJobStatus`, `CancelJob`, `WaitJob` |
-| Files | `createFiles`, `uploadFile`, `createAndUploadFile`, `getFile`, `completeFile`, `waitForFileReady` | `CreateFiles`, `UploadFile`, `CreateAndUploadFile`, `GetFile`, `CompleteFile`, `WaitForFileReady` |
+| Files | `createFiles`, `uploadFile`, `createAndUploadFile`, `getFile`, `completeFile`, `waitForFileReady`, `getFileContentURL` | `CreateFiles`, `UploadFile`, `CreateAndUploadFile`, `GetFile`, `CompleteFile`, `WaitForFileReady`, `GetFileContentURL` |
 | Webhooks | `verifyWebhookSignature`, `constructWebhookEvent` | `VerifyWebhookSignature`, `ConstructWebhookEvent` |
-| Models | `getModelContracts`, `getModelContract` | `GetModelContracts`, `GetModelContract` |
+| Models | `getModelContracts`, `getModelContract`, `getModel` | `GetModelContracts`, `GetModelContract`, `GetModel` |
 
 In TypeScript, `uploadFile`, `createAndUploadFile`, and `waitForFileReady` are functions exported from `@yir-ai/sdk/server`, not client methods. Pass the client as the first argument, for example `createAndUploadFile(client, metadata, data, key)`. In Go they are client methods. See [Input files](/docs/guides/input-files#with-an-sdk).
 
@@ -141,6 +141,14 @@ In TypeScript, `uploadFile`, `createAndUploadFile`, and `waitForFileReady` are f
 **TypeScript 0.3.0 / Go 0.4.0.** Waiting now backs off (5 s, then 10 s, then 20 s) instead of polling every 2 seconds; set `pollIntervalMs` / `WaitOptions.PollInterval` to keep a fixed interval. `constructWebhookEvent` / `ConstructWebhookEvent` are new. No call signatures change.
 
 **TypeScript 0.3.1 / Go 0.4.1.** `constructWebhookEvent` / `ConstructWebhookEvent` also reject Job IDs that `getJob` / `GetJob` would reject (they must match `^[1-9][0-9]*$`). The `poll` argument of `pollDelayMs` / `PollDelay` is the zero-based index of the query that just completed. No call signatures change.
+
+**TypeScript 0.3.2 / Go 0.4.2.** TypeScript counts the 20,000-character prompt limit in Unicode code points, so prompts with emoji are no longer rejected early. Go `Quote.Validate` rejects quotes whose `supply` disagrees with their prices, matching TypeScript. No call signatures change.
+
+**TypeScript 0.4.0 / Go 0.5.0 (breaking for URL references).** Every media reference needs a `file_id`; external reference URLs are rejected. Upload the original bytes through the [Files API](/docs/guides/input-files) first. Upload helpers wait for the file to be `ready` (five-minute default timeout), and `waitForFileReady` / `WaitForFileReady` resume waiting for a saved file ID. The Vercel AI SDK adapter accepts only bytes; download URL inputs in your application first. Quote validation also accepts server-authorized uncapped supply.
+
+**TypeScript 0.4.1 / Go 0.5.1.** Compatible with the previous release. Go `Job` adds `FinalProvider`, `URLs`, and `Usage`, and `JobBilling` adds its charge breakdown, matching TypeScript. Error code constants (`YIR_ERROR_CODES` / `ErrCode*`) are new, and the User-Agent reports the SDK version. TypeScript `cancelJob` accepts an abort signal and rejects a response that is not the requested Job. Bundled model contracts match the current server, which affects only validation against the bundled catalog.
+
+**TypeScript 0.5.0 / Go 0.6.0.** `getModel` / `GetModel` read a model's market detail, and `getFileContentURL` / `GetFileContentURL` return a ready file's short-lived signed URL without following the redirect, so your API key never reaches storage. Fetch that URL without Gateway credentials. In TypeScript, code that implements `YirClient` or `YirFileClient` itself must add the new methods, and a custom transport must honor `redirect: "manual"` for `getFileContentURL`; callers of `createNodeYirClient` need no change.
 
 **From 0.1.0.** TypeScript 0.2 and Go 0.2 removed bundled model lists and client-side price tables, and switched waiting to the status endpoint (`onPoll` / `OnPoll` now receive a status summary). Go 0.3.0 made the idempotency key argument variadic. Read the [migration guide](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md) before upgrading.
 
