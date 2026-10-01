@@ -19,7 +19,7 @@ description: Yir 所有稳定错误码、出现位置以及应用应如何处理
 
 - `code` 是稳定的，请据此分支；不要解析可能变化的 `message`。
 - `retryable` 表示稍后再试是否可能成功。
-- `action` 建议下一步：`fix_request`、`add_funds`、`retry_later` 或 `contact_support`。
+- `action` 建议下一步：`fix_request`、`modify_input`、`add_funds`、`retry_later` 或 `contact_support`。
 - `request_id` 标识这次 HTTP 请求，联系支持时请提供。
 
 Job 失败时，`GET /v1/jobs/{id}` 与 `GET /v1/jobs/{id}/status` 中都有相同的 `error` 对象（不含 `request_id`）。
@@ -54,6 +54,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | 错误码 | 含义 | 处理方式 |
 | --- | --- | --- |
 | `YIR_EXECUTION_FAILED` | 所有可用尝试均失败。 | 检查提示词和输入后提交新请求；持续出现请联系支持。 |
+| `YIR_CONTENT_REJECTED` | 渠道的内容安全审核拒绝了提示词、参考图或生成结果；Yir 不会再切换到其他渠道重试。 | 不可重试（`action: modify_input`），请让终端用户修改提示词或参考图后提交新请求。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 准入后没有渠道能执行，或所有可用渠道均已用尽。 | 稍后重新提交，或放宽 `routing`。 |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 容量或网络问题导致无法执行。 | 稍后重新提交。 |
 | `YIR_BUDGET_EXCEEDED` | 没有更多尝试能满足 Job 的 `max_cost`。 | 如接受更高价格，在新请求中提高 `max_cost`。 |

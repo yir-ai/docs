@@ -19,7 +19,7 @@ Errors use one stable shape, whether they come back from an HTTP request or appe
 
 - `code` is stable. Branch on it. Do not parse `message`, which may change.
 - `retryable` says whether trying again later can succeed.
-- `action` suggests what to do next: `fix_request`, `add_funds`, `retry_later`, or `contact_support`.
+- `action` suggests what to do next: `fix_request`, `modify_input`, `add_funds`, `retry_later`, or `contact_support`.
 - `request_id` identifies the HTTP request. Include it when contacting support.
 
 On a failed Job, the same `error` object (without `request_id`) is in both `GET /v1/jobs/{id}` and `GET /v1/jobs/{id}/status`.
@@ -54,6 +54,7 @@ Appear on a Job whose status is `failed`. Failed Jobs are never charged.
 | Code | Meaning | What to do |
 | --- | --- | --- |
 | `YIR_EXECUTION_FAILED` | Every eligible attempt failed. | Review the prompt and inputs, then submit a new request. Contact support if it keeps happening. |
+| `YIR_CONTENT_REJECTED` | The provider's content safety system rejected the prompt, the reference images, or the generated output. Yir does not fall back to another channel after this. | Not retryable (`action: modify_input`). Ask the end user to change the prompt or reference images, then submit a new request. |
 | `YIR_NO_EXECUTABLE_ROUTE` | No channel could run the Job after admission, or all eligible channels were used up. | Submit again later, or widen `routing`. |
 | `YIR_TEMPORARILY_UNAVAILABLE` | Capacity or network problems prevented execution. | Submit again later. |
 | `YIR_BUDGET_EXCEEDED` | No further attempt fits the Job's `max_cost`. | Raise `max_cost` on a new request if you accept the higher price. |
