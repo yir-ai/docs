@@ -37,7 +37,13 @@ stateDiagram-v2
 - `GET /v1/jobs/{id}/status` 返回精简摘要（`id`、`status`、`error`，以及可选的 `cancellation`），用于反复轮询。
 - `GET /v1/jobs/{id}` 返回完整 Job，包括 `result`、`billing`、`usage`、`final_provider`、`urls` 和 `parameter_notices`，在状态进入终态后读取一次。
 
-推荐节奏（SDK 默认相同）：前 30 秒每 5 秒一次，约 90 秒内每 10 秒一次，之后每 20 秒一次。应用侧务必设置总体截止时间。
+### 长轮询
+
+在状态查询上加 `wait=<秒>` 可让请求挂起等待：`GET /v1/jobs/{id}/status?wait=20`。Job 已是终态时立即返回；否则状态或取消状态一变化、或等待到期时，返回当前摘要。这样无需 Webhook、也无需频繁请求，Yir 记录终态后约 1 秒即可拿到结果。`wait` 为整数秒，超过 30 按 30 处理。HTTP 超时要长于等待时长；每次返回后立即发起下一次请求，直到进入终态。
+
+SDK 自 TypeScript 0.7.0、Go 0.8.0 起默认长轮询（每次挂起 20 秒）。
+
+不使用 `wait` 时，推荐节奏为：前 30 秒每 5 秒一次，约 90 秒内每 10 秒一次，之后每 20 秒一次。应用侧务必设置总体截止时间。
 
 :::warning
 Job 慢、请求超时或渠道暂未答复，都**不代表**失败。继续查询同一个 Job ID，不要提交替代请求。
