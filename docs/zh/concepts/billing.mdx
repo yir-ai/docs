@@ -1,9 +1,9 @@
 ---
 title: 报价与计费
-description: 读取请求价格，用 max_cost 设置支出上限，并了解 Job 如何计费。
+description: 读取请求的估价，用 max_cost 为 Job 费用封顶，并了解 Job 如何计费。
 ---
 
-Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 最多预留一次尝试所需的资金，Job 结束后释放未使用部分。
+Yir 只对已交付的结果收费。成功的 Job 按交付渠道的上游实际费用乘以你的折扣收取；失败和未胜出的尝试不收费。Yir 不预留、不冻结余额。提交前可以先报价，查看估价。
 
 ## 获取报价
 
@@ -15,7 +15,7 @@ Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 
 | 单个视频请求 | `POST /v1/videos/quotes` |
 | 最多 20 个图片或视频请求 | `POST /v1/quotes` |
 
-报价与提交使用相同的模型、输入和参数校验，但不创建 Job、不预留资金，也不锁定价格。报价请求不接受仅用于提交的 `max_cost` 和 `webhook_url`。
+报价与提交使用相同的模型、输入和参数校验，但不创建 Job、不动用资金，也不锁定价格。报价请求不接受仅用于提交的 `max_cost` 和 `webhook_url`。
 
 ```json
 {
@@ -24,10 +24,10 @@ Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 
   "currency": "USD",
   "supply": { "available": true, "requires_max_cost": false, "issues": [] },
   "primary": { "kind": "fixed", "amount": "0.04" },
-  "max": { "kind": "fixed", "amount": "0.05" },
+  "max": { "kind": "fixed", "amount": "0.04" },
   "official": { "kind": "fixed", "amount": "0.053" },
-  "single_attempt_upper_bound": "0.05",
-  "has_verifiable_upper_bound": true,
+  "single_attempt_upper_bound": null,
+  "has_verifiable_upper_bound": false,
   "expires_at": 1790000300
 }
 ```
@@ -38,40 +38,39 @@ Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 
 
 | 字段 | 含义 |
 | --- | --- |
-| `primary` | Yir 首选渠道的价格。 |
-| `max` | 本次请求可用渠道中的最高价格，不是多次尝试之和。 |
+| `primary` | Yir 首选渠道的估价，是参考价，不是收费金额或上限。 |
 | `official` | 模型原厂的参考价格，仅供对比，不代表会使用官方渠道执行。 |
 | `price_difference_percent` | 可选，与 `official` 的对比，负数表示 Yir 更便宜。 |
-| `single_attempt_upper_bound` | 在所有可用渠道上经过验证的单次尝试费用上限；只要有一个渠道无法确定上限即为 `null`。 |
 | `supply.available` | 当前没有渠道能执行此请求时为 `false`，并带有 `issues: ["no_matching_supply"]`。 |
-| `supply.requires_max_cost` | 可用的用量计费渠道无法提供可核验的完整请求费用上限时为 `true`，提交时必须携带不低于 `0.01` 的 `max_cost`。 |
+
+`max`、`single_attempt_upper_bound`、`has_verifiable_upper_bound` 和 `supply.requires_max_cost` 已弃用，仅为兼容早期客户端保留：`max` 与 `primary` 相同，其余三个始终为 `null`、`false`、`false`。不要据此做判断。
 
 每个价格属于以下三类之一：
 
-- `fixed`：本次请求的完整价格。
-- `estimate`：仅覆盖**生成输出**，用于按用量计费的模型（`estimate.output_tokens` 或 `estimate.output_megapixels` 说明估算假设）。不含输入及其他费用，不能当作总价或支出上限。
+- `fixed`：该渠道对完整请求的标价。
+- `estimate`：仅覆盖**生成输出**，用于按用量计费的模型（`estimate.output_tokens` 或 `estimate.output_megapixels` 说明估算假设）。不含输入及其他费用。
 - `unavailable`：`amount` 为 `null`。未知价格绝不等于零。
+
+`fixed` 与 `estimate` 都是对最终费用的预估；最终费用以渠道实际账单为准，可能不同。
 
 ## 设置支出上限
 
-生成请求中的 `max_cost` 是整个 Job 可收取的最高金额，例如 `"0.25"` 表示 0.25 美元，最多六位小数。
+生成请求中的 `max_cost` 是可选项，为整个 Job 的费用封顶，例如 `"0.25"` 表示 0.25 美元，最多六位小数。没有模型要求必须提供。
 
-- **省略时：** Yir 在准入时采用可用渠道中经过验证的最高单次尝试上限。
-- **必须提供：** 报价返回 `requires_max_cost: true` 时。
-- **过低时：** 低于首选渠道价格的上限会被拒绝。切换渠道时会跳过超出上限的渠道；没有剩余渠道时，Job 以 `YIR_BUDGET_EXCEEDED` 失败。
+- **省略时：** 成功结果按实际费用收取。
+- **设置时：** Yir 只使用估价不超过 `max_cost` 的渠道，切换渠道时同样适用。收费不会超过 `max_cost`；实际费用更高时，差额由 Yir 承担。
+- **过低时：** 没有任何可用渠道的估价在上限内时，提交以 `400 YIR_INVALID_REQUEST` 拒绝。失败后没有剩余尝试能满足上限时，Job 以 `YIR_BUDGET_EXCEEDED` 失败。
 
-提交时会重新检查价格。之前获得的报价不保证相同的价格或可用性；价格上涨也不会让 Job 收费超过你的授权。
+提交时会重新检查价格。之前获得的报价不保证相同的价格或可用性。
 
 ## Job 如何计费
 
-以下预留规则适用于省略 `billing_mode` 的请求。显式实际计费使用下一节的收款规则。
-
-1. **准入**时预留一笔金额：可用渠道中最高的单次尝试上限，并受 `max_cost` 约束。多次尝试共用这一笔预留，不会累加。
-2. **成功**时只收取交付结果那次尝试的费用，释放其余部分。
-3. **失败或取消**时释放全部预留，客户费用为零。
+1. **准入**时用首选渠道的估价核对实时可用余额，不预留任何金额。之后每次尝试前，再用该渠道的估价核对一次余额。
+2. **成功**时只收取交付结果那次尝试的费用：渠道上游实际费用 × 你的折扣，向上取整到 0.000001 美元；设置了 `max_cost` 时以其封顶。
+3. **失败或取消**时不收费。
 4. 尝试进行中**请求停止**：该次尝试仍可能成功并收费。见[取消](/zh/docs/concepts/task-lifecycle#取消)。
 
-用量计费渠道没有可核验上限时，Yir 会完整预留显式提供的 `max_cost`。仅输出估算不作为这笔预留的依据。
+结算时余额不足以支付的，余额变为负数。余额为负时拒绝新 Job，充值补足后恢复；已准入的 Job 继续执行。Yir 不会自动扣款。
 
 ## 按实际费用支付
 
@@ -79,9 +78,11 @@ Yir 只对已交付的结果收费。提交前可以先报价；提交时，Yir 
 
 首批支持 Kling 2.6、3.0 Motion Control 的 KIE、APIMart 渠道，以及 FLUX 2 Pro 图片编辑的 FAL 渠道。必须用 `routing.only` 明确选择对应渠道，例如 FAL 编辑使用 `["fal"]`；其他模型或渠道会拒绝此模式。原有参数、素材和文件校验继续适用。
 
-准入时要求钱包可用余额大于零且没有欠款，不按估算冻结总额。成功交付后，Yir 根据该任务的权威账单及本次尝试冻结的折扣，记录一笔最终收费。钱包不足支付的部分记为任务欠款；后续手动充值优先偿还最早欠款，偿还不会对同一 Job 再收一次费。有欠款时拒绝新 Job，已经准入的任务仍按保存的授权完成。此模式不启用银行卡自动扣款。
+准入时要求钱包可用余额大于零且没有欠款。成功交付后，Yir 根据该任务的权威账单及本次尝试冻结的折扣，记录一笔最终收费。钱包不足支付的部分记为任务欠款；后续手动充值优先偿还最早欠款，偿还不会对同一 Job 再收一次费。有欠款时拒绝新 Job，已经准入的任务仍按保存的授权完成。
 
-失败、取消和非 winner 尝试的成本仍由 Yir 承担。账单缺失或冲突进入费用核对，未知费用不会按零或估算结算。Job 响应中的 `billing.billing_mode: "actual"` 表示保存的授权；同一幂等键重试不能改变计费模式。历史 Job 和省略该字段的请求保留原合同。
+失败、取消和非 winner 尝试的成本仍由 Yir 承担。账单缺失或冲突进入费用核对，未知费用不会按零或估算结算。Job 响应中的 `billing.billing_mode: "actual"` 表示保存的授权；同一幂等键重试不能改变计费模式。
+
+## 读取最终费用
 
 Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 
@@ -91,17 +92,16 @@ Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 | `billing.compute_charges` | 算力费用明细。新 Job 有一条由 `yir` 计费的 `managed` 条目，`status` 为 `settled`；费用免除时为 `waived`，金额为 `0.000`。数组可以为空。 |
 | `billing.gateway_fee` | 网关费用：`amount` 与 `status`（`settled` 或 `waived`）。 |
 | `billing.currency` | 固定为 `USD`。 |
-| `billing.max_cost` | 适用的授权上限，不是收费金额。 |
-| `billing.savings` | 可选，与准入时冻结的用户价对比；切换渠道后可能为负数。 |
+| `billing.max_cost` | 你设置的费用上限（如有），不是收费金额。 |
 | `billing.official_comparison` | 可选，与准入时冻结的本次请求完整官方价对比。 |
 
-失败尝试的成本，以及 Yir 关闭 Job 后才到达的渠道结果成本，均由 Yir 承担。
+不再返回 `billing.savings`，请使用 `official_comparison`。失败尝试的成本，以及 Yir 关闭 Job 后才到达的渠道结果成本，均由 Yir 承担。
 
 ## 账户与 Key 的限制
 
-- **余额。** Job 需要足够的可用余额完成预留，否则以 `402 YIR_INSUFFICIENT_BALANCE` 拒绝。请在 Console 充值；Yir 不会自动扣款或自动充值。可以在账单页设置低余额邮件提醒。
-- **每个 API Key 的月度支出上限。** 可选，在 [Console → API Keys](/zh/docs/console/api-keys) 设置。准入时把新 Job 的预留加上该 Key 当前 UTC 自然月已结算费用和在途预留；超过上限时请求以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，不创建 Job。进行中的 Job 不会被中断。
+- **余额。** 可用余额不足以覆盖首选渠道估价，或余额为负时，Job 以 `402 YIR_INSUFFICIENT_BALANCE` 拒绝。请在 Console 充值。可以在账单页设置低余额邮件提醒。
+- **每个 API Key 的月度支出上限。** 可选，在 [Console → API Keys](/zh/docs/console/api-keys) 设置。准入时把新 Job 的估价加上该 Key 当前 UTC 自然月已结算费用；超过上限时请求以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，不创建 Job。仍在执行的 Job 不计入，因此并发 Job 可能让 Key 略超上限。进行中的 Job 不会被中断。
 
 ## 为自己的产品定价
 
-如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的授权分开。可以把 `fixed` 的 `primary` 价格作为定价依据；`estimate` 仅覆盖输出，不可充当完整价格。只有在 `has_verifiable_upper_bound` 为 `true` 时才用 `single_attempt_upper_bound` 授权；否则应显式设置业务能够接受的 `max_cost`。对每个 Job 只核对一次 `total_charged_by_yir`。
+如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的收费分开。报价的 `primary` 可作为定价参考，但最终费用以实际成本为准，`estimate` 仅覆盖输出。需要为每个 Job 设定硬上限时，请设置 `max_cost`。对每个 Job 只核对一次 `total_charged_by_yir`。

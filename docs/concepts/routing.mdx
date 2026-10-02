@@ -3,7 +3,7 @@ title: Routing and fallback
 description: Control which provider channels and channel variants may run a request, and how fallback works.
 ---
 
-A model on Yir can be served by several **provider channels**: the model maker's official API and other certified suppliers. For each Job, Yir picks an eligible channel, and if an attempt is confirmed failed, it can fall back to another channel within your budget.
+A model on Yir can be served by several **provider channels**: the model maker's official API and other certified suppliers. For each Job, Yir picks an eligible channel, and if an attempt is confirmed failed, it can fall back to another channel, staying within your `max_cost` when you set one.
 
 You influence this with the optional `routing` object on quote and generation requests. Without it, the Routing Profile bound to your API key applies (see [Console routing](/docs/console/routing)).
 
@@ -52,7 +52,7 @@ Yir moves to another channel only after the current attempt is **confirmed faile
 - your `only` and `variants` choices, and any restriction on the key's Routing Profile;
 - the model and parameters each channel supports;
 - current channel availability;
-- your `max_cost` and the Job's reservation.
+- your `max_cost`, when set: channels whose estimate exceeds it are skipped.
 
 Channels skipped before submission do not count as attempts. An official reference price in a quote does not guarantee that the official channel will run.
 

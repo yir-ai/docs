@@ -1,6 +1,6 @@
 ---
 title: Production checklist
-description: Make a Yir integration safe to retry, recoverable after crashes, bounded in cost, and correct under concurrency.
+description: Make a Yir integration safe to retry, recoverable after crashes, cost-controlled, and correct under concurrency.
 ---
 
 <Badge variant="success">Recommended</Badge>
@@ -16,7 +16,7 @@ Use this page before going live. Each section links to the page that explains th
 - Terminal results are applied once per Job ID, whether they arrive by polling or Webhook.
 - Webhook signatures are verified on raw bytes, and events are deduplicated.
 - Result files are copied to your storage before they expire.
-- Spending is bounded with `max_cost`, balance alerts, and per-key monthly limits.
+- Spending is controlled with an optional `max_cost`, balance alerts, and per-key monthly limits.
 - Error handling branches on `error.code` and `error.action`.
 
 ## Idempotent submission
@@ -25,11 +25,11 @@ Every generation request must carry an `Idempotency-Key` header (1–200 charact
 
 - Same key and identical request: Yir returns the original Job instead of creating another.
 - Same key and a different request: rejected with `409 YIR_IDEMPOTENCY_CONFLICT`.
-- Missing or blank key: rejected with `400 YIR_INVALID_REQUEST` before any Job is created or funds are reserved.
+- Missing or blank key: rejected with `400 YIR_INVALID_REQUEST` before any Job is created.
 
 Generate one key per logical generation (for example `order-123-image-1`) and **store it with the request before you send it**. If the submission times out or your process crashes, send the same request with the same key again. Never create a fresh key because a response was slow; the first request may already have been accepted.
 
-Keep the complete request unchanged, including `max_cost`, `routing`, references, and `webhook_url`. Do not re-quote and change the budget under an existing key.
+Keep the complete request unchanged, including `max_cost`, `routing`, references, and `webhook_url`. Do not re-quote and change `max_cost` under an existing key.
 
 ## Persist the right facts
 
@@ -73,7 +73,7 @@ See [error codes](/docs/support/error-codes) for every code and its recommended 
 
 ## Controlling cost
 
-- Quote the request and set `max_cost`. When a quote reports `supply.requires_max_cost: true`, `max_cost` is required. See [quotes and billing](/docs/concepts/billing).
+- Quote the request to see an estimate. The final charge follows the actual cost; set the optional `max_cost` when you need a hard cap per Job. See [quotes and billing](/docs/concepts/billing).
 - Set a monthly spend limit on each API key and a low-balance email alert in Console.
 - Use `routing.fallback: false` if you prefer a single attempt over automatic recovery.
 

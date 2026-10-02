@@ -98,6 +98,6 @@ curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 
 ## 下一步
 
-- **先看价格。** 用相同请求体调用 `POST /v1/images/quotes`，提交前查看价格与费用上限。见[报价与计费](/zh/docs/concepts/billing)。
+- **先看价格。** 用相同请求体调用 `POST /v1/images/quotes`，提交前查看估价。见[报价与计费](/zh/docs/concepts/billing)。
 - **使用 SDK。** [TypeScript 与 Go SDK](/zh/docs/guides/clients) 已处理轮询退避、错误和文件上传。
 - **准备上线。** 按[上线检查清单](/zh/docs/guides/production-integration)逐项确认。

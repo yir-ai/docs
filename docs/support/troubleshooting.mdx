@@ -10,7 +10,7 @@ Look up specific codes in [error codes](/docs/support/error-codes). For the prob
     Confirm the header is exactly `Authorization: Bearer <key>` and that you are not sending `X-API-Key`. In Console, check whether the key was rotated, revoked, or has expired, and whether its IP allowlist includes your server's egress address. Never print the full key while debugging.
   </AccordionItem>
   <AccordionItem title="Submission returns 402 or 403">
-    `402 YIR_INSUFFICIENT_BALANCE` means the account needs funds for the Job's reservation. `403 YIR_SPEND_LIMIT_EXCEEDED` means this key reached its monthly limit; raise it in Console → API Keys.
+    `402 YIR_INSUFFICIENT_BALANCE` means the balance does not cover the request's estimate or is negative; top up first. `403 YIR_SPEND_LIMIT_EXCEEDED` means this key reached its monthly limit; raise it in Console → API Keys.
   </AccordionItem>
   <AccordionItem title="Submission returns 422 YIR_NO_EXECUTABLE_ROUTE">
     No channel can run this exact request right now. Quote it and check `supply`. Remove a restrictive `routing.only` or `variants`, raise `max_cost`, or try other parameters.
