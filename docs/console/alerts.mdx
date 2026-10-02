@@ -11,9 +11,9 @@ description: See account conditions that need attention, such as low balance, ke
 | Key spend limit | Warning near the limit, critical when reached | An API key approaches or reaches its monthly spend limit. At the limit, new Jobs on that key are rejected. |
 | Key expired | Critical | An API key has expired and its requests are rejected. |
 | Key expiring | Warning | An API key expires within 7 days. |
-| High job failure rate | Warning or critical | A high share of finished Jobs failed in the recent window. |
+| High job failure rate | Warning or critical | A high share of finished Jobs failed in the recent window. Content rejections (`YIR_CONTENT_REJECTED`) are not counted. |
 | Webhook delivery failing | Warning | The latest Webhook delivery to an endpoint failed. |
 
-The page also shows a 7-day chart of failed Jobs against all finished Jobs.
+The page also shows a 7-day chart of failed Jobs against all finished Jobs, both excluding content rejections.
 
 Alerts clear themselves once the condition is resolved. The low-balance threshold is set on the Billing page, which can also send one email per low-balance episode. Yir never tops up or charges your payment method automatically.

@@ -14,6 +14,10 @@ When available, the detail page shows:
 - the total Yir charge, and a comparison with the official reference price when a like-for-like price exists (negative differences are shown as they are; unknown costs are never shown as savings);
 - input transfer facts and one execution timeline.
 
+## Content rejected
+
+When a provider's content safety system rejects the prompt, the references, or the output, the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/support/error-codes) and is not charged. Logs label these Jobs Content rejected instead of Failed, and the time chart shows them as a separate segment: the Failed legend filters execution failures only, and the Content rejected legend filters rejected Jobs only. Analytics success rates leave them out. Change the prompt or references before submitting again.
+
 ## Privacy
 
 By default, details show the prompt length and the number of references. During the first 7 days you can expand your stored prompt. Reference URLs, file IDs, raw provider responses, credentials, and internal routing data are never shown.
