@@ -37,7 +37,13 @@ Use two endpoints:
 - `GET /v1/jobs/{id}/status` returns a small summary (`id`, `status`, `error`, optional `cancellation`). Use it for repeated polling.
 - `GET /v1/jobs/{id}` returns the complete Job, including `result`, `billing`, `usage`, `final_provider`, `urls`, and `parameter_notices`. Read it once the status is terminal.
 
-Recommended pacing, also used by the SDKs: every 5 seconds for the first 30 seconds, every 10 seconds until about 90 seconds, then every 20 seconds. Always set an overall deadline in your application.
+### Long polling
+
+Add `wait=<seconds>` to hold the status request open: `GET /v1/jobs/{id}/status?wait=20`. A terminal Job answers at once. Otherwise Yir answers as soon as the status or cancellation state changes, or when the wait ends, with the current summary. You see the result about a second after Yir records it, without a Webhook and without frequent requests. `wait` is a whole number of seconds; values above 30 are treated as 30. Keep your HTTP timeout longer than the wait, and send the next request right after each answer until the Job is terminal.
+
+The SDKs long-poll by default from TypeScript 0.7.0 and Go 0.8.0 (20-second hold).
+
+Without `wait`, the recommended pacing is every 5 seconds for the first 30 seconds, every 10 seconds until about 90 seconds, then every 20 seconds. Always set an overall deadline in your application.
 
 :::warning
 A slow Job, a request timeout, or a provider that has not answered yet is **not** a failure. Keep querying the same Job ID. Do not submit a replacement request.
