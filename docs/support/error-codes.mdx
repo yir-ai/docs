@@ -26,15 +26,15 @@ On a failed Job, the same `error` object (without `request_id`) is in both `GET 
 
 ## Request errors
 
-Returned immediately by an HTTP call. When a generation request is rejected this way, no Job is created, no funds are reserved, and nothing is charged.
+Returned immediately by an HTTP call. When a generation request is rejected this way, no Job is created and nothing is charged.
 
 | Code | HTTP | Meaning | What to do |
 | --- | --- | --- | --- |
-| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`. A generation request that references a missing, unfinished, or expired input file also returns this code (a quote returns `supply.available: false` instead). | Fix the request. Check the model's [contract](/docs/guides/models). |
+| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`, or its `max_cost` is below every eligible channel's estimate. A generation request that references a missing, unfinished, or expired input file also returns this code (a quote returns `supply.available: false` instead). | Fix the request. Check the model's [contract](/docs/guides/models). |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | The `routing` object is invalid, for example an empty `only` or a variant outside `only`. | Fix `routing`. See [routing](/docs/concepts/routing). |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | Reserved in the contract and not returned today. An invalid `routing` returns `YIR_INVALID_ROUTING_OVERRIDE`. | Handle it like `YIR_INVALID_ROUTING_OVERRIDE` if you match on every code. |
 | `YIR_UNAUTHORIZED` | 401 | Missing, wrong, rotated, revoked, or expired key, or a disallowed source IP. | Check the key and its settings in Console. Do not retry unchanged. |
-| `YIR_INSUFFICIENT_BALANCE` | 402 | Not enough available balance for the Job's reservation. | Add funds, then submit again. |
+| `YIR_INSUFFICIENT_BALANCE` | 402 | The available balance does not cover the first channel's estimate, or the balance is negative. | Add funds, then submit again. |
 | `YIR_SPEND_LIMIT_EXCEEDED` | 403 | The key's monthly spend limit would be exceeded. | Raise the limit or wait for the next UTC month. |
 | `YIR_MODEL_NOT_FOUND` | 404 | Unknown model ID in a model path. | Use a canonical ID from `GET /v1/models`. |
 | `YIR_JOB_NOT_FOUND` | 404 | No such Job for this account, or it is older than 90 days. | Check the Job ID and the key's account. |

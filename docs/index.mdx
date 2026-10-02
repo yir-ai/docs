@@ -1,18 +1,18 @@
 ---
 title: Yir asynchronous AI gateway
-description: One API for long-running image and video generation, with request-specific quotes, budget-bounded fallback, and durable Jobs.
+description: One API for long-running image and video generation, with request-specific quotes, automatic fallback, and durable Jobs.
 ---
 
 <Badge variant="warning">Developer preview</Badge>
 
-Yir is a unified asynchronous AI gateway for image and video generation. You send one Standard API request; Yir selects an eligible provider channel, tries another channel within your budget if an attempt fails, and gives you one durable Job to follow until the result is delivered.
+Yir is a unified asynchronous AI gateway for image and video generation. You send one Standard API request; Yir selects an eligible provider channel, tries another channel if an attempt fails (within your `max_cost`, when set), and gives you one durable Job to follow until the result is delivered.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" href="/docs/getting-started/quickstart" icon="rocket">
     Generate your first image with cURL in a few minutes.
   </Card>
   <Card title="Production checklist" href="/docs/guides/production-integration" icon="shield-check">
-    Idempotency, polling, Webhooks, budgets, and error handling.
+    Idempotency, polling, Webhooks, cost control, and error handling.
   </Card>
   <Card title="SDKs" href="/docs/guides/clients" icon="package">
     TypeScript and Go clients for quotes, jobs, files, and Webhooks.
@@ -30,10 +30,10 @@ sequenceDiagram
   participant Yir as Yir Gateway
   participant P as Provider channels
   App->>Yir: POST /v1/images/quotes (optional)
-  Yir-->>App: Prices and spending ceiling
+  Yir-->>App: Price estimate
   App->>Yir: POST /v1/images/generations
   Yir-->>App: 202 Job (queued)
-  Yir->>P: Attempt, then fallback within budget if it fails
+  Yir->>P: Attempt, then fallback if it fails
   P-->>Yir: Result
   Yir->>Yir: Copy result to Yir storage
   Yir-->>App: Webhook, or GET /v1/jobs/{id}

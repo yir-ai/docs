@@ -1,18 +1,18 @@
 ---
 title: Yir 统一异步 AI 网关
-description: 用一个 API 完成长耗时图片与视频生成，提供按请求报价、预算内自动恢复和持久化 Job。
+description: 用一个 API 完成长耗时图片与视频生成，提供按请求报价、失败自动切换和持久化 Job。
 ---
 
 <Badge variant="warning">开发者预览</Badge>
 
-Yir 是面向图片与视频生成的统一异步 AI 网关。你只需发送一个 Standard API 请求：Yir 会选择合适的供应渠道，某次尝试失败时在你的预算内切换到其他渠道，并始终用同一个持久化 Job 跟踪到结果交付。
+Yir 是面向图片与视频生成的统一异步 AI 网关。你只需发送一个 Standard API 请求：Yir 会选择合适的供应渠道，某次尝试失败时切换到其他渠道（设置了 `max_cost` 时不超出它），并始终用同一个持久化 Job 跟踪到结果交付。
 
 <CardGroup cols={2}>
   <Card title="快速上手" href="/zh/docs/getting-started/quickstart" icon="rocket">
     几分钟内用 cURL 生成第一张图片。
   </Card>
   <Card title="上线检查清单" href="/zh/docs/guides/production-integration" icon="shield-check">
-    幂等、轮询、Webhook、预算与错误处理。
+    幂等、轮询、Webhook、费用控制与错误处理。
   </Card>
   <Card title="SDK" href="/zh/docs/guides/clients" icon="package">
     TypeScript 与 Go 客户端，覆盖报价、任务、文件与 Webhook。
@@ -30,10 +30,10 @@ sequenceDiagram
   participant Yir as Yir Gateway
   participant P as 供应渠道
   App->>Yir: POST /v1/images/quotes（可选）
-  Yir-->>App: 价格与费用上限
+  Yir-->>App: 估价
   App->>Yir: POST /v1/images/generations
   Yir-->>App: 202 Job（queued）
-  Yir->>P: 发起尝试，失败时在预算内切换渠道
+  Yir->>P: 发起尝试，失败时切换渠道
   P-->>Yir: 结果
   Yir->>Yir: 将结果复制到 Yir 存储
   Yir-->>App: Webhook，或 GET /v1/jobs/{id}

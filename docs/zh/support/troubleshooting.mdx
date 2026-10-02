@@ -10,7 +10,7 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
     确认 Header 为 `Authorization: Bearer <key>`，而不是 `X-API-Key`。在 Console 检查该 Key 是否已轮换、吊销或过期，以及 IP 白名单是否包含服务器的出口地址。调试时不要打印完整 Key。
   </AccordionItem>
   <AccordionItem title="提交返回 402 或 403">
-    `402 YIR_INSUFFICIENT_BALANCE` 表示账户余额不足以完成 Job 预留。`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度上限，可在 Console → API Keys 提高。
+    `402 YIR_INSUFFICIENT_BALANCE` 表示余额不足以覆盖本次估价或余额为负，请先充值。`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度上限，可在 Console → API Keys 提高。
   </AccordionItem>
   <AccordionItem title="提交返回 422 YIR_NO_EXECUTABLE_ROUTE">
     当前没有渠道能执行这个具体请求。先报价并检查 `supply`，然后移除过严的 `routing.only` 或 `variants`、提高 `max_cost`，或尝试其他参数。

@@ -1,6 +1,6 @@
 ---
 title: 上线检查清单
-description: 让 Yir 集成可安全重试、崩溃后可恢复、费用有上限，并在并发下保持正确。
+description: 让 Yir 集成可安全重试、崩溃后可恢复、费用可控，并在并发下保持正确。
 ---
 
 <Badge variant="success">推荐</Badge>
@@ -16,7 +16,7 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用有上�
 - 终态结果按 Job ID 只处理一次，无论来自轮询还是 Webhook。
 - 基于原始字节校验 Webhook 签名，并对事件去重。
 - 结果文件在过期前复制到自己的存储。
-- 通过 `max_cost`、低余额提醒和每个 Key 的月度上限控制支出。
+- 通过可选的 `max_cost`、低余额提醒和每个 Key 的月度上限控制支出。
 - 错误处理按 `error.code` 与 `error.action` 分支。
 
 ## 幂等提交
@@ -25,11 +25,11 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用有上�
 
 - 相同的键与相同的请求：返回原来的 Job，不会新建。
 - 相同的键与不同的请求：以 `409 YIR_IDEMPOTENCY_CONFLICT` 拒绝。
-- 缺少键或为空：在创建 Job、冻结额度之前以 `400 YIR_INVALID_REQUEST` 拒绝。
+- 缺少键或为空：在创建 Job 之前以 `400 YIR_INVALID_REQUEST` 拒绝。
 
 为每个逻辑生成任务生成一个键（例如 `order-123-image-1`），并**在发送前与请求一起保存**。提交超时或进程崩溃后，用相同的键再次发送相同的请求。不要因为响应慢就换新键，第一次请求可能已经被接受。
 
-请保持完整请求不变，包括 `max_cost`、`routing`、参考素材和 `webhook_url`。不要在已有键下重新报价并修改预算。
+请保持完整请求不变，包括 `max_cost`、`routing`、参考素材和 `webhook_url`。不要在已有键下重新报价并修改 `max_cost`。
 
 ## 保存哪些信息
 
@@ -73,7 +73,7 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用有上�
 
 ## 控制费用
 
-- 对请求报价并设置 `max_cost`。报价返回 `supply.requires_max_cost: true` 时必须提供 `max_cost`。见[报价与计费](/zh/docs/concepts/billing)。
+- 对请求报价查看估价。最终费用以实际成本为准；需要为每个 Job 设硬上限时，设置可选的 `max_cost`。见[报价与计费](/zh/docs/concepts/billing)。
 - 在 Console 为每个 API Key 设置月度支出上限，并开启低余额邮件提醒。
 - 如果更希望只尝试一次而不是自动恢复，可设置 `routing.fallback: false`。
 

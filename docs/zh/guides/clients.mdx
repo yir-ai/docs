@@ -45,13 +45,14 @@ const request: StandardImageGenerationRequest = {
 };
 
 const quote = await client.quoteImage(request);
-const ceiling = quote.single_attempt_upper_bound;
-if (!quote.supply.available || !quote.has_verifiable_upper_bound || ceiling === null) {
-  throw new Error("No bounded supply for this request");
+if (!quote.supply.available) {
+  throw new Error("No supply for this request");
 }
+console.log(quote.primary.amount); // estimate, not a ceiling
 
-// Persist the request, max_cost, and key before submitting so you can recover.
-const saved = { request: { ...request, max_cost: ceiling }, idempotencyKey: crypto.randomUUID() };
+// Persist the request and key before submitting so you can recover.
+// Optional: add max_cost to cap the Job's charge.
+const saved = { request, idempotencyKey: crypto.randomUUID() };
 
 const job = await client.submitImage(saved.request, saved.idempotencyKey);
 const done = await client.waitForJob(job.id, { timeoutMs: 5 * 60_000 });
@@ -81,12 +82,13 @@ quote, err := client.QuoteImage(ctx, request)
 if err != nil {
 	return err
 }
-if !quote.Supply.Available || !quote.HasVerifiableUpperBound || quote.SingleAttemptUpperBound == nil {
-	return errors.New("no bounded supply for this request")
+if !quote.Supply.Available {
+	return errors.New("no supply for this request")
 }
 
-// Persist the request, MaxCost, and key before submitting so you can recover.
-saved := yir.SubmitRequest{GenerationRequest: request, MaxCost: quote.SingleAttemptUpperBound}
+// Persist the request and key before submitting so you can recover.
+// Optional: set MaxCost to cap the Job's charge.
+saved := yir.SubmitRequest{GenerationRequest: request}
 key := "order-123-image-1"
 
 job, err := client.SubmitImage(ctx, saved, key)
