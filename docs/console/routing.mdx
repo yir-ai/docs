@@ -9,7 +9,7 @@ A **Routing Profile** holds the default routing for every API key bound to it. M
 
 | Setting | Effect |
 | --- | --- |
-| **Mode** | **Balanced** weighs price with Yir's certified channel facts. **Cost** prefers the lowest comparable price. |
+| **Mode** | **Lowest price** orders channels by estimated price. **Fastest** orders channels by recently observed generation time; channels without enough recent jobs fall back to price order. Use separate profiles when different products need different trade-offs. |
 | **Fallback** | Whether Yir may try another channel after an attempt is confirmed failed. Recommended on. |
 
 Every account has a default profile. You can create more profiles, rename or edit them, and delete ones you no longer need. Each API key is bound to one profile, which you choose when creating or editing the key. The profile list shows how many keys use each one.
