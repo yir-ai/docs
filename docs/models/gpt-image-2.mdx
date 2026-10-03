@@ -1,6 +1,6 @@
 ---
 title: GPT Image 2
-description: Generate and edit images with OpenAI GPT Image 2 on Yir, including how the quality parameter is handled across channels.
+description: Generate and edit images with OpenAI GPT Image 2 on Yir, including how the quality tier selects channels.
 ---
 
 `openai/gpt-image-2` (alias `gpt-image-2`) is OpenAI's image generation and editing model. It supports text-to-image and image editing with reference images through the standard [image generation](/docs/guides/image-generation) endpoint.
@@ -26,65 +26,44 @@ For image editing, set `input.type` to `image` and add `reference_image` referen
 | --- | --- | --- |
 | `resolution` | `1K`, `2K`, `4K` | `1K` |
 | `aspect_ratio` | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `2:1`, `1:2`, `3:1`, `1:3`, `21:9`, `9:21` | `auto` |
-| `quality` | `auto`, `low`, `medium`, `high` | Not set. See [quality](#quality) |
+| `quality` | `low`, `medium`, `high` | Not set. See [quality](#quality) |
 | `n` | `1` | `1` |
 
 The authoritative list, including reference limits, comes from `GET /v1/models/openai/gpt-image-2?view=contract`. Channels may support only some combinations, so [quote](/docs/concepts/billing#get-a-quote) the complete request.
 
 ## Quality
 
-By default Yir **ignores** `quality` for GPT Image models, because most channels cannot control it. The notice reason is `quality_requires_official_channel`.
+`quality` is the minimum quality tier you need. Yir treats it as a routing constraint: it is never ignored or lowered.
 
-Yir keeps `quality` only when every channel your routing allows supports it:
+- **Omitted:** every channel may run the request. Channels with a quality setting generate at `medium`, and quotes estimate at `medium`.
+- **Set:** only channels that serve that tier take part in routing and fallback. If none can, the quote reports `no_matching_supply` and a generation request is rejected.
+- **`auto` is not accepted.** It lets the provider pick the tier, so the cost cannot be quoted reliably. Omit `quality` instead.
 
-| Routing | `quality` |
+| Channel | Tiers served |
 | --- | --- |
-| No `routing`, or an allowlist that includes a channel without quality control | Ignored |
-| `"only": ["openai"]` (or `["official"]`) | Kept |
-| `"only": ["apimart"]` with `"variants": { "apimart": "official" }` | Kept |
-| `"only": ["openai", "apimart"]` with `"variants": { "apimart": "official" }` | Kept |
+| Official (`openai`) | `medium`, `high` |
+| APIMart `official` version | `medium`, `high` |
+| APIMart standard version, KIE | `low`, `medium` |
+
+APIMart's standard version and KIE have no quality setting. They render at a fixed quality of at least `medium`, so they serve `low` and `medium` requests at their per-image price. A `high` request runs only on the official channel or APIMart's `official` version.
 
 ```json
 {
   "model": "openai/gpt-image-2",
   "input": { "type": "text", "prompt": "A product photo of a ceramic mug" },
-  "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "quality": "high", "n": 1 },
-  "routing": { "only": ["apimart"], "variants": { "apimart": "official" } }
+  "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "quality": "high", "n": 1 }
 }
 ```
 
-When quality is kept, these channels currently accept `medium` and `high`. A request for `auto` or `low` with such routing cannot be served by them, so check the quote's `supply` first.
+Model detail (`GET /v1/models/openai/gpt-image-2`) lists the tiers each channel serves in `channel_parameters[].parameter_rules.quality.values`. In [Model Market](https://yir.ai/models), choosing a quality tier marks the channels that do not serve it.
 
-When quality is ignored, or you omit it, channels that support quality receive `medium`, which matches the price estimate. Other channels use their own default.
-
-### Where you see the notice
-
-Ignored parameters are reported at each stage, never hidden:
-
-1. **Model contract.** The `quality` parameter in `GET /v1/models/openai/gpt-image-2?view=contract` carries a `policy` with `only_provider: "openai"` and the reason. Model detail lists per-channel rules in `channel_parameters`. This tells you what *may* happen.
-2. **Quote.** `parameter_notices` shows what is *expected* on the first channel for your routing, and `parameter_handling_may_vary: true` means a fallback channel may behave differently.
-3. **Job.** A successful Job and its Webhook carry the `parameter_notices` of the attempt that delivered the result. This is what *actually* happened.
-
-```json
-{
-  "parameter_notices": [
-    {
-      "name": "quality",
-      "disposition": "ignored",
-      "reason": "quality_requires_official_channel",
-      "message": "GPT Image quality is ignored unless routing.only is [\"openai\"]."
-    }
-  ]
-}
-```
-
-A channel that never sends quality upstream may instead report `channel_parameter_unsupported`. Keep the original `quality` in your request either way: changing it changes the request's idempotency identity, while the notice already tells you how it was applied.
+Jobs admitted under the earlier policy may still carry a `quality_requires_official_channel` notice in `parameter_notices`. New Jobs do not.
 
 ## Billing
 
-- Channels billed by tokens return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the effective quality: `medium` when quality is ignored or omitted, otherwise the tier you set.
+- Channels billed by tokens (official and APIMart's `official` version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
 - Reference images on token-billed channels are billed separately as image input tokens. OpenAI counts input image tokens roughly by 32×32-pixel patches, with a per-image cap; the estimate does not include them.
-- Channels with a fixed per-image price return `kind: fixed`.
+- Channels with a fixed per-image price return `kind: fixed`; the tier does not change that price.
 - The final charge is the delivering channel's actual upstream cost × your discount. See [quotes and billing](/docs/concepts/billing).
 
 ## Related

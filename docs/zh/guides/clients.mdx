@@ -136,7 +136,6 @@ TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是�
 - **等待。** `waitForJob` / `WaitJob` 以退避节奏（5 秒、10 秒、20 秒）轮询状态接口，结束时读取一次完整 Job。超时或中止只停止本地等待，Job 继续运行；用保存的 ID 继续即可。
 - **错误。** API 错误提供 `status`、`code`、`retryable` 和 `action`。失败或取消的 Job 会抛出携带完整 Job 的 `YirJobError`（TypeScript）或 `JobError`（Go）。请按 `code` 分支，不要依赖错误消息。见[错误码](/zh/docs/support/error-codes)。
 - **校验。** 本地参数校验需要传入模型目录，否则由 Gateway 校验。见[模型与参数](/zh/docs/guides/models)。
-- **参数提示。** 对 GPT Image 发送 `quality` 但未限定官方渠道时，SDK 会输出一条警告，因为该参数会被忽略。
 
 ## 升级
 

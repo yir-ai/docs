@@ -136,7 +136,6 @@ In TypeScript, `uploadFile`, `createAndUploadFile`, and `waitForFileReady` are f
 - **Waiting.** `waitForJob` / `WaitJob` poll the status endpoint with back-off (5 s, then 10 s, then 20 s) and read the full Job once at the end. A timeout or abort only stops local waiting; the Job keeps running. Resume with the saved ID.
 - **Errors.** API errors expose `status`, `code`, `retryable`, and `action`. A failed or cancelled Job raises `YirJobError` (TypeScript) or `JobError` (Go) carrying the complete Job. Branch on `code`, not on messages. See [error codes](/docs/support/error-codes).
 - **Validation.** Local parameter validation needs a model catalog you pass in; otherwise the Gateway validates. See [models and parameters](/docs/guides/models).
-- **Parameter notices.** For GPT Image, the SDKs log a warning when `quality` is sent without pinning the official channel, because it will be ignored.
 
 ## Upgrading
 

@@ -59,7 +59,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片。
 
 | 参数 | 模型 | 说明 |
 | --- | --- | --- |
-| `quality` | GPT Image 等 | GPT Image 只有在路由允许的每条渠道都支持画质时才生效，见 [GPT Image 2](/zh/docs/models/gpt-image-2#画质) 与 [GPT Image 2.5](/zh/docs/models/gpt-image-2-5#画质)。 |
+| `quality` | GPT Image 等 | 对 GPT Image 是最低画质档位，只走承接该档位的渠道；不接受 `auto`。见 [GPT Image 2](/zh/docs/models/gpt-image-2#画质) 与 [GPT Image 2.5](/zh/docs/models/gpt-image-2-5#画质)。 |
 | `web_search` | Nano Banana 2、Nano Banana Pro | 默认 `false`，需要支持搜索的渠道，请以报价确认。 |
 | `image_search` | Nano Banana 2 | 需要同时设置 `web_search: true`。 |
 

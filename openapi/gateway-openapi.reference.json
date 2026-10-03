@@ -994,9 +994,11 @@
           "preference": {
             "type": "string",
             "enum": [
-              "balanced",
-              "cost"
-            ]
+              "cost",
+              "speed",
+              "balanced"
+            ],
+            "description": "Overrides the routing profile default for route ordering. cost (the default for new profiles) orders routes by estimated price, lowest first. speed orders routes by observed upstream median latency for the same model and specification, fastest first; routes with fewer than 10 recent samples follow, ordered by estimated price. balanced is a deprecated alias of cost kept for existing integrations. max_cost, only and fallback apply unchanged."
           },
           "only": {
             "type": "array",

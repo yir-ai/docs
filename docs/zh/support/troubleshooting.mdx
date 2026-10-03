@@ -31,7 +31,7 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
     结果地址是短期链接。重新查询 `GET /v1/jobs/{id}` 获取新地址。如果 `result.availability` 为 `expired`，说明 7 天保留期已结束，文件已不可用。
   </AccordionItem>
   <AccordionItem title="某个参数似乎没有生效">
-    查看报价和已完成 Job 中的 `parameter_notices`。部分渠道会忽略某些参数，例如 GPT Image 只有在路由允许的每条渠道都支持画质时才使用 `quality`（见 [GPT Image 2](/zh/docs/models/gpt-image-2#画质)）。
+    查看报价和已完成 Job 中的 `parameter_notices`。部分渠道会忽略某些参数。GPT Image 的 `quality` 不会被忽略，而是只走承接该档位的渠道（见 [GPT Image 2](/zh/docs/models/gpt-image-2#画质)）。
   </AccordionItem>
   <AccordionItem title="Webhook 签名始终校验失败">
     必须在任何 JSON 解析或重新序列化之前，用原始请求字节校验。使用 Console → Webhooks 中的签名密钥而不是 API Key，签名内容为 `timestamp + "." + id + "." + body`。确认服务器时钟误差在 300 秒以内。
