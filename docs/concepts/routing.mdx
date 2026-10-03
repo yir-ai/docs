@@ -45,6 +45,13 @@ Some channels offer more than one version of a model, for example a standard and
 
 When `only` is present, every channel in `variants` must also be in `only`.
 
+### Variants can serve different requests
+
+Variants of the same channel can differ in billing and in the specifications they serve. For example, APIMart's GPT Image 2.5 standard version is billed by tokens and serves every quality tier, while its `ext` version charges a fixed price per image, offers fewer aspect ratios, and serves only `low` and `medium`.
+
+- A variant that does not support a request's parameters is excluded from routing and fallback for that request. If `only` and `variants` leave no variant that supports it, the quote reports `no_matching_supply` and the request is rejected.
+- [Model Market](https://yir.ai/models) compares prices per exact specification: a variant is listed only under the specifications it supports, and it is marked when it does not serve the selected quality tier.
+
 ## How fallback works
 
 Yir moves to another channel only after the current attempt is **confirmed failed**. Slow or unknown attempts are never abandoned to trigger fallback. By default a Job may try up to two distinct third-party channels followed by the official channel, subject to:
