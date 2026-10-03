@@ -22,7 +22,7 @@ You influence this with the optional `routing` object on quote and generation re
 
 | Field | Values | Effect |
 | --- | --- | --- |
-| `preference` | `balanced`, `cost` | `cost` prefers the lowest comparable price; `balanced` weighs price together with Yir's certified channel facts. Defaults to the key's Routing Profile. |
+| `preference` | `cost`, `speed` | `cost` (default) orders channels by estimated price, lowest first. `speed` orders channels by their observed upstream generation time (median over recent jobs); channels with too few recent jobs come after, ordered by price. `balanced` is still accepted as a deprecated alias of `cost`. Defaults to the key's Routing Profile. |
 | `only` | 1–16 channel IDs | Unordered allowlist. Selection and fallback stay inside it. A single entry pins one channel, which is useful for testing. |
 | `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
 | `fallback` | `true`, `false` | `false` allows only one provider attempt. Defaults to the key's Routing Profile. |

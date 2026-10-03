@@ -22,7 +22,7 @@ Yir 上的一个模型可能由多个**供应渠道**提供：模型原厂的官
 
 | 字段 | 取值 | 作用 |
 | --- | --- | --- |
-| `preference` | `balanced`、`cost` | `cost` 优先选择可比规格下的最低价；`balanced` 综合价格与 Yir 已认证的渠道事实。默认取 Key 的 Routing Profile。 |
+| `preference` | `cost`、`speed` | `cost`（默认）按估价从低到高选择渠道。`speed` 按渠道近期实测的上游生成耗时（中位数）从快到慢选择；近期样本不足的渠道排在后面，按价格排序。`balanced` 仍可使用，是 `cost` 的已弃用别名。默认取 Key 的 Routing Profile。 |
 | `only` | 1–16 个渠道 ID | 无序白名单，选择与切换都限定在其中。只写一个渠道可用于定点测试。 |
 | `variants` | 渠道 ID → 版本 的映射 | 选择渠道的特定版本，见下文。 |
 | `fallback` | `true`、`false` | `false` 表示只允许一次渠道尝试。默认取 Key 的 Routing Profile。 |
