@@ -48,6 +48,8 @@ const requiredPages = [
   'guides/webhooks',
   'guides/clients',
   'guides/vercel-ai-sdk',
+  'models/gpt-image-2',
+  'models/gpt-image-2-5',
   'concepts/task-lifecycle',
   'concepts/providers',
   'concepts/routing',

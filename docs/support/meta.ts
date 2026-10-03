@@ -3,6 +3,6 @@ import { defineMeta } from "blume";
 export default defineMeta({
   title: "Help",
   icon: "circle-help",
-  order: 5,
+  order: 6,
   pages: ["error-codes", "troubleshooting"],
 });

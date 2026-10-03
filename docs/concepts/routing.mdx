@@ -63,6 +63,6 @@ A few parameters are handled differently by different channels. When a channel i
 - Quotes include `parameter_notices` for the first channel and `parameter_handling_may_vary: true` if fallback channels may behave differently.
 - Successful Jobs and their Webhooks include the `parameter_notices` of the attempt that produced the result.
 
-For example, GPT Image models ignore `quality` unless the request is pinned to the official channel with `routing.only: ["openai"]` (or `["official"]`); the notice reason is `quality_requires_official_channel`. Keep the original parameter in your request so pricing and execution stay consistent.
+For example, GPT Image models ignore `quality` unless every channel the routing allows supports it, such as `routing.only: ["openai"]` (or `["official"]`); the notice reason is `quality_requires_official_channel`. Each model page lists the exact rules, for example [GPT Image 2](/docs/models/gpt-image-2#quality) and [GPT Image 2.5](/docs/models/gpt-image-2-5#quality). Keep the original parameter in your request so pricing and execution stay consistent.
 
 Routing cannot bypass authentication, balance, spend limits, specification checks, or Yir's attempt limits, and it cannot select credentials.

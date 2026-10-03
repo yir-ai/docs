@@ -1,0 +1,78 @@
+---
+title: GPT Image 2.5
+description: Generate and edit images with OpenAI GPT Image 2.5 Flare and Sunburst on Yir, including how the quality parameter is handled across channels.
+---
+
+GPT Image 2.5 is OpenAI's image generation and editing model, available in two versions with separate model IDs:
+
+| Model ID | Alias | Version |
+| --- | --- | --- |
+| `openai/gpt-image-2.5-flare` | `gpt-image-2.5-flare` | Standard: everyday generation and fast iteration |
+| `openai/gpt-image-2.5-sunburst` | `gpt-image-2.5-sunburst` | Precise: detailed editing and complex visual work |
+
+Both support text-to-image and image editing with up to 16 reference images through the standard [image generation](/docs/guides/image-generation) endpoint.
+
+## Example
+
+```json
+{
+  "model": "openai/gpt-image-2.5-flare",
+  "input": {
+    "type": "text",
+    "prompt": "A watercolor fox reading a map in a pine forest"
+  },
+  "parameters": { "resolution": "2K", "aspect_ratio": "16:9", "n": 1 }
+}
+```
+
+For image editing, set `input.type` to `image` and add `reference_image` references from the [Files API](/docs/guides/input-files).
+
+## Parameters
+
+| Parameter | Values | Default |
+| --- | --- | --- |
+| `resolution` | `1K`, `2K`, `4K` | `1K` |
+| `aspect_ratio` | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `2:1`, `1:2`, `3:1`, `1:3`, `21:9`, `9:21` | `auto` |
+| `quality` | `auto`, `low`, `medium`, `high`, `xhigh`, `max` | Not set. See [quality](#quality) |
+| `n` | `1` | `1` |
+
+The authoritative list comes from `GET /v1/models/{creator}/{model}?view=contract`. Channels may support only some combinations (for example, some channels offer fewer aspect ratios), so [quote](/docs/concepts/billing#get-a-quote) the complete request.
+
+## Quality
+
+By default Yir **ignores** `quality` for GPT Image models. The notice reason is `quality_requires_official_channel`.
+
+For GPT Image 2.5, `quality` is kept only when the request is pinned to the official channel with `"routing": { "only": ["openai"] }` (or `["official"]`). Any other routing ignores it.
+
+```json
+{
+  "model": "openai/gpt-image-2.5-sunburst",
+  "input": { "type": "text", "prompt": "A product photo of a ceramic mug" },
+  "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "quality": "high", "n": 1 },
+  "routing": { "only": ["openai"] }
+}
+```
+
+What each channel generates with:
+
+| Channel | Quality used |
+| --- | --- |
+| Official (`openai`), `only: ["openai"]` | The tier you set. If you omit `quality`, OpenAI's `auto`, whose actual usage can differ from the estimate |
+| Official (`openai`), other routing | Ignored, with a notice |
+| APIMart standard version | Always `medium`, the same tier as the estimate |
+| APIMart `ext` version, KIE | Not sent upstream. These channels have a fixed per-image price |
+
+Ignored parameters are reported at every stage, the same way as for [GPT Image 2](/docs/models/gpt-image-2#where-you-see-the-notice): the model contract shows the `policy` on `quality`, the quote's `parameter_notices` shows what is expected, and a successful Job carries the notices of the attempt that delivered the result. Keep the original `quality` in your request.
+
+## Billing
+
+- Token-billed channels (official and the APIMart standard version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. When quality is omitted, ignored, or `auto`, the estimate assumes `medium`; an explicit tier on the official channel is estimated at that tier.
+- Reference images on token-billed channels are billed separately as image input tokens. OpenAI counts input image tokens roughly by 32×32-pixel patches, with a per-image cap; the quote does not include them, so editing with several large references can cost noticeably more than the quoted amount.
+- The APIMart `ext` version charges a fixed price per output image by resolution, with no extra charge for references.
+- The final charge is the delivering channel's actual upstream cost × your discount. See [quotes and billing](/docs/concepts/billing).
+
+## Related
+
+- [GPT Image 2](/docs/models/gpt-image-2)
+- [Routing and fallback](/docs/concepts/routing)
+- [Image generation](/docs/guides/image-generation)

@@ -59,7 +59,7 @@ Parameters are validated against the chosen model. Values that a model does not 
 
 | Parameter | Models | Notes |
 | --- | --- | --- |
-| `quality` | GPT Image and others | GPT Image ignores it unless the request is pinned to the official channel. See [parameters that differ by channel](/docs/concepts/routing#parameters-that-differ-by-channel). |
+| `quality` | GPT Image and others | GPT Image ignores it unless every allowed channel supports it. See [GPT Image 2](/docs/models/gpt-image-2#quality) and [GPT Image 2.5](/docs/models/gpt-image-2-5#quality). |
 | `web_search` | Nano Banana 2, Nano Banana Pro | Default `false`. Requires a channel that supports search; check the quote. |
 | `image_search` | Nano Banana 2 | Requires `web_search: true`. |
 

@@ -3,6 +3,6 @@ import { defineMeta } from "blume";
 export default defineMeta({
   title: "Core concepts",
   icon: "network",
-  order: 3,
+  order: 4,
   pages: ["task-lifecycle", "billing", "routing", "providers"],
 });

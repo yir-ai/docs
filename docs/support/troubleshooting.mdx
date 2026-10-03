@@ -31,7 +31,7 @@ Look up specific codes in [error codes](/docs/support/error-codes). For the prob
     Result URLs are short-lived. Query `GET /v1/jobs/{id}` for a fresh URL. If `result.availability` is `expired`, the 7-day retention has ended and the file is no longer available.
   </AccordionItem>
   <AccordionItem title="A parameter seems to have no effect">
-    Check `parameter_notices` on the quote and the finished Job. Some channels ignore certain parameters; for example GPT Image ignores `quality` unless the request is pinned to the official channel.
+    Check `parameter_notices` on the quote and the finished Job. Some channels ignore certain parameters; for example GPT Image ignores `quality` unless every allowed channel supports it (see [GPT Image 2](/docs/models/gpt-image-2#quality)).
   </AccordionItem>
   <AccordionItem title="Webhook signatures never verify">
     Verify the raw request bytes before any JSON parsing or re-serialization. Use the Webhook signing secret from Console → Webhooks, not your API key, and sign `timestamp + "." + id + "." + body`. Check that your server clock is accurate within 300 seconds.

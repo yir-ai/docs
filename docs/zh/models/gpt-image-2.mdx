@@ -1,0 +1,94 @@
+---
+title: GPT Image 2
+description: 在 Yir 上使用 OpenAI GPT Image 2 生成和编辑图片，以及 quality 参数在不同渠道上的处理方式。
+---
+
+`openai/gpt-image-2`（别名 `gpt-image-2`）是 OpenAI 的图片生成与编辑模型，通过统一的[图片生成](/zh/docs/guides/image-generation)接口支持文生图和带参考图的图片编辑。
+
+## 示例
+
+```json
+{
+  "model": "openai/gpt-image-2",
+  "input": {
+    "type": "text",
+    "prompt": "A watercolor fox reading a map in a pine forest"
+  },
+  "parameters": { "resolution": "2K", "aspect_ratio": "3:2", "n": 1 }
+}
+```
+
+图片编辑时将 `input.type` 设为 `image`，并添加来自 [Files API](/zh/docs/guides/input-files) 的 `reference_image` 参考图。
+
+## 参数
+
+| 参数 | 取值 | 默认值 |
+| --- | --- | --- |
+| `resolution` | `1K`、`2K`、`4K` | `1K` |
+| `aspect_ratio` | `auto`、`1:1`、`3:2`、`2:3`、`4:3`、`3:4`、`5:4`、`4:5`、`16:9`、`9:16`、`2:1`、`1:2`、`3:1`、`1:3`、`21:9`、`9:21` | `auto` |
+| `quality` | `auto`、`low`、`medium`、`high` | 不设置，见[画质](#画质) |
+| `n` | `1` | `1` |
+
+完整列表（含参考图数量限制）以 `GET /v1/models/openai/gpt-image-2?view=contract` 为准。渠道可能只支持部分组合，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。
+
+## 画质
+
+GPT Image 系列默认**忽略** `quality`，因为多数渠道无法控制画质档位。通知原因为 `quality_requires_official_channel`。
+
+只有当路由允许的每条渠道都支持画质时，Yir 才保留 `quality`：
+
+| 路由 | `quality` |
+| --- | --- |
+| 不传 `routing`，或允许列表中包含不支持画质的渠道 | 忽略 |
+| `"only": ["openai"]`（或 `["official"]`） | 保留 |
+| `"only": ["apimart"]` 且 `"variants": { "apimart": "official" }` | 保留 |
+| `"only": ["openai", "apimart"]` 且 `"variants": { "apimart": "official" }` | 保留 |
+
+```json
+{
+  "model": "openai/gpt-image-2",
+  "input": { "type": "text", "prompt": "A product photo of a ceramic mug" },
+  "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "quality": "high", "n": 1 },
+  "routing": { "only": ["apimart"], "variants": { "apimart": "official" } }
+}
+```
+
+保留画质时，这些渠道目前接受 `medium` 和 `high`。在这类路由下请求 `auto` 或 `low` 无法由它们执行，请先查看报价中的 `supply`。
+
+画质被忽略或未传时，支持画质的渠道会收到 `medium`，与估价档位一致；其他渠道使用各自的默认值。
+
+### 在哪里看到通知
+
+被忽略的参数会在每个阶段如实告知，不会被隐藏：
+
+1. **模型合同。** `GET /v1/models/openai/gpt-image-2?view=contract` 中的 `quality` 参数带有 `policy`，包含 `only_provider: "openai"` 和原因；模型详情的 `channel_parameters` 列出各渠道规则。这一阶段说明*可能*发生什么。
+2. **报价。** `parameter_notices` 说明按当前路由在首个渠道上*预计*如何处理；`parameter_handling_may_vary: true` 表示切换后的渠道处理可能不同。
+3. **Job。** 成功的 Job 及其 Webhook 带有交付结果那次尝试的 `parameter_notices`，即*实际*处理方式。
+
+```json
+{
+  "parameter_notices": [
+    {
+      "name": "quality",
+      "disposition": "ignored",
+      "reason": "quality_requires_official_channel",
+      "message": "GPT Image quality is ignored unless routing.only is [\"openai\"]."
+    }
+  ]
+}
+```
+
+从不向上游发送画质的渠道也可能返回 `channel_parameter_unsupported`。无论哪种情况都请在请求中保留原始 `quality`：修改它会改变请求的幂等身份，而通知已经说明了实际处理方式。
+
+## 计费
+
+- 按 Token 计费的渠道返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价使用实际生效的画质：画质被忽略或未传时按 `medium`，否则按你指定的档位。
+- 按 Token 计费的渠道会把参考图另按图片输入 Token 计费。OpenAI 大致按 32×32 像素块计算输入图 Token，单张有上限；估价不包含这部分。
+- 按张固定计价的渠道返回 `kind: fixed`。
+- 最终费用为交付渠道的上游实际费用 × 你的折扣，见[报价与计费](/zh/docs/concepts/billing)。
+
+## 相关页面
+
+- [GPT Image 2.5](/zh/docs/models/gpt-image-2-5)
+- [路由与渠道切换](/zh/docs/concepts/routing)
+- [图片生成](/zh/docs/guides/image-generation)

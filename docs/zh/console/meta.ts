@@ -3,6 +3,6 @@ import { defineMeta } from "blume";
 export default defineMeta({
   title: "Console",
   icon: "layout-dashboard",
-  order: 4,
+  order: 5,
   pages: ["api-keys", "routing", "playground", "logs", "webhooks", "alerts"],
 });
