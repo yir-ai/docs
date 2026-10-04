@@ -60,6 +60,20 @@ APIMart's `ext` version and KIE render at a fixed quality of at least `medium` a
 
 To get the lowest price, omit `quality`. Model detail lists each channel's tiers in `channel_parameters`, and [Model Market](https://yir.ai/models) marks the channels that do not serve the tier you select.
 
+## Differences from the OpenAI API
+
+Requests use Yir's [common request shape](/docs/guides/official-api-differences), so code written for the OpenAI Images API needs these changes:
+
+| OpenAI | Yir |
+| --- | --- |
+| `quality: "auto"` (OpenAI's default) | Not accepted. Use `low`, `medium`, `high`, `xhigh` or `max`, or omit `quality`. See [quality](#quality). |
+| `size` (pixel sizes or `auto`) | `resolution` plus `aspect_ratio`. |
+| `n` greater than 1 | `n` is always `1`; submit one Job per image. |
+| `background`, `output_format`, `output_compression`, `moderation` | Not available. |
+| `stream`, `partial_images` | Not available; the result arrives when the Job finishes. |
+| `mask` for inpainting | Not available; edit with `reference_image` references and the prompt. |
+| Image URLs or base64 inputs | Upload with the [Files API](/docs/guides/input-files) and pass `file_id`. |
+
 ## Billing
 
 - Token-billed channels (official and APIMart's standard version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.

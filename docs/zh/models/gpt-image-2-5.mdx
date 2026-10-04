@@ -60,6 +60,20 @@ APIMart `ext` 版本和 KIE 以不低于 `medium` 的固定画质出图，按张
 
 需要最低价时不传 `quality`。模型详情的 `channel_parameters` 列出各渠道可承接的档位；在[模型市场](https://yir.ai/zh/models)选择画质档位时，不承接该档位的渠道会被标出。
 
+## 与 OpenAI API 的差异
+
+请求采用 Yir 的[通用请求格式](/zh/docs/guides/official-api-differences)，按 OpenAI Images API 编写的代码需要做以下调整：
+
+| OpenAI | Yir |
+| --- | --- |
+| `quality: "auto"`（OpenAI 默认值） | 不接受。改用 `low`、`medium`、`high`、`xhigh` 或 `max`，或省略 `quality`。见[画质](#画质)。 |
+| `size`（像素尺寸或 `auto`） | `resolution` 加 `aspect_ratio`。 |
+| `n` 大于 1 | `n` 固定为 `1`；每张图提交一个 Job。 |
+| `background`、`output_format`、`output_compression`、`moderation` | 不可用。 |
+| `stream`、`partial_images` | 不可用；结果在 Job 结束时返回。 |
+| 局部重绘的 `mask` | 不可用；用 `reference_image` 参考图和提示词编辑。 |
+| 图片 URL 或 base64 输入 | 通过 [Files API](/zh/docs/guides/input-files) 上传，传 `file_id`。 |
+
 ## 计费
 
 - 按 Token 计费的渠道（官方渠道与 APIMart 标准版本）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
