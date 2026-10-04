@@ -25,7 +25,7 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 
 ## Model-specific differences
 
-Differences that change what a request means, beyond the rules above. A model that is not listed here can still accept fewer values than its maker's API; its contract shows exactly what Yir accepts.
+Differences that change what a request means, beyond the rules above, checked against each maker's own API documentation (2026-10-04). Only differences that matter when migrating are listed; parameters already covered by the rules above, such as `seed`, `negative_prompt` or `watermark`, are not repeated per model. Reve 2.1 is not covered yet because it has no public API reference. The model contract is always the exact list of what Yir accepts.
 
 ### GPT Image 2 and GPT Image 2.5
 
@@ -50,5 +50,126 @@ Model: `google/gemini-omni-1.1-flash`.
 | Parameter | Google API | Yir |
 | --- | --- | --- |
 | `duration` | Optional; Google's documentation describes lengths of about 3 to 10 seconds. | Only `4`, `6`, `8` or `10` seconds. Omitted means `4` seconds, a Yir default rather than Google's. There is no automatic length, because a fixed length is needed to quote the price. |
+| `resolution` | `360p`, `720p`, `1080p`, `4k`. | `720p`, `1080p`, `4K`. No `360p`. |
+| Last frame | First-to-last-frame interpolation. | Not available; `image` mode takes a `first_frame` only. |
+| Reference images | Several reference images. | Up to 3 `reference_image` references. |
+| Reference videos, edit, extend | Supported. | Not available. |
 
 Migrating: set `duration` explicitly to one of the supported lengths; other values are rejected rather than rounded.
+
+### Other Google models
+
+| Model | Parameter or feature | Google API | Yir |
+| --- | --- | --- | --- |
+| `google/gemini-2.5-flash-image` | `aspect_ratio` | When omitted for an edit, the output follows the input image. | Defaults to `1:1`, with no `auto`. Set the ratio explicitly when editing. |
+| `google/gemini-3.1-flash-lite-image` | `aspect_ratio` | Vertex AI also lists `1:4`, `4:1`, `1:8`, `8:1`; omitted follows the input image. | 10 standard ratios, default `1:1`, no `auto`. |
+| `google/gemini-3.1-flash-lite-image` | `thinking_level`, video input | Available. | Not available. |
+| `google/nano-banana-2` | `resolution` | `512`, `1K`, `2K`, `4K`. | `0.5K` stands for `512`. |
+| `google/nano-banana-2` | `aspect_ratio` | Omit to let the model follow the input. Vertex AI also lists `9:21`. | `auto` (the default) does the same as omitting it. No `9:21`. |
+| `google/nano-banana-2` | Image search | Can be used on its own. | `image_search` requires `web_search: true`. |
+| `google/nano-banana-2` | `thinking_level`, video input | Available. | Not available. |
+| `google/nano-banana-pro` | Google Search grounding | Available. | Not available (`web_search` is not offered for this model). |
+| `google/nano-banana-pro` | `aspect_ratio` | Vertex AI also lists `1:4`, `4:1`, `1:8`, `8:1`, `9:21`. | 10 standard ratios plus `auto`. |
+| `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | Last frame, reference images, video extension | Available. | Not available; `image` mode takes a `first_frame` only. |
+| `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | `personGeneration`, `resizeMode` | Available. | Not available. |
+
+### ByteDance Seedance and Seedream
+
+Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive`, and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. ByteDance's `duration: -1` (model-chosen length), `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
+
+| Model | Parameter or feature | ByteDance API | Yir |
+| --- | --- | --- | --- |
+| `bytedance/seedance-1.5-pro` | `aspect_ratio` | Includes `adaptive` (follows the first frame). | Fixed ratios only. |
+| `bytedance/seedance-1.5-pro`, `-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Only on `bytedance/seedance-2.0`. |
+| `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `1080p`. |
+| `bytedance/seedance-2.0-fast` | `duration` | Any integer from 4 to 15. | `5`, `10` or `15`. |
+| `bytedance/seedance-2.0-mini` | `duration` | Any integer from 4 to 15. | `5` or `10`. |
+| `bytedance/seedance-2.0-fast`, `-2.0-mini` | References | Up to 9 images, 3 videos and 3 audio clips. | Up to 3 references in total. No `adaptive` ratio. |
+| `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p` or `720p`. |
+| `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`. | Named `auto`. |
+| `bytedance/seedance-2.5` | Video editing (`omni_reference_task_type`), audio-only references, `output_format: mov` | Available. | Not available. References must include an image or a video. |
+| `bytedance/seedream-4.5` | References | Up to 14 images. | Up to 10. `9:21` only with references. |
+| `bytedance/seedream-4.5`, `-5.0`, `-5.0-pro` | Image sets (`sequential_image_generation`, `max_images`) | Up to 15 images per request. | One image per Job. |
+| `bytedance/seedream-4.5`, `-5.0`, `-5.0-pro` | Aspect ratio | Any ratio from 1:16 to 16:1. | A fixed list of ratios. |
+| `bytedance/seedream-5.0-pro` | `resolution` | `1K`, `1.5K`, `2K`; default `2K`. | `1K` or `2K`; default `1K`. |
+| `bytedance/seedream-5.0-pro` | Layer decomposition, transparent background, prompt optimization mode | Available. | Not available. |
+
+### Alibaba Wan, Qwen-Image, HappyHorse and Z-Image
+
+Where Alibaba defaults to `1080P` (Wan 2.6, Wan 2.7, Wan 3.0, HappyHorse 1.1) Yir defaults to `720p`, and where Alibaba lets the model choose the image size (Qwen-Image), Yir defaults to `1K` at `1:1`. Alibaba's `prompt_extend`, `negative_prompt`, `seed` and `watermark` are not available.
+
+| Model | Parameter or feature | Alibaba API | Yir |
+| --- | --- | --- | --- |
+| `alibaba/happyhorse-1.1` | `duration` | Any integer from 3 to 15. | `5` or `10`. |
+| `alibaba/happyhorse-1.1` | `resolution`, `aspect_ratio` | `480P` to `1080P`; 9 ratios for text-to-video. | `720p` or `1080p`; text-to-video is `16:9` only. |
+| `alibaba/qwen-image-2.1` | Size | Any area from 512² to 2048², ratios from 1:8 to 8:1. | `1K` or `2K` with 7 ratios. |
+| `alibaba/qwen-image-3.0-pro` | Image editing | 1 to 3 input images. | Text to image only; 5 ratios. |
+| `alibaba/wan-2.6` | `duration` | 2 to 15 seconds (2 to 10 with references). | 5 to 15 seconds; `5` or `10` with references. |
+| `alibaba/wan-2.6` | `resolution`, `aspect_ratio` | Text to video also offers `480P`, `4:3` and `3:4`. | `720p` or `1080p`; text to video is `16:9`, `9:16` or `1:1`. |
+| `alibaba/wan-2.6` | `shot_type`, `audio_url` | Available. | Not available. |
+| `alibaba/wan-2.7` | Image to video (first frame, first and last frame, continuation) | Available. | Not available; text and reference modes only. |
+| `alibaba/wan-2.7` | `reference_voice`, `audio_url` | Available. | Not available. |
+| `alibaba/wan-2.7-image`, `-image-pro` | Image editing | 0 to 9 input images. | Text to image only. |
+| `alibaba/wan-2.7-image`, `-image-pro` | Image sets, `color_palette`, `bbox_list`, custom sizes | Available. | Not available. `wan-2.7-image` defaults to `1K` instead of `2K`. |
+| `alibaba/wan-3.0` | `duration` | Any integer from 2 to 30, or `-1` for model-chosen. | `2`, `3`, `4`, `5`, `10` or `15`. |
+| `alibaba/wan-3.0` | `aspect_ratio` | Includes `21:9`; default `adaptive`. | No `21:9`; default `16:9` (`adaptive` is available). |
+| `alibaba/wan-3.0` | Audio | On by default. | `generate_audio` defaults to `false`. |
+| `alibaba/wan-3.0` | Reference videos and audio, document or link input | Available. | Not available; reference images only. |
+| `alibaba/z-image-turbo` | Size | Default `1024*1536` (2:3); also `7:9`, `9:7`, `9:21`, `21:9`. | Default `1K` at `1:1`; 7 ratios. |
+
+### Black Forest Labs FLUX and Prodia
+
+BFL sets output size with `width` and `height`; Yir offers `resolution` tiers and preset ratios, and an edit without `aspect_ratio` comes back at `1:1` rather than following the input image. Pass the ratio you want explicitly.
+
+| Model | Parameter or feature | Official API | Yir |
+| --- | --- | --- | --- |
+| `bfl/flux-2-flex` | Editing with up to 8 input images | Available. | Text to image only. |
+| `bfl/flux-2-flex` | `steps`, `guidance`, `prompt_upsampling` | Available. | Not available. |
+| `bfl/flux-2-flex`, `bfl/flux-2-pro` | Size | Up to 4 MP. | `1MP` with 5 ratios. |
+| `bfl/flux-2-max` | Size, editing | Up to 4 MP, editing with up to 8 input images. | `1MP` at `1:1` only; text to image only. |
+| `bfl/flux-2-pro`, `bfl/flux-2-max` | `disable_pup` | Turns prompt upsampling off. | Not available; upsampling stays on. |
+| `bfl/flux-kontext-pro` | `aspect_ratio` | Any ratio from 21:9 to 9:21; edits keep the input's shape when omitted. | 9 preset ratios; default `1:1`. |
+| `bfl/flux-kontext-pro`, `bfl/flux-pro-1.1`, `bfl/flux-pro-1.1-ultra` | `prompt_upsampling` | Available. | Not available. |
+| `bfl/flux-pro-1.1` | Size, `image_prompt` | 256 to 1440 px per side; image prompt (Redux). | `1MP` with 5 ratios; text only. |
+| `bfl/flux-pro-1.1-ultra` | `raw`, `image_prompt` | Available. | Not available. |
+| `bfl/flux-pro-1.1-ultra` | `aspect_ratio` | Any ratio from 21:9 to 9:21; default `16:9`. | 5 ratios; default `1:1`. `2K` stands for Ultra's fixed size of about 4 MP. |
+| `prodia/flux-fast-schnell` | Size, `steps`, `style_preset` | 256 to 1920 px per side, 1 to 4 steps, 17 style presets. | `1K` only; steps and presets not available. |
+
+### Kling and MiniMax
+
+| Model | Parameter or feature | Official API | Yir |
+| --- | --- | --- | --- |
+| `klingai/kling-2.6` | Image to video, native audio, voices | Available. | Not available. Text to video (silent) and motion control only. Use Kling 3.0 for first and last frames. |
+| `klingai/kling-2.6`, `klingai/kling-3.0` | Motion control `character_orientation`, original audio | Choose `image` or `video`; keeps the reference video's sound by default. | Orientation is fixed to the video; keeping the original sound is not offered. |
+| `klingai/kling-3.0` | `duration` | Any integer from 3 to 15. | `3`, `5`, `10` or `15`. |
+| `klingai/kling-3.0` | `multi_shot`, elements, voices | Available. | Not available. |
+| `klingai/kling-3.0` | Kling 3.0 Omni (multi-image reference, video editing) | A separate endpoint. | Not offered. |
+| `minimax/hailuo-2.3`, `minimax/hailuo-2.3-fast` | `prompt_optimizer`, `fast_pretreatment` | Available. | Not available. `1080p` is available only with 6-second videos, as with MiniMax. |
+| `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` (MiniMax's H3 Max default is `768P`) and 5 s. |
+| `minimax/minimax-h3`, `minimax/minimax-h3-max` | `aspect_ratio` with a first frame | Any value is treated as `adaptive`. | Only `adaptive` is accepted. |
+| `minimax/minimax-h3-max` | Reference to video, `prompt_expansion_mode` | Available. | Not available. |
+
+### xAI Grok Imagine
+
+| Model | Parameter or feature | xAI API | Yir |
+| --- | --- | --- | --- |
+| `spacexai/grok-imagine-image` | `aspect_ratio`, `resolution` | 15 ratios plus `auto` (default); `1k` and `2k`. | `1:1`, `16:9`, `9:16`, `3:2`, `2:3`, default `1:1`; `1K` only. |
+| `spacexai/grok-imagine-image` | Edit references | Up to 5 images. | 1 image. |
+| `spacexai/grok-imagine-image-2.0` | `quality` | `low`, `medium`, `auto` (default). | `low` or `medium`, default `low`; no `auto`. Not available when editing. |
+| `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 ratios plus `auto` (default); edits follow the input image. | 7 ratios, default `1:1`. Edits accept `auto`; set it explicitly to follow the input. |
+| `spacexai/grok-imagine-image-2.0` | Edit references | Up to 5 images. | Up to 3. |
+| `spacexai/grok-imagine-video` | `duration` | Any integer from 1 to 15; default 8. | A fixed list; default `6`. |
+| `spacexai/grok-imagine-video` | Audio | On by default. | Silent only (`generate_audio: false`). |
+| `spacexai/grok-imagine-video` | `aspect_ratio` | Includes `4:3` and `3:4`; with an input image, defaults to its ratio. | No `4:3` or `3:4`; default `16:9`. |
+| `spacexai/grok-imagine-video` | Video edit, extension, reference images | Available. | Not available. |
+
+### Other image models
+
+| Model | Parameter or feature | Official API | Yir |
+| --- | --- | --- | --- |
+| `openai/gpt-image-1`, `openai/gpt-image-1.5` | `quality`, `size`, unavailable options | As for GPT Image 2 above. | As for GPT Image 2 above. `aspect_ratio` is `1:1`, `2:3` or `3:2`, default `1:1` (no `auto`). |
+| `openai/gpt-image-1`, `openai/gpt-image-1.5` | `input_fidelity`, transparent background | Available. | Not available. |
+| `recraft/recraft-v3` | Size | 14 ratios; chosen from the prompt when omitted. | 5 ratios; default `1:1`. |
+| `recraft/recraft-v3` | `style`, custom styles, `controls` (colors, background, artistic level), `text_layout`, vector output, image inputs | Available. | Not available. Text to raster image only. |
+| `meta/muse-image-1.0` | Size, editing and references | Any size (default `auto`); edits and multi-image composition. | `1:1` only; text to image only. |
+| `meta/muse-image-1.0` | `reasoning_strength`, built-in search tool switches | Available. | Not available. |
