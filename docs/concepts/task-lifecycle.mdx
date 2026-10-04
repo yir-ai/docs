@@ -90,7 +90,7 @@ A successful result can carry `result.content_safety`, which tells you whether t
 | `{"status": "passed", "checked_by": "yir"}` | The provider has no reliable moderation, so Yir checked the output itself before delivery. |
 | `{"status": "unchecked"}` | No check could be applied to this output. |
 
-When the status is `passed`, you can skip your own NSFW check on the result. When it is `unchecked`, or the field is absent (results delivered before the field existed), apply your own policy. Output that fails a check is never delivered: the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/support/error-codes). Webhooks carry the same `result` object.
+Yir checks the prompt and image references before it creates a Job; input that fails is rejected with `400 YIR_CONTENT_REJECTED` and no Job. `content_safety` describes the later check on the output, which only blocks explicit adult content. When the status is `passed`, you can skip your own NSFW check on the result. When it is `unchecked`, or the field is absent (results delivered before the field existed), apply your own policy. Output that fails a check is never delivered: the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/support/error-codes), and is charged only if the provider had already billed the generation. Webhooks carry the same `result` object.
 
 ## Applying terminal results once
 

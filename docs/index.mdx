@@ -40,7 +40,7 @@ sequenceDiagram
 ```
 
 - **One Job per request.** Fallback attempts happen inside the Job. You never resubmit to recover from a provider failure.
-- **Pay for delivered results only.** Failed and cancelled Jobs are not charged. See [quotes and billing](/docs/concepts/billing).
+- **Pay for delivered results only.** Failed and cancelled Jobs are not charged, except output the provider already billed before a content rejection. See [quotes and billing](/docs/concepts/billing).
 - **No provider credentials.** Authenticate with your Yir API key only. See [authentication](/docs/getting-started/authentication).
 
 ## Find what you need
