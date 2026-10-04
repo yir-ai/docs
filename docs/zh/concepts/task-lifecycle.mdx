@@ -90,7 +90,7 @@ Yir 不是素材库。Job 成功后请尽快把需要的结果复制到自己的
 | `{"status": "passed", "checked_by": "yir"}` | 渠道没有可靠的审核，由 Yir 在交付前自行检测了结果。 |
 | `{"status": "unchecked"}` | 该结果无法检测。 |
 
-Yir 在创建 Job 前检测提示词和参考图；未通过的输入以 `400 YIR_CONTENT_REJECTED` 拒绝，不创建 Job。`content_safety` 说明的是之后对输出的检测，只拦截露骨成人内容。状态为 `passed` 时，可以跳过你自己对结果的 NSFW 检测；为 `unchecked` 或没有该字段（该字段上线前交付的结果）时，请按你自己的策略处理。未通过检测的输出不会交付：Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/support/error-codes)，只有渠道已对该次生成计费时才收费。Webhook 携带相同的 `result` 对象。
+Yir 自己的输出检测只拦截露骨成人内容。状态为 `passed` 时，可以跳过你自己对结果的 NSFW 检测；为 `unchecked` 或没有该字段（该字段上线前交付的结果）时，请按你自己的策略处理。未通过检测的输出不会交付：Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/support/error-codes)，只有渠道已对该次生成计费时才收费。Webhook 携带相同的 `result` 对象。
 
 ## 终态只处理一次
 

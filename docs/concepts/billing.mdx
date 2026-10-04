@@ -67,7 +67,7 @@ Submission checks prices again. A quote you obtained earlier does not guarantee 
 
 1. **Admission** checks your live available balance against the first channel's estimate. Nothing is reserved. Before each later attempt, the balance is checked again against that channel's estimate.
 2. **Success** charges only the attempt whose result was delivered: the channel's actual upstream cost × your discount, rounded up to US$0.000001, and capped by `max_cost` when set.
-3. **Failure or cancellation** charges nothing. The one exception is `YIR_CONTENT_REJECTED` after the provider already generated and billed the result: that attempt is charged the same way as a success (actual upstream cost × your discount, capped by `max_cost`), and the result is not delivered. Input rejected by Yir's check before the Job is created is never charged.
+3. **Failure or cancellation** charges nothing. The one exception is `YIR_CONTENT_REJECTED` after the provider already generated and billed the result: that attempt is charged the same way as a success (actual upstream cost × your discount, capped by `max_cost`), and the result is not delivered.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
 
 If your balance cannot cover a charge at settlement, the balance becomes negative. A negative balance blocks new Jobs until a top-up repays it; Jobs already admitted continue. Yir never charges your payment method automatically.
