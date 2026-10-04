@@ -1,0 +1,54 @@
+---
+title: 与官方 API 的差异
+description: Yir 的模型参数如何对应各厂商自己的 API、哪些官方选项不可用，以及迁移时需要注意的模型差异。
+---
+
+Yir 用同一种请求格式提供所有模型，这样每个请求都能事先可靠报价，并在不同渠道之间切换。因此，有些参数的名称或结构与模型厂商自己的 API 不同，有些官方选项不可用，少数模型只接受官方取值范围的一部分。本页列出这些差异。迁移按厂商 API 编写的代码时，请对照本页和模型合同检查。
+
+Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{model}?view=contract`）为准。见[模型与参数](/zh/docs/guides/models)。
+
+## 适用于所有模型的规则
+
+| 方面 | 官方 API | Yir |
+| --- | --- | --- |
+| 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)和[视频生成](/zh/docs/guides/video-generation)。 |
+| 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
+| 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
+| 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 固定为 `1`。每个输出提交一个 Job，各用独立的幂等键。 |
+| 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | 通过 [Files API](/zh/docs/guides/input-files) 上传，用 `file_id` 加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`。外部 URL 和内联数据会被拒绝。 |
+| 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
+| 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
+| 取值范围 | 官方完整范围。 | 有时只支持官方取值的一部分，以便事先报价并由多个渠道承接。显式传入的值不会被悄悄改写：没有渠道能承接时，报价返回 `no_matching_supply`，生成请求被拒绝。 |
+| 输出文件 | 内联 base64 或厂商 URL，格式由厂商决定。 | 文件复制到 Yir 存储，在 `result.files` 中以短期签名 URL 返回。文件格式取决于交付渠道。 |
+| 内容审核设置 | 有的 API 允许放宽或调整审核。 | 不可配置。Yir 在创建 Job 前检测输入，渠道另有自己的审核。见[内容安全](/zh/docs/concepts/task-lifecycle#内容安全)。 |
+| 凭据 | 你自己的厂商 Key。 | 只用你的 Yir API Key。Yir 不接受也不转发厂商 Key。 |
+
+## 各模型的差异
+
+以下是会改变请求含义、超出上述通用规则的差异。未在此列出的模型，也可能只接受厂商 API 的部分取值；以其合同为准。
+
+### GPT Image 2 与 GPT Image 2.5
+
+模型：`openai/gpt-image-2`、`openai/gpt-image-2.5-flare`、`openai/gpt-image-2.5-sunburst`。
+
+| 参数 | OpenAI Images API | Yir |
+| --- | --- | --- |
+| `quality` | `auto`（默认，由模型选择档位）或固定档位。 | 只接受固定档位：GPT Image 2 为 `low`、`medium`、`high`，GPT Image 2.5 另有 `xhigh`、`max`。不接受 `auto`，因为无法报价。传入的档位是最低要求：只有承接该档位的渠道才会执行。省略时任何渠道都可执行，可设置画质的渠道使用 `medium`。 |
+| `size` | 像素尺寸，如 `1024x1536`、自定义 `WIDTHxHEIGHT` 或 `auto`。 | 改用 `resolution`（`1K`、`2K`、`4K`）和 `aspect_ratio`（含 `auto`）。 |
+| `n` | 每次请求可生成多张。 | 固定为 `1`。 |
+| `background`、`output_format`、`output_compression` | 透明背景，PNG、JPEG、WebP 输出及压缩率。 | 不可用。 |
+| `moderation` | `auto` 或 `low`。 | 不可用。 |
+| `stream`、`partial_images` | 流式返回中间图。 | 不可用；结果在 Job 结束时返回。 |
+| `mask` | 编辑端点的局部重绘蒙版。 | 不可用。编辑通过 `reference_image` 参考图和提示词完成。 |
+
+迁移时：把 `quality: "auto"` 改为具体档位或省略，把 `size` 改为 `resolution` 加 `aspect_ratio`。见 [GPT Image 2](/zh/docs/models/gpt-image-2#与-openai-api-的差异) 和 [GPT Image 2.5](/zh/docs/models/gpt-image-2-5#与-openai-api-的差异)。
+
+### Gemini Omni 1.1 Flash
+
+模型：`google/gemini-omni-1.1-flash`。
+
+| 参数 | Google API | Yir |
+| --- | --- | --- |
+| `duration` | 可选；Google 文档描述的时长约为 3–10 秒。 | 只接受 `4`、`6`、`8`、`10` 秒。省略时为 `4` 秒，这是 Yir 的默认值，不是 Google 的。不提供自动时长，因为报价需要确定的时长。 |
+
+迁移时：显式设置一个支持的 `duration`；其他取值会被拒绝，不会就近取整。
