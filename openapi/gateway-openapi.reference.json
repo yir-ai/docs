@@ -1140,14 +1140,13 @@
               "quality": {
                 "type": "string",
                 "enum": [
-                  "auto",
                   "low",
                   "medium",
                   "high",
                   "xhigh",
                   "max"
                 ],
-                "description": "Model-specific image quality. GPT Image ignores quality unless routing.only is [openai]; omission uses channel defaults."
+                "description": "Minimum image quality tier; allowed values come from the model contract. For GPT Image the tier is a routing constraint: only channels that serve it run the request, and it is never ignored or lowered. When omitted, any channel may run and quality-capable channels use medium. auto is rejected."
               },
               "web_search": {
                 "type": "boolean",
@@ -1214,14 +1213,13 @@
               "quality": {
                 "type": "string",
                 "enum": [
-                  "auto",
                   "low",
                   "medium",
                   "high",
                   "xhigh",
                   "max"
                 ],
-                "description": "Model-specific image quality. GPT Image ignores quality unless routing.only is [openai]; omission uses channel defaults."
+                "description": "Minimum image quality tier; allowed values come from the model contract. For GPT Image the tier is a routing constraint: only channels that serve it run the request, and it is never ignored or lowered. When omitted, any channel may run and quality-capable channels use medium. auto is rejected."
               },
               "web_search": {
                 "type": "boolean",
@@ -2129,7 +2127,7 @@
               "quality": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Reference quality used for the output estimate. Automatic or omitted quality uses the catalog's medium reference when available; this does not change generation parameters."
+                "description": "Reference quality used for the output estimate. Omitted quality uses the catalog's medium reference when available; this does not change generation parameters."
               },
               "aspect_ratio": {
                 "type": "string",
@@ -2154,7 +2152,6 @@
           "quality": {
             "type": "string",
             "enum": [
-              "auto",
               "low",
               "medium",
               "high",
