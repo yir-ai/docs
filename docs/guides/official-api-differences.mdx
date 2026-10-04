@@ -75,7 +75,7 @@ Migrating: set `duration` explicitly to one of the supported lengths; other valu
 
 ### ByteDance Seedance and Seedream
 
-Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive`, and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. ByteDance's `duration: -1` (model-chosen length), `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
+Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive` (Seedance 2.5 with a first frame uses `auto`), and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. ByteDance's `duration: -1` (model-chosen length), `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
 
 | Model | Parameter or feature | ByteDance API | Yir |
 | --- | --- | --- | --- |
@@ -86,7 +86,7 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 | `bytedance/seedance-2.0-mini` | `duration` | Any integer from 4 to 15. | `5` or `10`. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | References | Up to 9 images, 3 videos and 3 audio clips. | Up to 3 references in total. No `adaptive` ratio. |
 | `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p` or `720p`. |
-| `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`. | Named `auto`. |
+| `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`, the only option with a first frame or first and last frames. | Named `auto`. With a first frame or first and last frames, only `auto` is accepted and it is the default. |
 | `bytedance/seedance-2.5` | Video editing (`omni_reference_task_type`), audio-only references, `output_format: mov` | Available. | Not available. References must include an image or a video. |
 | `bytedance/seedream-4.5` | References | Up to 14 images. | Up to 10. `9:21` only with references. |
 | `bytedance/seedream-4.5`, `-5.0`, `-5.0-pro` | Image sets (`sequential_image_generation`, `max_images`) | Up to 15 images per request. | One image per Job. |
@@ -133,7 +133,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `bfl/flux-pro-1.1` | Size, `image_prompt` | 256 to 1440 px per side; image prompt (Redux). | `1MP` with 5 ratios; text only. |
 | `bfl/flux-pro-1.1-ultra` | `raw`, `image_prompt` | Available. | Not available. |
 | `bfl/flux-pro-1.1-ultra` | `aspect_ratio` | Any ratio from 21:9 to 9:21; default `16:9`. | 5 ratios; default `1:1`. `2K` stands for Ultra's fixed size of about 4 MP. |
-| `prodia/flux-fast-schnell` | Size, `steps`, `style_preset` | 256 to 1920 px per side, 1 to 4 steps, 17 style presets. | `1K` only; steps and presets not available. |
+| `prodia/flux-fast-schnell` | Size, `steps`, `style_preset` | 256 to 1920 px per side, 1 to 4 steps, 17 style presets. | `1K` at `1:1` (1024×1024) only; steps and presets not available. |
 
 ### Kling and MiniMax
 

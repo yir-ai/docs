@@ -75,7 +75,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 
 ### 字节跳动 Seedance 与 Seedream
 
-Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `480p`（Seedance 2.5 为 `720p`），而非 `720p`；`duration` 为 `4` 秒（2.0 Fast 与 2.0 Mini 为 `5` 秒），而非 `5` 秒或由模型决定；`aspect_ratio` 为 `16:9` 而非 `adaptive`；`generate_audio` 为 `false` 而非 `true`。如果依赖字节跳动的默认值，请显式设置这些参数。所有 Seedance 模型都不提供字节跳动的 `duration: -1`（由模型决定时长）、`camera_fixed`、`draft`、`service_tier` 和 `priority`。
+Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `480p`（Seedance 2.5 为 `720p`），而非 `720p`；`duration` 为 `4` 秒（2.0 Fast 与 2.0 Mini 为 `5` 秒），而非 `5` 秒或由模型决定；`aspect_ratio` 为 `16:9` 而非 `adaptive`（Seedance 2.5 带首帧时为 `auto`）；`generate_audio` 为 `false` 而非 `true`。如果依赖字节跳动的默认值，请显式设置这些参数。所有 Seedance 模型都不提供字节跳动的 `duration: -1`（由模型决定时长）、`camera_fixed`、`draft`、`service_tier` 和 `priority`。
 
 | 模型 | 参数或功能 | 字节跳动 API | Yir |
 | --- | --- | --- | --- |
@@ -86,7 +86,7 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `bytedance/seedance-2.0-mini` | `duration` | 4–15 之间任意整数。 | `5` 或 `10`。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | 参考素材 | 最多 9 张图、3 段视频、3 段音频。 | 合计最多 3 个。没有 `adaptive` 比例。 |
 | `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | `480p` 或 `720p`。 |
-| `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`。 | 名为 `auto`。 |
+| `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`，首帧与首尾帧只支持该值。 | 名为 `auto`。首帧与首尾帧只接受 `auto`，也是默认值。 |
 | `bytedance/seedance-2.5` | 视频编辑（`omni_reference_task_type`）、纯音频参考、`output_format: mov` | 支持。 | 不可用。参考素材须包含图片或视频。 |
 | `bytedance/seedream-4.5` | 参考图 | 最多 14 张。 | 最多 10 张。`9:21` 仅在有参考图时可用。 |
 | `bytedance/seedream-4.5`、`-5.0`、`-5.0-pro` | 组图（`sequential_image_generation`、`max_images`） | 每次最多 15 张。 | 每个 Job 一张。 |
@@ -133,7 +133,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `bfl/flux-pro-1.1` | 尺寸、`image_prompt` | 每边 256–1440 像素；图像提示（Redux）。 | `1MP`，5 种比例；只支持文本。 |
 | `bfl/flux-pro-1.1-ultra` | `raw`、`image_prompt` | 支持。 | 不可用。 |
 | `bfl/flux-pro-1.1-ultra` | `aspect_ratio` | 21:9 到 9:21 之间任意比例；默认 `16:9`。 | 5 种比例；默认 `1:1`。`2K` 表示 Ultra 固定的约 4 MP 尺寸。 |
-| `prodia/flux-fast-schnell` | 尺寸、`steps`、`style_preset` | 每边 256–1920 像素，1–4 步，17 种风格预设。 | 只有 `1K`；步数和风格预设不可用。 |
+| `prodia/flux-fast-schnell` | 尺寸、`steps`、`style_preset` | 每边 256–1920 像素，1–4 步，17 种风格预设。 | 只有 `1K` 的 `1:1`（1024×1024）；步数和风格预设不可用。 |
 
 ### 可灵与 MiniMax
 
