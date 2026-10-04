@@ -63,7 +63,7 @@ A common robust setup uses Webhooks as the primary signal and slow polling as a 
 | Status is `queued`, `running`, or `delivering` | Wait and query again. Slow is not failed. |
 | Local wait deadline reached | Stop waiting, keep the Job ID, resume later. Do not resubmit. |
 | Status is `succeeded` | Read the full Job, copy `result.files`, record `billing.total_charged_by_yir`. |
-| Status is `failed` | Read the full Job and handle `error.code`. No charge applies. |
+| Status is `failed` | Read the full Job and handle `error.code`. No charge applies, except `YIR_CONTENT_REJECTED` on output the provider already billed. |
 | Status is `cancelled` | Read the full Job. `error` may be `null`. No charge applies. |
 | Full Job query fails | Retry that query. Do not settle from the status summary alone. |
 | `401`, `403`, or `404` | Fix the key, limit, or Job ID. Do not retry blindly. |

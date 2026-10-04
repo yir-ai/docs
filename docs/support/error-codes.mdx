@@ -31,6 +31,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | Code | HTTP | Meaning | What to do |
 | --- | --- | --- | --- |
 | `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`, or its `max_cost` is below every eligible channel's estimate. A generation request that references a missing, unfinished, or expired input file also returns this code (a quote returns `supply.available: false` instead). | Fix the request. Check the model's [contract](/docs/guides/models). |
+| `YIR_CONTENT_REJECTED` | 400 | Yir's input check found sexual content in the prompt or a reference image (including sexualized edits of real people or minors). The check runs before quoting, routing or charging. | Not retryable (`action: modify_input`). Ask the end user to change the prompt or reference images. |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | The `routing` object is invalid, for example an empty `only` or a variant outside `only`. | Fix `routing`. See [routing](/docs/concepts/routing). |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | Reserved in the contract and not returned today. An invalid `routing` returns `YIR_INVALID_ROUTING_OVERRIDE`. | Handle it like `YIR_INVALID_ROUTING_OVERRIDE` if you match on every code. |
 | `YIR_UNAUTHORIZED` | 401 | Missing, wrong, rotated, revoked, or expired key, or a disallowed source IP. | Check the key and its settings in Console. Do not retry unchanged. |
@@ -45,16 +46,16 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_FILE_EXPIRED` | 410 | Files API only (`/complete`, `/content`): the input file has expired. `GET /v1/files/{id}` returns `200` with `status: "expired"` instead. | Upload it again. |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
 | `YIR_RATE_LIMITED` | 429 | Too many Jobs are in progress for your account. | Wait for Jobs to finish, then retry with back-off. |
-| `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |
+| `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem, including when the input content check cannot run (the request fails closed). | Retry with back-off. For submissions, reuse the same idempotency key. |
 
 ## Job errors
 
-Appear on a Job whose status is `failed`. Failed Jobs are never charged.
+Appear on a Job whose status is `failed`. Failed Jobs are not charged, with one exception: a `YIR_CONTENT_REJECTED` output the provider already generated and billed (see below).
 
 | Code | Meaning | What to do |
 | --- | --- | --- |
 | `YIR_EXECUTION_FAILED` | Every eligible attempt failed. | Review the prompt and inputs, then submit a new request. Contact support if it keeps happening. |
-| `YIR_CONTENT_REJECTED` | Content safety checks rejected the prompt, the reference images, or the generated output: either the provider's moderation, or Yir's own check on output from providers without moderation (see [content safety](/docs/concepts/task-lifecycle#content-safety)). Yir does not fall back to another channel after this and does not charge for the Job. The Job status is still `failed`; the Console labels it Content rejected and leaves it out of success and failure rates, because it is a refusal of the input rather than a gateway or channel fault. | Not retryable (`action: modify_input`). Ask the end user to change the prompt or reference images, then submit a new request. |
+| `YIR_CONTENT_REJECTED` | A content safety check rejected the Job after it was created: the provider's moderation refused the prompt, the references or the output, or Yir's own output check blocked explicit adult content from a provider without moderation (see [content safety](/docs/concepts/task-lifecycle#content-safety)). Yir does not fall back to another channel. If the provider had not billed the attempt (for example it refused the submission), nothing is charged. If the provider had already generated and billed the result, the Job is charged that actual upstream cost × your discount, and the result is not delivered. The Job status is still `failed`; the Console labels it Content rejected and leaves it out of success and failure rates. | Not retryable (`action: modify_input`). Ask the end user to change the prompt or reference images, then submit a new request. |
 | `YIR_NO_EXECUTABLE_ROUTE` | No channel could run the Job after admission, or all eligible channels were used up. | Submit again later, or widen `routing`. |
 | `YIR_TEMPORARILY_UNAVAILABLE` | Capacity or network problems prevented execution. | Submit again later. |
 | `YIR_BUDGET_EXCEEDED` | No further attempt fits the Job's `max_cost`. | Raise `max_cost` on a new request if you accept the higher price. |
