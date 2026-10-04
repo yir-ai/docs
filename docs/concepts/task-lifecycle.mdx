@@ -80,6 +80,18 @@ Yir is not an asset library. Copy every result you need to your own storage as s
 
 A successful Job can carry `result.warnings: ["additional_results_unavailable"]` when an optional extra output (for example a video's last frame) could not be delivered. The Job is still successful and is charged normally.
 
+### Content safety
+
+A successful result can carry `result.content_safety`, which tells you whether the delivered output passed an NSFW check and who ran it:
+
+| Value | Meaning |
+| --- | --- |
+| `{"status": "passed", "checked_by": "provider"}` | The upstream provider enforces content moderation on this route. |
+| `{"status": "passed", "checked_by": "yir"}` | The provider has no reliable moderation, so Yir checked the output itself before delivery. |
+| `{"status": "unchecked"}` | No check could be applied to this output. |
+
+When the status is `passed`, you can skip your own NSFW check on the result. When it is `unchecked`, or the field is absent (results delivered before the field existed), apply your own policy. Output that fails a check is never delivered: the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/support/error-codes). Webhooks carry the same `result` object.
+
 ## Applying terminal results once
 
 The same terminal Job can reach you twice: once from polling and once from a Webhook, or from a Webhook retry. Make your business actions (saving files, updating credits, marking orders complete) idempotent by Job ID so each Job is applied exactly once.
