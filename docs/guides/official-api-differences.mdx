@@ -20,7 +20,7 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 | Defaults | The provider's defaults, sometimes "let the model decide". | The `default` in Yir's contract. An omitted parameter means that default, which can differ from the provider's (see the model sections below). |
 | Value ranges | Full official range. | Sometimes a subset of the official values, chosen so the request can be priced in advance and served by more than one channel. Explicit values are never silently rewritten: if no channel can serve a value, the quote reports `no_matching_supply` and a generation request is rejected. |
 | Output files | Inline base64 or provider URLs, in the provider's format. | Files copied to Yir storage and returned as short-lived signed URLs in `result.files`. The file format is whatever the delivering channel produces. |
-| Content moderation settings | Some APIs let you relax or tune moderation. | Not configurable. Channels apply their own moderation, and Yir checks output from channels without moderation. See [content safety](/docs/concepts/task-lifecycle#content-safety). |
+| Content moderation settings | Some APIs let you relax or tune moderation. | Not configurable. Channels apply their own moderation; Yir checks reference images before submission and image output from channels without moderation. See [content safety](/docs/concepts/task-lifecycle#content-safety). |
 | Credentials | Your own provider key. | Your Yir API key only. Yir does not accept or forward provider keys. |
 
 ## Model-specific differences

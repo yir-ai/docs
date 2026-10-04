@@ -16,7 +16,7 @@ When available, the detail page shows:
 
 ## Content rejected
 
-When a content safety check rejects a Job (the provider's moderation, or Yir's own check on output from providers without moderation), the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/support/error-codes). It is free unless the provider had already generated and billed the result; then the upstream cost is charged and the result is not delivered. Logs label these Jobs Content rejected instead of Failed, and the time chart shows them as a separate segment: the Failed legend filters execution failures only, and the Content rejected legend filters rejected Jobs only. Analytics success rates leave them out. Change the prompt or references before submitting again.
+When a content safety check rejects a Job (Yir's check of reference images before submission, the provider's moderation, or Yir's own check on image output from providers without moderation), the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/support/error-codes). It is free unless the provider had already generated and billed the result; then the upstream cost is charged and the result is not delivered. Logs label these Jobs Content rejected instead of Failed, and the time chart shows them as a separate segment: the Failed legend filters execution failures only, and the Content rejected legend filters rejected Jobs only. Analytics success rates leave them out. Change the prompt or references before submitting again.
 
 For successful Jobs, details show the result's [content safety](/docs/concepts/task-lifecycle#content-safety) outcome next to the files: passed (provider), passed (Yir), or not checked.
 
