@@ -80,6 +80,18 @@ Yir 不是素材库。Job 成功后请尽快把需要的结果复制到自己的
 
 当可选的附加输出（例如视频尾帧）未能交付时，成功的 Job 会带有 `result.warnings: ["additional_results_unavailable"]`。Job 仍然成功，按正常方式计费。
 
+### 内容安全
+
+成功结果可以带有 `result.content_safety`，说明交付的输出是否通过 NSFW 检测、由谁检测：
+
+| 取值 | 含义 |
+| --- | --- |
+| `{"status": "passed", "checked_by": "provider"}` | 该路线的上游渠道执行内容审核。 |
+| `{"status": "passed", "checked_by": "yir"}` | 渠道没有可靠的审核，由 Yir 在交付前自行检测了结果。 |
+| `{"status": "unchecked"}` | 该结果无法检测。 |
+
+状态为 `passed` 时，可以跳过你自己对结果的 NSFW 检测；为 `unchecked` 或没有该字段（该字段上线前交付的结果）时，请按你自己的策略处理。未通过检测的输出不会交付：Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/support/error-codes)。Webhook 携带相同的 `result` 对象。
+
 ## 终态只处理一次
 
 同一个终态 Job 可能两次到达：一次来自轮询，一次来自 Webhook，或来自 Webhook 重试。请按 Job ID 对业务动作（保存文件、更新积分、完成订单）做幂等，确保每个 Job 只处理一次。
