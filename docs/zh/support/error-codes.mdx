@@ -31,7 +31,6 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | 错误码 | HTTP | 含义 | 处理方式 |
 | --- | --- | --- | --- |
 | `YIR_INVALID_REQUEST` | 400 | 请求体、参数或参考素材不符合 API 或模型合同，或生成请求缺少 `Idempotency-Key`，或其 `max_cost` 低于所有可用渠道的估价。生成请求引用不存在、未完成或已过期的输入文件时，也返回此错误码（报价则返回 `supply.available: false`）。 | 修正请求，查看模型[合同](/zh/docs/guides/models)。 |
-| `YIR_CONTENT_REJECTED` | 400 | Yir 的输入检测在提示词或参考图中发现色情内容（包括对真实人物或未成年人的性化编辑）。检测在报价、路由和扣费之前进行。 | 不可重试（`action: modify_input`），请让终端用户修改提示词或参考图。 |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | `routing` 对象无效，例如 `only` 为空，或 `variants` 中的渠道不在 `only` 内。 | 修正 `routing`，见[路由](/zh/docs/concepts/routing)。 |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | 合同中的保留错误码，目前不会返回。`routing` 无效时返回 `YIR_INVALID_ROUTING_OVERRIDE`。 | 如果对每个错误码分别处理，按 `YIR_INVALID_ROUTING_OVERRIDE` 处理即可。 |
 | `YIR_UNAUTHORIZED` | 401 | Key 缺失、错误、已轮换、已吊销、已过期，或来源 IP 不被允许。 | 在 Console 检查 Key 及其设置，不要原样重试。 |
@@ -46,7 +45,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | `YIR_FILE_EXPIRED` | 410 | 仅 Files 接口（`/complete`、`/content`）：输入文件已过期。`GET /v1/files/{id}` 则返回 `200` 且 `status` 为 `expired`。 | 重新上传。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | 当前没有渠道能在约束内执行此请求。 | 稍后重试、放宽 `routing` 或调整参数；报价可查看 `supply`。 |
 | `YIR_RATE_LIMITED` | 429 | 账户进行中的 Job 过多。 | 等待 Job 结束后退避重试。 |
-| `YIR_TEMPORARILY_UNAVAILABLE` | 503 | 临时的服务问题，包括输入内容检测无法运行时（请求按失败关闭处理）。 | 退避重试；提交请求请复用同一个幂等键。 |
+| `YIR_TEMPORARILY_UNAVAILABLE` | 503 | 临时的服务问题。 | 退避重试；提交请求请复用同一个幂等键。 |
 
 ## Job 错误
 
@@ -55,7 +54,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | 错误码 | 含义 | 处理方式 |
 | --- | --- | --- |
 | `YIR_EXECUTION_FAILED` | 所有可用尝试均失败。 | 检查提示词和输入后提交新请求；持续出现请联系支持。 |
-| `YIR_CONTENT_REJECTED` | Job 创建后被内容安全检测拒绝：渠道的审核拒绝了提示词、参考图或生成结果，或 Yir 对无审核渠道输出的检测拦截了露骨成人内容（见[内容安全](/zh/docs/concepts/task-lifecycle#内容安全)）。Yir 不会再切换到其他渠道。渠道未对该尝试计费时（例如拒绝了提交）不收费；渠道已生成结果并计费时，按该上游实际费用 × 你的折扣收费，且不交付结果。Job 状态仍为 `failed`，Console 将其标为「内容拦截」，不计入成功率和失败率。 | 不可重试（`action: modify_input`），请让终端用户修改提示词或参考图后提交新请求。 |
+| `YIR_CONTENT_REJECTED` | Job 被内容安全检测拒绝：渠道的审核拒绝了提示词、参考图或生成结果，或 Yir 对无审核渠道输出的检测拦截了露骨成人内容（见[内容安全](/zh/docs/concepts/task-lifecycle#内容安全)）。Yir 不会再切换到其他渠道。渠道未对该尝试计费时（例如拒绝了提交）不收费；渠道已生成结果并计费时，按该上游实际费用 × 你的折扣收费，且不交付结果。Job 状态仍为 `failed`，Console 将其标为「内容拦截」，不计入成功率和失败率。 | 不可重试（`action: modify_input`），请让终端用户修改提示词或参考图后提交新请求。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 准入后没有渠道能执行，或所有可用渠道均已用尽。 | 稍后重新提交，或放宽 `routing`。 |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 容量或网络问题导致无法执行。 | 稍后重新提交。 |
 | `YIR_BUDGET_EXCEEDED` | 没有更多尝试能满足 Job 的 `max_cost`。 | 如接受更高价格，在新请求中提高 `max_cost`。 |
