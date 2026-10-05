@@ -7,8 +7,8 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 
 | 语言 | 包 | 当前版本 |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.8.0` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.9.0` |
+| TypeScript | `@yir-ai/sdk` | `0.10.0` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.11.0` |
 
 两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
@@ -17,11 +17,11 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.8.0
+pnpm add @yir-ai/sdk@0.10.0
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.9.0
+go get github.com/yir-ai/sdk/go@v0.11.0
 ```
 
 </CodeGroup>
@@ -134,8 +134,9 @@ TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是�
 
 - **幂等键。** API 要求每个生成请求都携带幂等键。省略键参数时，SDK 会为这次调用生成随机键，它只能保护这一次 HTTP 调用；再次无键调用可能创建另一笔收费 Job。请传入自己持久化的键，并在进程崩溃或结果未知后与完整请求一起复用。SDK 不会自动重试提交。
 - **等待。** `waitForJob` / `WaitJob` 长轮询状态接口（每次最多挂起 20 秒；Gateway 不挂起时回退为 5 秒、10 秒、20 秒退避），结束时读取一次完整 Job。超时或中止只停止本地等待，Job 继续运行；用保存的 ID 继续即可。
-- **错误。** API 错误提供 `status`、`code`、`retryable` 和 `action`。失败或取消的 Job 会抛出携带完整 Job 的 `YirJobError`（TypeScript）或 `JobError`（Go）。请按 `code` 分支，不要依赖错误消息。见[错误码](/zh/docs/production/error-codes)。
-- **校验。** 本地参数校验需要传入模型目录，否则由 Gateway 校验。见[模型与参数](/zh/docs/models)。
+- **错误。** API 错误提供 `status`、`code`、`retryable`、`action`；字段级的 `YIR_INVALID_REQUEST` 还带 `details`，给出无效字段、稳定原因码和允许值。失败或取消的 Job 会抛出携带完整 Job 的 `YirJobError`（TypeScript）或 `JobError`（Go）。请按 `code` 分支，不要依赖错误消息。见[错误码](/zh/docs/production/error-codes)。
+- **校验。** SDK 不内置模型目录。用 `getModelContracts` / `GetModelContracts` 获取（或据此生成 `models.ts`）并传入后做本地校验，否则由 Gateway 校验。新增模型无需发布 SDK。见[模型与参数](/zh/docs/models)。
+- **Job ID** 是不透明字符串，按返回值保存，不要解析。
 
 ## 升级
 
@@ -156,6 +157,10 @@ TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是�
 **TypeScript 0.7.0 / Go 0.8.0（不兼容）。** 等待默认长轮询（`statusWaitSeconds` / `WaitOptions.StatusWait`，20 秒）。比 SDK 新的 Job 与文件状态按进行中处理。验签通过但不是终态 Job 的 Webhook 报告 `unsupported_event`，请返回 2xx 确认。模型目录只作用于其描述的模型。TypeScript 默认把每个 Gateway 请求限制在 30 秒（`timeoutMs`），没有错误码的错误体使用 `http_error`。
 
 **TypeScript 0.8.0 / Go 0.9.0。** 兼容。`result.content_safety` 说明交付结果是否通过 NSFW 检测，`routing.preference` 新增 `speed`；`balanced` 是 `cost` 的弃用别名。
+
+**TypeScript 0.9.0 / Go 0.10.0。** 未单独发布，随下一版一起发布。报价删除已废弃的 `max`、`single_attempt_upper_bound`、`has_verifiable_upper_bound` 与 `supply.requires_max_cost`（Gateway 仍为旧版 SDK 返回），删除 `billing.savings`，模型合同不再带 `policy`，`RoutingPreference` 不再列出 `balanced`，TypeScript 删除 `DEFAULT_POLL_INTERVAL_MS`。
+
+**TypeScript 0.10.0 / Go 0.11.0（不兼容）。** 从 TypeScript 0.8 / Go 0.9 升级请先看上一条。移除内置模型目录：用 `getModelContracts` / `GetModelContracts` 获取并据此校验（`validateGeneration(operation, request, catalog)` / `ValidateGenerationWithCatalog`）；TypeScript 删除 `@yir-ai/sdk/model-contracts` 入口。Job ID 是不透明字符串。字段级的 `YIR_INVALID_REQUEST` 错误带 `details`。TypeScript 的参考素材除 `file_id` 外也接受 `url`。未配置目录时，报价可能把别名回显为 `creator/model` 形式的规范 ID。Gateway 现在要求 `parameters`，拒绝顶层旧参数与 `input.image`，`resolution`、`aspect_ratio` 只接受合同写法，公开别名也已精简，建议使用规范 ID。Veo 3.0 与 Gemini Omni 预览版已下架。
 
 完整发布说明见 [TypeScript](https://github.com/yir-ai/sdk/blob/main/typescript/CHANGELOG.md) 与 [Go](https://github.com/yir-ai/sdk/blob/main/go/CHANGELOG.md) 更新日志。
 
