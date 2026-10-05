@@ -21,13 +21,13 @@ description: "Alibaba Wan 2.6 classic video model supporting text and image cond
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `duration` | Duration: Output video duration in seconds. Only in `text`, `image`. | `5` to `15` | `5` | Yes |
-| `duration` | Duration: Output video duration in seconds. Only in `reference`. | `5`, `10` | `5` | Yes |
-| `resolution` | Resolution: Output resolution. | `720p`, `1080p` | `720p` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`, `image`. | `16:9`, `9:16`, `1:1` | `16:9` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `16:9`, `4:3`, `1:1`, `3:4`, `9:16` | `16:9` | Yes |
-| `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | Yes |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | Yes |
+| `duration` | Duration: Output video duration in seconds. Only in `text`, `image`. | `5` to `15` | `5` | No |
+| `duration` | Duration: Output video duration in seconds. Only in `reference`. | `5`, `10` | `5` | No |
+| `resolution` | Resolution: Output resolution. | `720p`, `1080p` | `720p` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`, `image`. | `16:9`, `9:16`, `1:1` | `16:9` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `16:9`, `4:3`, `1:1`, `3:4`, `9:16` | `16:9` | No |
+| `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
+| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
 
 ## Examples
 

@@ -20,11 +20,11 @@ description: "Grok's second-generation image model with low and medium text-to-i
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `resolution` | Resolution: Output resolution. | `1K`, `2K` | `1K` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | `1:1` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `auto`, `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | `1:1` | Yes |
+| `resolution` | Resolution: Output resolution. | `1K`, `2K` | `1K` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | `1:1` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `auto`, `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | `1:1` | No |
 | `quality` | Quality: Image generation quality tier. Only in `text`. | `low`, `medium` | `low` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | Yes |
+| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
 
 ## Examples
 

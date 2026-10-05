@@ -36,7 +36,7 @@ These six states are the whole public contract. Provider-specific states and int
 Use two endpoints:
 
 - `GET /v1/jobs/{id}/status` returns a small summary (`id`, `status`, `error`, optional `cancellation`). Use it for repeated polling.
-- `GET /v1/jobs/{id}` returns the complete Job, including `result`, `billing`, `usage`, `final_provider`, `urls`, and `parameter_notices`. Read it once the status is terminal.
+- `GET /v1/jobs/{id}` returns the complete Job, including `parameters`, `result`, `billing`, `usage`, `final_provider`, `urls`, and `parameter_notices`. Read it once the status is terminal. `parameters` echoes the normalized parameters the Job runs with, in the same shape as the quote echo, so you can check the delivered result against what was charged.
 
 ### Long polling
 

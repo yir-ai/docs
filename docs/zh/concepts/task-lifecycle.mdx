@@ -36,7 +36,7 @@ stateDiagram-v2
 使用两个接口：
 
 - `GET /v1/jobs/{id}/status` 返回精简摘要（`id`、`status`、`error`，以及可选的 `cancellation`），用于反复轮询。
-- `GET /v1/jobs/{id}` 返回完整 Job，包括 `result`、`billing`、`usage`、`final_provider`、`urls` 和 `parameter_notices`，在状态进入终态后读取一次。
+- `GET /v1/jobs/{id}` 返回完整 Job，包括 `parameters`、`result`、`billing`、`usage`、`final_provider`、`urls` 和 `parameter_notices`，在状态进入终态后读取一次。`parameters` 回显 Job 实际执行的规范化参数，与报价回显同形，可据此核对交付结果与扣费。
 
 ### 长轮询
 

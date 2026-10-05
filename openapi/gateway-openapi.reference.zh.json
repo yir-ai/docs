@@ -589,7 +589,7 @@
       "get": {
         "operationId": "listModelContracts",
         "summary": "列出模型",
-        "description": "列出所支持模型的公开参数合同。默认返回模型身份与本地化名称；include=parameters 会展开操作、输入约束和参数规则。version 标识完整合同，精简与展开响应中相同。受支持不代表当前有可用渠道或可执行的报价。不返回价格或渠道细节。",
+        "description": "列出所支持模型的公开参数合同。默认返回模型身份与本地化名称；include=parameters 会展开操作、输入约束和参数规则。version 标识完整合同，精简与展开响应中相同。受支持不代表当前有可用渠道或可执行的报价。不返回价格或渠道细节。\n\n缓存：响应带 ETag（加引号的目录 version）与 Cache-Control: private, max-age=300。用持有的 ETag 发送 If-None-Match，目录未变时返回 304 Not Modified。当请求因 YIR_INVALID_REQUEST 失败、details 指向本地副本仍接受的参数或取值时，重新拉取目录。",
         "tags": [
           "Models"
         ],
@@ -607,11 +607,22 @@
               "const": "parameters"
             },
             "description": "展开公开参数合同。其他或重复的查询参数会被拒绝。"
+          },
+          {
+            "$ref": "#/components/parameters/CatalogIfNoneMatch"
           }
         ],
         "responses": {
           "200": {
             "description": "精简或展开的模型合同",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/CatalogETag"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/CatalogCacheControl"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -626,6 +637,9 @@
                 }
               }
             }
+          },
+          "304": {
+            "$ref": "#/components/responses/CatalogNotModified"
           },
           "400": {
             "$ref": "#/components/responses/InvalidRequest"
@@ -643,7 +657,7 @@
       "get": {
         "operationId": "getModel",
         "summary": "获取模型",
-        "description": "不带查询参数时返回模型详情。view=contract 要求使用规范的 creator/model ID，返回其公开参数合同，内容版本与模型列表相同，且不查询价格或当前渠道供应。别名可用于生成请求，但不能作为资源路径。",
+        "description": "不带查询参数时返回模型详情，它反映实时价格与可用性，不缓存。view=contract 要求使用规范的 creator/model ID，返回与模型列表同一内容版本的公开参数合同，不查询价格或当前供应；它带与模型列表相同的 ETag 与 Cache-Control，并对 If-None-Match 回 304。别名可用于生成请求，但不是资源路径。",
         "tags": [
           "Models"
         ],
@@ -667,6 +681,9 @@
               "const": "contract"
             },
             "description": "返回公开参数合同；不接受其他查询参数。"
+          },
+          {
+            "$ref": "#/components/parameters/CatalogIfNoneMatch"
           }
         ],
         "responses": {
@@ -686,6 +703,9 @@
                 }
               }
             }
+          },
+          "304": {
+            "$ref": "#/components/responses/CatalogNotModified"
           },
           "400": {
             "$ref": "#/components/responses/InvalidRequest"
@@ -852,6 +872,17 @@
       }
     },
     "parameters": {
+      "CatalogIfNoneMatch": {
+        "name": "If-None-Match",
+        "in": "header",
+        "required": false,
+        "description": "你持有的模型合同响应的 ETag（加引号的目录 version）。仍匹配时 API 返回无响应体的 304 Not Modified。只有合同响应支持它，模型详情不支持。",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
       "FileIdempotencyKey": {
         "name": "Idempotency-Key",
         "in": "header",
@@ -910,7 +941,34 @@
         }
       }
     },
+    "headers": {
+      "CatalogETag": {
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "加引号的目录 version；精简列表、展开列表与该版本的每个 view=contract 详情都相同。"
+      },
+      "CatalogCacheControl": {
+        "required": true,
+        "schema": {
+          "type": "string",
+          "const": "private, max-age=300"
+        }
+      }
+    },
     "responses": {
+      "CatalogNotModified": {
+        "description": "模型合同自 If-None-Match 所指版本以来未变；无响应体。",
+        "headers": {
+          "ETag": {
+            "$ref": "#/components/headers/CatalogETag"
+          },
+          "Cache-Control": {
+            "$ref": "#/components/headers/CatalogCacheControl"
+          }
+        }
+      },
       "JobAccepted": {
         "description": "Job 已受理",
         "content": {
@@ -1973,37 +2031,23 @@
       },
       "QuoteParameters": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
-          "duration",
           "resolution",
           "aspect_ratio",
-          "generate_audio",
           "n"
         ],
+        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio。这里只记录通用参数；模型专属参数按合同名回显。",
         "properties": {
           "quality": {
             "type": "string",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "xhigh",
-              "max"
-            ]
-          },
-          "web_search": {
-            "type": "boolean"
-          },
-          "image_search": {
-            "type": "boolean"
-          },
-          "return_last_frame": {
-            "type": "boolean"
+            "minLength": 1,
+            "description": "请求约束的图片画质档位；省略时不出现，表示任何渠道都可执行。"
           },
           "duration": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 1,
+            "description": "视频输出秒数；模型声明 duration 时出现。"
           },
           "resolution": {
             "type": "string",
@@ -2014,7 +2058,8 @@
             "minLength": 1
           },
           "generate_audio": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "模型声明 generate_audio 时出现。"
           },
           "n": {
             "type": "integer",
@@ -2186,6 +2231,10 @@
           "model": {
             "type": "string",
             "minLength": 1
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/QuoteParameters",
+            "description": "Job 实际执行的规范化参数，与报价回显同形，供调用方核对交付结果与扣费。自创建起即存在。"
           },
           "urls": {
             "$ref": "#/components/schemas/JobURLs"
@@ -3348,7 +3397,8 @@
             ]
           },
           "required": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "合同未发布默认值、请求必须传该参数时为 true。有默认值的参数是可选的：省略时按该默认值执行并计费。"
           },
           "values": {
             "type": "array",
@@ -3359,7 +3409,8 @@
             }
           },
           "default": {
-            "$ref": "#/components/schemas/ModelParameterValue"
+            "$ref": "#/components/schemas/ModelParameterValue",
+            "description": "省略该参数时采用的值。只有必填参数和 quality 没有默认值；省略 quality 表示不约束。"
           },
           "minimum": {
             "type": "number"

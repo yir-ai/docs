@@ -589,7 +589,7 @@
       "get": {
         "operationId": "listModelContracts",
         "summary": "List models",
-        "description": "Lists the public parameter contracts of supported models. By default returns model identities and localized labels. include=parameters expands operations, input constraints and parameter rules. The version identifies the complete contract and is the same for compact and expanded responses. Support does not imply current supply availability or an executable quote. No prices or channel details are returned.",
+        "description": "Lists the public parameter contracts of supported models. By default returns model identities and localized labels. include=parameters expands operations, input constraints and parameter rules. The version identifies the complete contract and is the same for compact and expanded responses. Support does not imply current supply availability or an executable quote. No prices or channel details are returned.\n\nCaching: the response carries ETag (the quoted catalog version) and Cache-Control: private, max-age=300. Send If-None-Match with the ETag you hold to receive 304 Not Modified while the catalog is unchanged. Refetch the catalog when a request fails with YIR_INVALID_REQUEST details naming a parameter or value your copy accepts.",
         "tags": [
           "Models"
         ],
@@ -607,11 +607,22 @@
               "const": "parameters"
             },
             "description": "Expand public parameter contracts. Other or repeated query parameters are rejected."
+          },
+          {
+            "$ref": "#/components/parameters/CatalogIfNoneMatch"
           }
         ],
         "responses": {
           "200": {
             "description": "Compact or expanded model contracts",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/CatalogETag"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/CatalogCacheControl"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -626,6 +637,9 @@
                 }
               }
             }
+          },
+          "304": {
+            "$ref": "#/components/responses/CatalogNotModified"
           },
           "400": {
             "$ref": "#/components/responses/InvalidRequest"
@@ -643,7 +657,7 @@
       "get": {
         "operationId": "getModel",
         "summary": "Get a model",
-        "description": "Without query parameters returns the model detail. view=contract requires the canonical creator/model ID and returns its public parameter contract with the same content version as the model list, without querying price or current supply. Aliases may be used in generation requests but are not resource paths.",
+        "description": "Without query parameters returns the model detail, which reflects live prices and availability and is never cached. view=contract requires the canonical creator/model ID and returns its public parameter contract with the same content version as the model list, without querying price or current supply; it carries the same ETag and Cache-Control as the model list and answers If-None-Match with 304. Aliases may be used in generation requests but are not resource paths.",
         "tags": [
           "Models"
         ],
@@ -667,6 +681,9 @@
               "const": "contract"
             },
             "description": "Returns the public parameter contract; no other query parameters are accepted."
+          },
+          {
+            "$ref": "#/components/parameters/CatalogIfNoneMatch"
           }
         ],
         "responses": {
@@ -686,6 +703,9 @@
                 }
               }
             }
+          },
+          "304": {
+            "$ref": "#/components/responses/CatalogNotModified"
           },
           "400": {
             "$ref": "#/components/responses/InvalidRequest"
@@ -852,6 +872,17 @@
       }
     },
     "parameters": {
+      "CatalogIfNoneMatch": {
+        "name": "If-None-Match",
+        "in": "header",
+        "required": false,
+        "description": "The ETag of the model contract response you hold (the quoted catalog version). While it still matches, the API answers 304 Not Modified without a body. Only contract responses honor it; the model detail does not.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
       "FileIdempotencyKey": {
         "name": "Idempotency-Key",
         "in": "header",
@@ -910,7 +941,34 @@
         }
       }
     },
+    "headers": {
+      "CatalogETag": {
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "The quoted catalog version; identical for the compact list, the expanded list and every view=contract detail of that version."
+      },
+      "CatalogCacheControl": {
+        "required": true,
+        "schema": {
+          "type": "string",
+          "const": "private, max-age=300"
+        }
+      }
+    },
     "responses": {
+      "CatalogNotModified": {
+        "description": "The model contract is unchanged since the version named by If-None-Match; no body.",
+        "headers": {
+          "ETag": {
+            "$ref": "#/components/headers/CatalogETag"
+          },
+          "Cache-Control": {
+            "$ref": "#/components/headers/CatalogCacheControl"
+          }
+        }
+      },
       "JobAccepted": {
         "description": "Job accepted",
         "content": {
@@ -1973,37 +2031,23 @@
       },
       "QuoteParameters": {
         "type": "object",
-        "additionalProperties": false,
+        "additionalProperties": true,
         "required": [
-          "duration",
           "resolution",
           "aspect_ratio",
-          "generate_audio",
           "n"
         ],
+        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration and a silent video model carries no generate_audio. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
         "properties": {
           "quality": {
             "type": "string",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "xhigh",
-              "max"
-            ]
-          },
-          "web_search": {
-            "type": "boolean"
-          },
-          "image_search": {
-            "type": "boolean"
-          },
-          "return_last_frame": {
-            "type": "boolean"
+            "minLength": 1,
+            "description": "Image quality tier when the request constrains one; absent when omitted, which lets any channel run."
           },
           "duration": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 1,
+            "description": "Video output length in seconds; present when the model declares duration."
           },
           "resolution": {
             "type": "string",
@@ -2014,7 +2058,8 @@
             "minLength": 1
           },
           "generate_audio": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Present when the model declares generate_audio."
           },
           "n": {
             "type": "integer",
@@ -2186,6 +2231,10 @@
           "model": {
             "type": "string",
             "minLength": 1
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/QuoteParameters",
+            "description": "The normalized parameters the Job executes with, in the same shape as the quote echo, so a caller can check the delivered result against what was charged. Present from creation."
           },
           "urls": {
             "$ref": "#/components/schemas/JobURLs"
@@ -3348,7 +3397,8 @@
             ]
           },
           "required": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "true when a request must send the parameter because the contract publishes no default. A parameter with a default is optional: an omitted value executes and is billed at that default."
           },
           "values": {
             "type": "array",
@@ -3359,7 +3409,8 @@
             }
           },
           "default": {
-            "$ref": "#/components/schemas/ModelParameterValue"
+            "$ref": "#/components/schemas/ModelParameterValue",
+            "description": "The value an omitted parameter resolves to. Absent only for required parameters and for quality, whose omission means no constraint."
           },
           "minimum": {
             "type": "number"

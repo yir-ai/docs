@@ -20,13 +20,13 @@ description: "Kuaishou Kling 2.6 classic stable video generation model"
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `duration` | Duration: Output video duration in seconds. Only in `text`. | `5`, `10` | `5` | Yes |
-| `duration` | Duration: Output video duration in seconds. Only in `reference`. | `3` to `30` | `5` | Yes |
-| `resolution` | Resolution: Output resolution. | `720p`, `1080p` | `720p` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9`, `9:16`, `1:1` | `16:9` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `auto` | `auto` | Yes |
-| `generate_audio` | Generate audio: Generate native audio with the video. | `false` | `false` | Yes |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | Yes |
+| `duration` | Duration: Output video duration in seconds. Only in `text`. | `5`, `10` | `5` | No |
+| `duration` | Duration: Output video duration in seconds. Only in `reference`. | `3` to `30` | `5` | No |
+| `resolution` | Resolution: Output resolution. | `720p`, `1080p` | `720p` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9`, `9:16`, `1:1` | `16:9` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `auto` | `auto` | No |
+| `generate_audio` | Generate audio: Generate native audio with the video. | `false` | `false` | No |
+| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
 
 ## Examples
 

@@ -21,13 +21,13 @@ description: "Video generation with native audio, first/last frames, multimodal 
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `duration` | Duration: Output video duration in seconds. | `4` to `15` | `6` | Yes |
-| `resolution` | Resolution: Output resolution. | `768P`, `2K` | `768P` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` | `16:9` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `adaptive` | `adaptive` | Yes |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `adaptive`, `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` | `adaptive` | Yes |
-| `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | Yes |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | Yes |
+| `duration` | Duration: Output video duration in seconds. | `4` to `15` | `6` | No |
+| `resolution` | Resolution: Output resolution. | `768P`, `2K` | `768P` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` | `16:9` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `adaptive` | `adaptive` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `adaptive`, `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` | `adaptive` | No |
+| `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
+| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
 
 ## Examples
 
