@@ -288,7 +288,7 @@ test(
 
     for (const [from, to] of [
       [['docs', 'guides', 'clients'], '/docs/integrations/sdk'],
-      [['zh', 'docs', 'console', 'webhooks'], '/zh/docs/production/webhooks'],
+      [['zh', 'docs', 'console', 'webhooks'], '/zh/docs/production/webhooks#endpoints-and-delivery-history'],
     ]) {
       const redirect = await readFile(
         path.join(blumeRoot, 'dist', ...from, 'index.html'),
