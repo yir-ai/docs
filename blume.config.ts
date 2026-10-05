@@ -1,4 +1,5 @@
 import { defineConfig } from "blume";
+import { script } from "blume/analytics";
 import { openapi } from "blume/reference";
 import { filesystem } from "blume/sources";
 
@@ -21,6 +22,25 @@ const movedPages: Record<string, string> = {
   "console/alerts": "console#alerts",
   "console/webhooks": "production/webhooks#endpoints-and-delivery-history",
 };
+
+// Crisp chat bubble on every docs page, tagged so support can tell docs
+// questions apart. The client router swaps <body> on navigation, so the
+// widget is carried into the incoming document to stay visible.
+const crispChat = `if (!window.$crisp) {
+  window.$crisp = [];
+  window.CRISP_WEBSITE_ID = "85410c3f-bc07-428b-99d1-d5bfe5062bd9";
+  window.CRISP_RUNTIME_CONFIG = { locale: location.pathname.startsWith("/zh/") ? "zh" : "en" };
+  $crisp.push(["set", "session:segments", [["yir", "docs"]]]);
+  $crisp.push(["set", "session:data", [[["product", "yir"], ["intent", "support"], ["entry_point", "docs"]]]]);
+  document.addEventListener("astro:before-swap", (event) => {
+    const widget = document.querySelector(".crisp-client");
+    if (widget) event.newDocument.body.appendChild(widget);
+  });
+  const loader = document.createElement("script");
+  loader.src = "https://client.crisp.chat/l.js";
+  loader.async = true;
+  document.head.appendChild(loader);
+}`;
 
 export default defineConfig({
   title: "Yir Docs",
@@ -51,6 +71,7 @@ export default defineConfig({
     sidebar: { display: "flat" },
   },
   github: { owner: "yir-ai", repo: "docs", branch: "main" },
+  analytics: [script({ content: crispChat })],
   feedback: false,
   export: false,
   ai: {
