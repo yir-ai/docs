@@ -87,5 +87,6 @@
   "Static warning text for SDKs; contains no request values.": "供 SDK 使用的静态警告文本；不含任何请求值。",
   "Always managed: Yir buys and runs the supply for you.": "固定为 managed：由 Yir 采购并运行供应。",
   "Always yir: the charge is deducted from your Yir wallet.": "固定为 yir：费用从你的 Yir 钱包扣除。",
-  "Always yir_price_rule: the channel's actual upstream cost for this attempt times your discount, as described in Quotes and billing.": "固定为 yir_price_rule：该次尝试的渠道上游实际费用 × 你的折扣，见「报价与计费」。"
+  "Always yir_price_rule: the channel's actual upstream cost for this attempt times your discount, as described in Quotes and billing.": "固定为 yir_price_rule：该次尝试的渠道上游实际费用 × 你的折扣，见「报价与计费」。",
+  "Model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false; for a retired model the message names its replacement.": "GET /v1/models 列出的模型 ID 或别名。未知或已下架的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下架模型的 message 会给出替代型号。"
 }

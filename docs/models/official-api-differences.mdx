@@ -59,7 +59,7 @@ Migrating: set `duration` explicitly to one of the supported lengths; other valu
 
 ### Other Google models
 
-`google/veo-3.0-generate-001` and `google/gemini-omni-video` (the Gemini Omni preview) are no longer served: Veo 3.0 on Vertex AI was retired on 2026-06-30 and the Gemini Omni preview on 2026-09-30, and no channel runs either model. Quotes report `no_matching_supply` and generation requests fail with `422 YIR_NO_EXECUTABLE_ROUTE`; retrying does not help. Use `google/veo-3.1-generate-001` or `google/gemini-omni-1.1-flash` instead.
+`google/veo-3.0-generate-001` and `google/gemini-omni-video` (the Gemini Omni preview) were retired on 2026-10-05 and removed from the model list, after Google retired Veo 3.0 on Vertex AI (2026-06-30) and the Gemini Omni preview (2026-09-30). Quotes and generation requests that name either model or one of its aliases fail with `400 YIR_INVALID_REQUEST` and `retryable: false`; the message names the replacement. Use `google/veo-3.1-generate-001` or `google/gemini-omni-1.1-flash` instead. Existing jobs can still be read.
 
 | Model | Parameter or feature | Google API | Yir |
 | --- | --- | --- | --- |

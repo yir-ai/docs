@@ -5,5 +5,5 @@ export default defineMeta({
   title: "Google",
   display: "group",
   collapsed: true,
-  pages: ["gemini-2-5-flash-image","gemini-3-1-flash-lite-image","gemini-omni-1-1-flash","gemini-omni-video","nano-banana-2","nano-banana-pro","veo-3-0-generate-001","veo-3-1-fast-generate-001","veo-3-1-generate-001"],
+  pages: ["gemini-2-5-flash-image","gemini-3-1-flash-lite-image","gemini-omni-1-1-flash","nano-banana-2","nano-banana-pro","veo-3-1-fast-generate-001","veo-3-1-generate-001"],
 });

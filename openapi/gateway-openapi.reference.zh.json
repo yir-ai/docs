@@ -1128,7 +1128,8 @@
           },
           "model": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "GET /v1/models 列出的模型 ID 或别名。未知或已下架的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下架模型的 message 会给出替代型号。"
           },
           "input": {
             "oneOf": [
@@ -1207,7 +1208,8 @@
           },
           "model": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "GET /v1/models 列出的模型 ID 或别名。未知或已下架的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下架模型的 message 会给出替代型号。"
           },
           "input": {
             "oneOf": [
@@ -1585,7 +1587,8 @@
           },
           "model": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "GET /v1/models 列出的模型 ID 或别名。未知或已下架的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下架模型的 message 会给出替代型号。"
           },
           "input": {
             "oneOf": [
@@ -1659,7 +1662,8 @@
           },
           "model": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "GET /v1/models 列出的模型 ID 或别名。未知或已下架的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下架模型的 message 会给出替代型号。"
           },
           "input": {
             "oneOf": [

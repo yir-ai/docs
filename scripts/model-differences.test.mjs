@@ -135,8 +135,8 @@ const rv = 'reve/reve-2.1'
 check('reve same 7 ratios as Reve v1, default 1:1, no auto', sameSet(vals(rv, 'aspect_ratio'), ['16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16']) && def(rv, 'aspect_ratio') === '1:1', [vals(rv, 'aspect_ratio'), def(rv, 'aspect_ratio')])
 check('reve edits take exactly 1 reference_image', C(rv, 'image')?.min_references === 1 && C(rv, 'image')?.max_references === 1 && sameSet(C(rv, 'image')?.allowed_reference_roles, ['reference_image']), C(rv, 'image'))
 check('reve resolution native only', sameSet(vals(rv, 'resolution'), ['native']), vals(rv, 'resolution'))
-// Retired models: the page says no channel serves them; the contract still lists them.
-for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video']) check(`${id} still in contract`, c.models.some(m => m.id === id), null)
+// Retired models: the page says they were removed from the model list.
+for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)
 
 
 test('the Yir column of the official API differences page matches the model contract', () => {
@@ -159,8 +159,11 @@ test('rules for every model hold across the contract', () => {
   }
 })
 
+// Retired models may still be named, only to point callers at their replacements.
+const withdrawn = new Set(['google/veo-3.0-generate-001', 'google/gemini-omni-video'])
+
 test('every model the differences pages name is still in the contract', async () => {
-  const known = new Set(c.models.map(m => m.id))
+  const known = new Set([...c.models.map(m => m.id), ...withdrawn])
   for (const page of pages) {
     const text = await readFile(path.join(root, page), 'utf8')
     const named = [...new Set(text.match(/`[a-z]+\/[a-z0-9.-]+`/g) ?? [])].map(id => id.slice(1, -1))

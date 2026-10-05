@@ -59,7 +59,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 
 ### 其他 Google 模型
 
-`google/veo-3.0-generate-001` 与 `google/gemini-omni-video`（Gemini Omni 预览版）已停止提供：Vertex AI 上的 Veo 3.0 已于 2026-06-30 退役，Gemini Omni 预览版已于 2026-09-30 退役，目前没有渠道执行这两个模型。报价会返回 `no_matching_supply`，生成请求返回 `422 YIR_NO_EXECUTABLE_ROUTE`，重试也不会成功。请改用 `google/veo-3.1-generate-001` 或 `google/gemini-omni-1.1-flash`。
+`google/veo-3.0-generate-001` 与 `google/gemini-omni-video`（Gemini Omni 预览版）已于 2026-10-05 下架并移出模型列表；此前 Google 已退役 Vertex AI 上的 Veo 3.0（2026-06-30）和 Gemini Omni 预览版（2026-09-30）。报价或生成请求指定这两个模型或其别名时，返回 `400 YIR_INVALID_REQUEST`，`retryable` 为 `false`，message 会给出替代型号。请改用 `google/veo-3.1-generate-001` 或 `google/gemini-omni-1.1-flash`。已有 Job 仍可查询。
 
 | 模型 | 参数或功能 | Google API | Yir |
 | --- | --- | --- | --- |
