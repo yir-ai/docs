@@ -25,7 +25,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 
 ## 各模型的差异
 
-以下是会改变请求含义、超出上述通用规则的差异，按各厂商自己的 API 文档核对（2026-10-04）。只列出对迁移有影响的差异，`seed`、`negative_prompt`、`watermark` 等通用规则已覆盖的参数不再逐一列出。Reve 2.1 尚无公开 API 参考，未纳入核对。实际接受的取值始终以模型合同为准。
+以下是会改变请求含义、超出上述通用规则的差异，按各厂商自己的 API 文档核对（2026-10-04）。只列出对迁移有影响的差异，`seed`、`negative_prompt`、`watermark` 等通用规则已覆盖的参数不再逐一列出。Reve 的完整 API 参考需登录 Reve 账号查看，因此 Reve 2.1 按 Reve 官方 Python SDK（PyPI 上的 `reve`，2026-10-05）核对。实际接受的取值始终以模型合同为准。
 
 ### GPT Image 2 与 GPT Image 2.5
 
@@ -58,6 +58,8 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 迁移时：显式设置一个支持的 `duration`；其他取值会被拒绝，不会就近取整。
 
 ### 其他 Google 模型
+
+`google/veo-3.0-generate-001` 与 `google/gemini-omni-video`（Gemini Omni 预览版）已停止提供：Vertex AI 上的 Veo 3.0 已于 2026-06-30 退役，Gemini Omni 预览版已于 2026-09-30 退役，目前没有渠道执行这两个模型。报价会返回 `no_matching_supply`，生成请求返回 `422 YIR_NO_EXECUTABLE_ROUTE`，重试也不会成功。请改用 `google/veo-3.1-generate-001` 或 `google/gemini-omni-1.1-flash`。
 
 | 模型 | 参数或功能 | Google API | Yir |
 | --- | --- | --- | --- |
@@ -173,3 +175,6 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `recraft/recraft-v3` | `style`、自定义风格、`controls`（颜色、背景、艺术程度）、`text_layout`、矢量输出、图片输入 | 支持。 | 不可用。只支持文生位图。 |
 | `meta/muse-image-1.0` | 尺寸、编辑与参考图 | 任意尺寸（默认 `auto`）；支持编辑和多图合成。 | 只有 `1:1`；只支持文生图。 |
 | `meta/muse-image-1.0` | `reasoning_strength`、内置搜索工具开关 | 支持。 | 不可用。 |
+| `reve/reve-2.1` | `aspect_ratio` | `auto`（默认）加固定比例：v1 API 与 Yir 的 7 种比例相同，v2 API 有从 `4:1` 到 `1:4` 的 17 种。 | 7 种比例，默认 `1:1`；没有 `auto`。 |
+| `reve/reve-2.1` | 参考图 | Remix 可传多张参考图；v2 API 接受有序参考列表。 | 编辑时只接受 1 张 `reference_image`。 |
+| `reve/reve-2.1` | `test_time_scaling`（质量 1–5）、`postprocessing`（放大、去背景）、`version`、版面（layout）操作 | 支持。 | 不可用。输出尺寸由模型决定（`resolution: native`）。 |

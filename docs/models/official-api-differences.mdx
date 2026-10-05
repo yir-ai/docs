@@ -25,7 +25,7 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 
 ## Model-specific differences
 
-Differences that change what a request means, beyond the rules above, checked against each maker's own API documentation (2026-10-04). Only differences that matter when migrating are listed; parameters already covered by the rules above, such as `seed`, `negative_prompt` or `watermark`, are not repeated per model. Reve 2.1 is not covered yet because it has no public API reference. The model contract is always the exact list of what Yir accepts.
+Differences that change what a request means, beyond the rules above, checked against each maker's own API documentation (2026-10-04). Only differences that matter when migrating are listed; parameters already covered by the rules above, such as `seed`, `negative_prompt` or `watermark`, are not repeated per model. Reve's full API reference requires a Reve account, so Reve 2.1 is checked against Reve's official Python SDK (`reve` on PyPI, 2026-10-05). The model contract is always the exact list of what Yir accepts.
 
 ### GPT Image 2 and GPT Image 2.5
 
@@ -58,6 +58,8 @@ Model: `google/gemini-omni-1.1-flash`.
 Migrating: set `duration` explicitly to one of the supported lengths; other values are rejected rather than rounded.
 
 ### Other Google models
+
+`google/veo-3.0-generate-001` and `google/gemini-omni-video` (the Gemini Omni preview) are no longer served: Veo 3.0 on Vertex AI was retired on 2026-06-30 and the Gemini Omni preview on 2026-09-30, and no channel runs either model. Quotes report `no_matching_supply` and generation requests fail with `422 YIR_NO_EXECUTABLE_ROUTE`; retrying does not help. Use `google/veo-3.1-generate-001` or `google/gemini-omni-1.1-flash` instead.
 
 | Model | Parameter or feature | Google API | Yir |
 | --- | --- | --- | --- |
@@ -173,3 +175,6 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `recraft/recraft-v3` | `style`, custom styles, `controls` (colors, background, artistic level), `text_layout`, vector output, image inputs | Available. | Not available. Text to raster image only. |
 | `meta/muse-image-1.0` | Size, editing and references | Any size (default `auto`); edits and multi-image composition. | `1:1` only; text to image only. |
 | `meta/muse-image-1.0` | `reasoning_strength`, built-in search tool switches | Available. | Not available. |
+| `reve/reve-2.1` | `aspect_ratio` | `auto` (the default) plus fixed ratios: the v1 API has the same 7 ratios as Yir, the v2 API 17 ratios from `4:1` to `1:4`. | 7 ratios, default `1:1`; no `auto`. |
+| `reve/reve-2.1` | Reference images | Remix with several reference images; the v2 API takes an ordered list of references. | Editing with exactly 1 `reference_image`. |
+| `reve/reve-2.1` | `test_time_scaling` (quality 1–5), `postprocessing` (upscale, background removal), `version`, layout operations | Available. | Not available. Output size is chosen by the model (`resolution: native`). |
