@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const rootFiles = new Set(['.gitignore', 'AGENTS.md', 'CONTRIBUTING.md', 'LICENSE', 'README.md',
   'blume.config.ts', 'components.ts', 'icon.svg', 'icon-dark.svg', 'logo.svg', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'])
-const scripts = new Set(['prepare-site.mjs', 'check-public-boundary.mjs', 'public-boundary.test.mjs', 'docs-contract.test.mjs', 'localize-openapi.mjs', 'localize-openapi.test.mjs', 'generate-model-pages.mjs', 'generate-model-pages.test.mjs', 'model-differences.test.mjs'])
+const scripts = new Set(['prepare-site.mjs', 'check-public-boundary.mjs', 'public-boundary.test.mjs', 'docs-contract.test.mjs', 'localize-openapi.mjs', 'localize-openapi.test.mjs', 'generate-model-pages.mjs', 'creator-marks.json', 'generate-model-pages.test.mjs', 'model-differences.test.mjs'])
 
 export function assertPublicPath(file) {
   if (file.split('/').some(part => part === '..' || part.startsWith('.env'))) throw new Error(`Non-public path: ${file}`)
