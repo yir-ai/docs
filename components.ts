@@ -1,5 +1,5 @@
 import { defineComponents } from 'blume'
 import ReportError from './components/ReportError.astro'
-import ThemedHeader from './components/ThemedHeader.astro'
+import SiteHeader from './components/SiteHeader.astro'
 
-export default defineComponents({ layout: { Header: ThemedHeader, PageHeader: ReportError } })
+export default defineComponents({ layout: { Header: SiteHeader, PageHeader: ReportError } })

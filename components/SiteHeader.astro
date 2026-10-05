@@ -1,0 +1,11 @@
+---
+import Header from 'blume/components/layout/Header.astro';
+
+// yir.ai 与 Docs 通过 Cookie 共享偏好（Cookie 不区分端口，本地也能互通）：
+// - `yir-theme`：顶栏渲染前按 Cookie 修正 Blume 主题，主题按钮切换时写回。
+// - `yir_locale`：与主站一致，只在英文文档首页按偏好跳到中文首页；语言切换时写回。
+const preferenceSync = `(()=>{const d=document.documentElement;const cookie=(n)=>{const m=document.cookie.match(new RegExp("(?:^|;\\\\s*)"+n+"=([^;]*)"));return m?m[1]:null;};const write=(n,v)=>{document.cookie=n+"="+v+"; Path=/; Max-Age=31536000; SameSite=Lax"+(location.protocol==="https:"?"; Secure":"");};if(cookie("yir_locale")==="zh"&&location.pathname.replace(/\\/$/,"")==="/docs"){location.replace("/zh/docs"+location.search+location.hash);return;}const p=cookie("yir-theme");if(p==="light"||p==="dark"||p==="system"){try{p==="system"?localStorage.removeItem("blume-theme"):localStorage.setItem("blume-theme",p);}catch{}d.dataset.theme=p==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):p;}if(window.__yirPreferenceSync)return;window.__yirPreferenceSync=true;document.addEventListener("click",(e)=>{if(e.target.closest("[data-blume-theme-toggle]")){setTimeout(()=>write("yir-theme",d.dataset.theme),0);}const l=e.target.closest("a[hreflang]");if(l&&(l.hreflang==="en"||l.hreflang==="zh")){write("yir_locale",l.hreflang);}});})();`;
+---
+
+<script is:inline set:html={preferenceSync} />
+<Header {...Astro.props} />
