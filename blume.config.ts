@@ -42,7 +42,27 @@ const crispChat = `if (!window.$crisp) {
   document.head.appendChild(loader);
 }`;
 
+// On yir.ai the docs share an origin with the site, so every "home" link
+// (header tab, logo, 404 page) points at "/" or "/zh". Locally the docs run
+// alone on :40084; send those paths to the web dev server on :38084, mirroring
+// how yir-web redirects /docs to this port. Dev server only.
+const devSiteHome = {
+  name: "yir-dev-site-home",
+  hooks: {
+    "astro:server:setup": ({ server }) => {
+      server.middlewares.use((req, res, next) => {
+        const path = req.url?.split(/[?#]/u)[0].replace(/\/$/u, "") ?? "";
+        if (path !== "" && path !== "/zh") return next();
+        res.statusCode = 302;
+        res.setHeader("Location", `http://localhost:38084${path || "/"}`);
+        res.end();
+      });
+    },
+  },
+} satisfies NonNullable<Parameters<typeof defineConfig>[0]["integrations"]>[number];
+
 export default defineConfig({
+  integrations: [devSiteHome],
   title: "Yir Docs",
   description:
     "Build reliable asynchronous image and video generation workflows with Yir.",
