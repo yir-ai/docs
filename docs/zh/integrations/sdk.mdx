@@ -7,8 +7,8 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 
 | 语言 | 包 | 当前版本 |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.10.0` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.11.0` |
+| TypeScript | `@yir-ai/sdk` | `0.10.1` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.11.1` |
 
 两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
@@ -17,11 +17,11 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.10.0
+pnpm add @yir-ai/sdk@0.10.1
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.11.0
+go get github.com/yir-ai/sdk/go@v0.11.1
 ```
 
 </CodeGroup>
@@ -161,6 +161,8 @@ TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是�
 **TypeScript 0.9.0 / Go 0.10.0。** 未单独发布，随下一版一起发布。报价删除已废弃的 `max`、`single_attempt_upper_bound`、`has_verifiable_upper_bound` 与 `supply.requires_max_cost`（Gateway 仍为旧版 SDK 返回），删除 `billing.savings`，模型合同不再带 `policy`，`RoutingPreference` 不再列出 `balanced`，TypeScript 删除 `DEFAULT_POLL_INTERVAL_MS`。
 
 **TypeScript 0.10.0 / Go 0.11.0（不兼容）。** 从 TypeScript 0.8 / Go 0.9 升级请先看上一条。移除内置模型目录：用 `getModelContracts` / `GetModelContracts` 获取并据此校验（`validateGeneration(operation, request, catalog)` / `ValidateGenerationWithCatalog`）；TypeScript 删除 `@yir-ai/sdk/model-contracts` 入口。Job ID 是不透明字符串。字段级的 `YIR_INVALID_REQUEST` 错误带 `details`。TypeScript 的参考素材除 `file_id` 外也接受 `url`。未配置目录时，报价可能把别名回显为 `creator/model` 形式的规范 ID。Gateway 现在要求 `parameters`，拒绝顶层旧参数与 `input.image`，`resolution`、`aspect_ratio` 只接受合同写法，公开别名也已精简，建议使用规范 ID。Veo 3.0 与 Gemini Omni 预览版已下架。
+
+**TypeScript 0.10.1 / Go 0.11.1。** 兼容。`Quote.parameters`（TypeScript 类型 `QuoteParameters`）只回显模型合同声明的参数，图片报价和没有该参数的视频模型不再出现 `duration`、`generate_audio`；`Job.parameters` 自创建起携带同样的回显。模型合同参数只有没有默认值时才 `required`，本地校验不变。模型合同接口返回 `ETag` 与 `Cache-Control: private, max-age=300`，并对 `If-None-Match` 回 304。
 
 完整发布说明见 [TypeScript](https://github.com/yir-ai/sdk/blob/main/typescript/CHANGELOG.md) 与 [Go](https://github.com/yir-ai/sdk/blob/main/go/CHANGELOG.md) 更新日志。
 
