@@ -154,8 +154,6 @@ function rewriteMountedPaths(content, chinese) {
       '(`/docs/`,`blume-search.json`)',
     )
 
-  // Chinese reference pages are untranslated copies of the English OpenAPI
-  // reference, so they keep Blume's canonical to the English page.
   return rewritten
 }
 

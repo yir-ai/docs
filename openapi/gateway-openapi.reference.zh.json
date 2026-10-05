@@ -1,14 +1,14 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Yir Standard Async AIGC API",
+    "title": "Yir Standard 异步 AIGC API",
     "version": "1.0.0-preview",
-    "description": "Public REST API of the Yir Unified Async AI Gateway: quote and submit image and video generation jobs, upload input files, read model contracts, and track jobs."
+    "description": "Yir 统一异步 AI 网关的公开 REST API：为图片和视频生成请求报价、提交 Job、上传输入文件、读取模型合同、跟踪 Job。"
   },
   "servers": [
     {
       "url": "https://gateway.yir.ai",
-      "description": "Yir Unified Async AI Gateway (Bearer API Key authentication)"
+      "description": "Yir 统一异步 AI 网关（Bearer API Key 认证）"
     }
   ],
   "security": [
@@ -37,8 +37,8 @@
     "/v1/images/quotes": {
       "post": {
         "operationId": "quoteImageGeneration",
-        "summary": "Quote an image job",
-        "description": "Estimates the price and checks available supply for an image generation request. Creates no job and charges nothing.",
+        "summary": "图片报价",
+        "description": "估算图片生成请求的价格并检查可用渠道。不创建 Job，不收费。",
         "tags": [
           "Images"
         ],
@@ -75,7 +75,7 @@
         },
         "responses": {
           "200": {
-            "description": "Current advisory quote",
+            "description": "当前参考报价",
             "content": {
               "application/json": {
                 "schema": {
@@ -102,7 +102,7 @@
     "/v1/images/generations": {
       "post": {
         "operationId": "submitImageGeneration",
-        "summary": "Submit an image job",
+        "summary": "提交图片 Job",
         "tags": [
           "Images"
         ],
@@ -177,8 +177,8 @@
     "/v1/quotes": {
       "post": {
         "operationId": "quoteBatch",
-        "summary": "Quote up to 20 requests",
-        "description": "Quotes up to 20 image or video requests against the same pricing snapshot. Each request is evaluated with the same rules as the corresponding single-request quote. An invalid request returns an error in its own result entry; pricing-data and infrastructure failures fail the entire call. This endpoint does not enumerate model specifications or infer equivalent quality across models.",
+        "summary": "批量报价（最多 20 个）",
+        "description": "基于同一价格快照，为最多 20 个图片或视频请求报价。每个请求按对应单个报价接口的相同规则评估。无效请求只在自己的结果项中返回错误；价格数据或基础设施故障会使整个调用失败。本接口不列举模型规格，也不推断不同模型之间的等效画质。",
         "tags": [
           "Images",
           "Videos"
@@ -200,7 +200,7 @@
         },
         "responses": {
           "200": {
-            "description": "Ordered quote and per-item validation results",
+            "description": "按请求顺序返回的报价与逐项校验结果",
             "content": {
               "application/json": {
                 "schema": {
@@ -227,8 +227,8 @@
     "/v1/videos/quotes": {
       "post": {
         "operationId": "quoteVideoGeneration",
-        "summary": "Quote a video job",
-        "description": "Estimates the price and checks available supply for a video generation request. Creates no job and charges nothing.",
+        "summary": "视频报价",
+        "description": "估算视频生成请求的价格并检查可用渠道。不创建 Job，不收费。",
         "tags": [
           "Videos"
         ],
@@ -267,7 +267,7 @@
         },
         "responses": {
           "200": {
-            "description": "Current advisory quote",
+            "description": "当前参考报价",
             "content": {
               "application/json": {
                 "schema": {
@@ -294,7 +294,7 @@
     "/v1/videos/generations": {
       "post": {
         "operationId": "submitVideoGeneration",
-        "summary": "Submit a video job",
+        "summary": "提交视频 Job",
         "tags": [
           "Videos"
         ],
@@ -377,7 +377,7 @@
     "/v1/files": {
       "post": {
         "operationId": "createFiles",
-        "summary": "Create upload plans",
+        "summary": "创建上传计划",
         "tags": [
           "Files"
         ],
@@ -413,7 +413,7 @@
         },
         "responses": {
           "201": {
-            "description": "Upload plans created",
+            "description": "上传计划已创建",
             "content": {
               "application/json": {
                 "schema": {
@@ -440,7 +440,7 @@
     "/v1/files/{id}/complete": {
       "post": {
         "operationId": "completeFile",
-        "summary": "Complete a file upload",
+        "summary": "完成文件上传",
         "tags": [
           "Files"
         ],
@@ -467,7 +467,7 @@
         },
         "responses": {
           "200": {
-            "description": "Current file snapshot",
+            "description": "当前文件快照",
             "content": {
               "application/json": {
                 "schema": {
@@ -500,7 +500,7 @@
     "/v1/files/{id}": {
       "get": {
         "operationId": "getFile",
-        "summary": "Get a file",
+        "summary": "获取文件",
         "tags": [
           "Files"
         ],
@@ -516,7 +516,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Current file snapshot",
+            "description": "当前文件快照",
             "content": {
               "application/json": {
                 "schema": {
@@ -540,7 +540,7 @@
     "/v1/files/{id}/content": {
       "get": {
         "operationId": "getFileContent",
-        "summary": "Download file content",
+        "summary": "下载文件内容",
         "tags": [
           "Files"
         ],
@@ -556,7 +556,7 @@
         ],
         "responses": {
           "307": {
-            "description": "Temporary redirect to a short-lived signed URL",
+            "description": "临时重定向到短效签名 URL",
             "headers": {
               "Location": {
                 "required": true,
@@ -588,8 +588,8 @@
     "/v1/models": {
       "get": {
         "operationId": "listModelContracts",
-        "summary": "List models",
-        "description": "Lists the public parameter contracts of supported models. By default returns model identities and localized labels. include=parameters expands operations, input constraints and parameter rules. The version identifies the complete contract and is the same for compact and expanded responses. Support does not imply current supply availability or an executable quote. No prices or channel details are returned.",
+        "summary": "列出模型",
+        "description": "列出所支持模型的公开参数合同。默认返回模型身份与本地化名称；include=parameters 会展开操作、输入约束和参数规则。version 标识完整合同，精简与展开响应中相同。受支持不代表当前有可用渠道或可执行的报价。不返回价格或渠道细节。",
         "tags": [
           "Models"
         ],
@@ -606,12 +606,12 @@
               "type": "string",
               "const": "parameters"
             },
-            "description": "Expand public parameter contracts. Other or repeated query parameters are rejected."
+            "description": "展开公开参数合同。其他或重复的查询参数会被拒绝。"
           }
         ],
         "responses": {
           "200": {
-            "description": "Compact or expanded model contracts",
+            "description": "精简或展开的模型合同",
             "content": {
               "application/json": {
                 "schema": {
@@ -642,8 +642,8 @@
     "/v1/models/{creator}/{model}": {
       "get": {
         "operationId": "getModel",
-        "summary": "Get a model",
-        "description": "Without query parameters returns the model detail. view=contract requires the canonical creator/model ID and returns its public parameter contract with the same content version as the model list, without querying price or current supply. Aliases may be used in generation requests but are not resource paths.",
+        "summary": "获取模型",
+        "description": "不带查询参数时返回模型详情。view=contract 要求使用规范的 creator/model ID，返回其公开参数合同，内容版本与模型列表相同，且不查询价格或当前渠道供应。别名可用于生成请求，但不能作为资源路径。",
         "tags": [
           "Models"
         ],
@@ -666,12 +666,12 @@
               "type": "string",
               "const": "contract"
             },
-            "description": "Returns the public parameter contract; no other query parameters are accepted."
+            "description": "返回公开参数合同；不接受其他查询参数。"
           }
         ],
         "responses": {
           "200": {
-            "description": "Model detail or versioned parameter contract",
+            "description": "模型详情或带版本的参数合同",
             "content": {
               "application/json": {
                 "schema": {
@@ -705,8 +705,8 @@
     "/v1/jobs/{id}": {
       "get": {
         "operationId": "getJob",
-        "summary": "Get a job",
-        "description": "A job snapshot stays readable for 90 days from creation, the same window as request log retention. After that window the endpoint answers 404 exactly as it does for an unknown job id, and the response never discloses which of the two cases applies.",
+        "summary": "获取 Job",
+        "description": "Job 快照自创建起可读取 90 天，与请求日志的保留期相同。超过后接口返回 404，与未知 Job ID 的响应完全一致，不会透露属于哪种情况。",
         "tags": [
           "Jobs"
         ],
@@ -722,7 +722,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Current job snapshot",
+            "description": "当前 Job 快照",
             "content": {
               "application/json": {
                 "schema": {
@@ -746,8 +746,8 @@
     "/v1/jobs/{id}/status": {
       "get": {
         "operationId": "getJobStatus",
-        "summary": "Get job status",
-        "description": "Returns a minimal status projection without loading attempts, billing ledgers, or result assets. Follows the same 90-day retention window as job snapshots. With wait, the request long-polls: a terminal job returns immediately; otherwise the response is held until the status or cancellation state changes or the wait elapses, then returns the current summary.",
+        "summary": "获取 Job 状态",
+        "description": "返回精简的状态摘要，不加载尝试、账目或结果文件。与 Job 快照同样保留 90 天。带 wait 时为长轮询：已终态的 Job 立即返回；否则保持请求，直到状态或取消状态变化、或等待时间结束，再返回当前摘要。",
         "tags": [
           "Jobs"
         ],
@@ -769,12 +769,12 @@
               "minimum": 0,
               "default": 0
             },
-            "description": "Seconds to hold the request while the job is not terminal. 0 or omitted returns immediately; values above 30 are treated as 30. Keep the client request timeout longer than the wait."
+            "description": "Job 未终态时保持请求的秒数。为 0 或省略时立即返回；大于 30 按 30 处理。客户端请求超时应长于等待时间。"
           }
         ],
         "responses": {
           "200": {
-            "description": "Current job status summary",
+            "description": "当前 Job 状态摘要",
             "content": {
               "application/json": {
                 "schema": {
@@ -801,8 +801,8 @@
     "/v1/jobs/{id}/cancel": {
       "post": {
         "operationId": "cancelJob",
-        "summary": "Cancel a job",
-        "description": "Before any provider submission, the job becomes cancelled and nothing is charged. After a submission, Yir starts no further fallback attempts while the current attempt keeps running; every attempt the upstream billed is still charged.",
+        "summary": "取消 Job",
+        "description": "在提交到任何渠道之前取消，Job 变为 cancelled，不收费。提交之后取消，Yir 不再发起新的切换渠道尝试，当前尝试继续运行；上游已计费的每次尝试仍会收费。",
         "tags": [
           "Jobs"
         ],
@@ -818,7 +818,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Current job snapshot after applying cancellation semantics",
+            "description": "执行取消后的当前 Job 快照",
             "content": {
               "application/json": {
                 "schema": {
@@ -856,7 +856,7 @@
         "name": "Idempotency-Key",
         "in": "header",
         "required": false,
-        "description": "Optional for input-file upload plans. Replaying the same key with identical file metadata returns the original plan; reusing a key with changed metadata is rejected. Without a key, each request creates a new plan. SDK file helpers require a caller-persisted key for recovery.",
+        "description": "创建上传计划时可选。用相同的键和相同的文件元数据重放，返回原计划；同一个键配不同的元数据会被拒绝。不带键时，每次请求都创建新计划。SDK 的文件辅助方法要求调用方持久化该键，以便恢复。",
         "schema": {
           "type": "string",
           "minLength": 1,
@@ -867,7 +867,7 @@
         "name": "Idempotency-Key",
         "in": "header",
         "required": true,
-        "description": "Required. Missing or blank keys are rejected with a non-retryable 400 before any resource is created or anything is charged. Replaying the same key with an identical standardized request returns the original result; reusing a key with a changed request is rejected. Generation SDK methods accept an omitted key and generate a random key per call; they do not automatically retry Submit. Persist one key per logical request before submitting and reuse it with the original request when the outcome is unknown. Separate SDK calls without an explicit key can create separate billable Jobs. Server-side fallback within an accepted Job is independent of this header.",
+        "description": "必填。缺失或为空时返回不可重试的 400，此时不会创建任何资源，也不收费。用相同的键和相同的标准化请求重放，返回原结果；同一个键配不同的请求会被拒绝。SDK 的生成方法允许省略该键，此时每次调用生成一个随机键，且不会自动重试提交。请在提交前为每个逻辑请求持久化一个键；结果未知时，用该键和原请求重试。不显式传键的多次 SDK 调用可能创建多个计费 Job。已受理 Job 内部的服务端渠道切换与该请求头无关。",
         "schema": {
           "type": "string",
           "minLength": 1,
@@ -910,7 +910,7 @@
     },
     "responses": {
       "JobAccepted": {
-        "description": "Job accepted",
+        "description": "Job 已受理",
         "content": {
           "application/json": {
             "schema": {
@@ -950,7 +950,7 @@
         "$ref": "#/components/responses/StandardError"
       },
       "StandardError": {
-        "description": "Stable Yir Standard error",
+        "description": "稳定的 Yir Standard 错误",
         "content": {
           "application/json": {
             "schema": {
@@ -976,18 +976,18 @@
         "format": "uri",
         "maxLength": 2048,
         "pattern": "^https://",
-        "description": "Public HTTPS URL of a reference image, video or audio file. Yir downloads it once at submission (up to 100 MiB, 3 redirects, private and reserved addresses refused), detects the type from the file contents, and stores it as an input file so every attempt and fallback reads the same bytes. Data URLs are not accepted. A URL that cannot be imported returns YIR_INVALID_REQUEST naming the reference; retryable is true only for remote timeouts, connection failures, HTTP 429 and 5xx. Quote does not download URLs, so prices that depend on input media are only estimated; upload through the Files API for larger files or exact media-dependent quotes."
+        "description": "参考图片、视频或音频文件的公开 HTTPS URL。Yir 在提交时下载一次（最大 100 MiB，最多 3 次重定向，拒绝私有和保留地址），按文件内容识别类型，并存为输入文件，使每次尝试与渠道切换都读取相同的内容。不接受 Data URL。无法导入的 URL 返回 YIR_INVALID_REQUEST 并指出对应的参考项；只有远端超时、连接失败、HTTP 429 和 5xx 时 retryable 为 true。报价不下载 URL，因此依赖输入媒体的价格只是估算；文件较大或需要按媒体精确报价时，请通过 Files API 上传。"
       },
       "RoutingOverride": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Request-scoped routing intent. only is an unordered Provider allowlist; selection and fallback stay within this set and within any channel restrictions on the API Key's routing profile. 'official' is accepted as an alias for the model's official provider channel in both only and variants (normalized before execution). A single item supports targeted testing. Custom order is not supported. preference and fallback remain optional.",
+        "description": "仅作用于本次请求的路由设置。only 是无序的渠道白名单，选择与切换渠道都限定在其中，并受 API Key 所绑定 Routing Profile 的渠道限制约束。only 与 variants 都接受 'official'，作为模型原厂渠道的别名（执行前归一化）。只写一项可用于定点测试。不支持自定义顺序。preference 和 fallback 仍为可选。",
         "properties": {
           "variants": {
             "type": "object",
             "minProperties": 1,
             "maxProperties": 16,
-            "description": "Provider-to-channel-variant selection. Providers omitted from this map consider all eligible variants; explicitly select standard to restrict a provider to its standard variant. Keys must belong to only when only is supplied ('official' alias is resolved before whitelist validation). Explicitly selected unknown or unavailable variants never fall back to another variant of the same provider.",
+            "description": "为渠道选择渠道版本。未出现在此映射中的渠道会考虑所有可用版本；显式选择 standard 可把渠道限定为标准版。提供 only 时，键必须属于 only（'official' 别名在白名单校验前解析）。显式选择的版本未知或不可用时，绝不会回退到同一渠道的其他版本。",
             "propertyNames": {
               "type": "string",
               "minLength": 1,
@@ -1008,7 +1008,7 @@
               "speed",
               "balanced"
             ],
-            "description": "Overrides the routing profile default for route ordering. cost (the default for new profiles) orders routes by estimated price, lowest first. speed orders routes by observed upstream median latency for the same model and specification, fastest first; routes with fewer than 10 recent samples follow, ordered by estimated price. balanced is a deprecated alias of cost kept for existing integrations. max_cost, only and fallback apply unchanged."
+            "description": "覆盖 Routing Profile 的默认路由排序。cost（新 Profile 的默认值）按估价从低到高排序。speed 按同一模型与规格近期实测的上游生成耗时中位数从快到慢排序；近期样本少于 10 个的路由排在其后，按估价排序。balanced 是 cost 的已弃用别名，为现有集成保留。max_cost、only 与 fallback 照常生效。"
           },
           "only": {
             "type": "array",
@@ -1102,14 +1102,14 @@
                 }
               ]
             },
-            "description": "Ordered references. Model contracts determine counts and required roles."
+            "description": "有序的参考输入。数量与必需的角色由模型合同决定。"
           }
         }
       },
       "ActualBillingMode": {
         "type": "string",
         "const": "actual",
-        "description": "Explicit consent to the authoritative actual cost of every upstream-billed attempt of the Job, without a max_cost cap. Only KIE/APIMart Kling 2.6/3.0 Motion Control and FAL FLUX 2 Pro image editing are supported; routing.only must explicitly select these channels. Cannot be combined with max_cost. Insufficient wallet funds become Job debt repaid by future manual recharge; outstanding debt blocks new Jobs. Every attempt the upstream actually billed is charged to the user, including failed and non-winning ones; attempts the upstream did not bill, and Yir's own delivery failures or outcome timeouts, are not charged. Omit for the default contract: balance is not frozen, each attempt checks the live balance against its route estimate, each upstream-billed attempt is charged at the authoritative upstream amount after the managed discount, and an explicit max_cost caps the Job's total charge."
+        "description": "显式同意按 Job 每次上游计费尝试的权威实际费用收费，不设 max_cost 上限。仅支持 KIE/APIMart 的 Kling 2.6/3.0 Motion Control 与 FAL 的 FLUX 2 Pro 图片编辑，routing.only 必须显式选择这些渠道。不能与 max_cost 同时使用。钱包余额不足的部分记为 Job 欠款，由之后的手动充值偿还；有未偿欠款时拒绝新 Job。上游实际计费的每次尝试都向用户收费，包括失败的和未胜出的尝试；上游未计费的尝试，以及 Yir 自身的交付失败或结果超时，不收费。省略时使用默认合同：不冻结余额，每次尝试前按实时余额核对该路由的估价，上游计费的每次尝试按上游权威金额乘以托管折扣收费，显式设置的 max_cost 为 Job 总费用封顶。"
       },
       "StandardImageGenerationRequest": {
         "type": "object",
@@ -1162,17 +1162,17 @@
                   "xhigh",
                   "max"
                 ],
-                "description": "Minimum image quality tier; allowed values come from the model contract. For GPT Image the tier is a routing constraint: only channels that serve it run the request, and it is never ignored or lowered. When omitted, any channel may run and quality-capable channels use medium. auto is rejected."
+                "description": "最低图片画质档位，可选值由模型合同决定。对 GPT Image 而言，该档位是路由约束：只有支持该档位的渠道会执行请求，且不会被忽略或降级。省略时任何渠道都可执行，支持画质档位的渠道使用 medium。不接受 auto。"
               },
               "web_search": {
                 "type": "boolean",
                 "default": false,
-                "description": "Nano Banana 2 web search. Requires a supply with explicit search support and a valid quote."
+                "description": "Nano Banana 2 网络搜索。需要明确支持搜索的渠道和有效报价。"
               },
               "image_search": {
                 "type": "boolean",
                 "default": false,
-                "description": "Nano Banana 2 image search. Requires web_search=true and an explicitly supported supply."
+                "description": "Nano Banana 2 图片搜索。需要 web_search=true，且渠道明确支持该功能。"
               },
               "resolution": {
                 "type": "string",
@@ -1191,7 +1191,7 @@
             }
           }
         },
-        "description": "Portable image request shape. Each model, input mode and parameter combination is validated against the model contract, and the request is rejected when no route can run it."
+        "description": "可移植的图片请求结构。每个模型、输入模式与参数组合都按模型合同校验；没有路由能执行时，请求会被拒绝。"
       },
       "StandardImageQuoteRequest": {
         "type": "object",
@@ -1235,17 +1235,17 @@
                   "xhigh",
                   "max"
                 ],
-                "description": "Minimum image quality tier; allowed values come from the model contract. For GPT Image the tier is a routing constraint: only channels that serve it run the request, and it is never ignored or lowered. When omitted, any channel may run and quality-capable channels use medium. auto is rejected."
+                "description": "最低图片画质档位，可选值由模型合同决定。对 GPT Image 而言，该档位是路由约束：只有支持该档位的渠道会执行请求，且不会被忽略或降级。省略时任何渠道都可执行，支持画质档位的渠道使用 medium。不接受 auto。"
               },
               "web_search": {
                 "type": "boolean",
                 "default": false,
-                "description": "Nano Banana 2 web search. Requires a supply with explicit search support and a valid quote."
+                "description": "Nano Banana 2 网络搜索。需要明确支持搜索的渠道和有效报价。"
               },
               "image_search": {
                 "type": "boolean",
                 "default": false,
-                "description": "Nano Banana 2 image search. Requires web_search=true and an explicitly supported supply."
+                "description": "Nano Banana 2 图片搜索。需要 web_search=true，且渠道明确支持该功能。"
               },
               "resolution": {
                 "type": "string",
@@ -1264,7 +1264,7 @@
             }
           }
         },
-        "description": "The image generation request contract without webhook_url or max_cost. A quote creates no job and charges nothing."
+        "description": "图片生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
       },
       "GPTImage2GenerationRequest": {
         "type": "object",
@@ -1349,7 +1349,7 @@
             }
           }
         },
-        "description": "The public GPT Image 2 parameter space. Ordered image references each select one HTTPS URL or one ready File ID. Route availability is checked at submission. Unknown fields are rejected."
+        "description": "GPT Image 2 的公开参数空间。有序的图片参考，每项选择一个 HTTPS URL 或一个已就绪的 File ID。提交时检查路由可用性。未知字段会被拒绝。"
       },
       "GPTImage2QuoteRequest": {
         "type": "object",
@@ -1425,7 +1425,7 @@
             }
           }
         },
-        "description": "The image generation request contract without webhook_url or max_cost. A quote creates no job and charges nothing."
+        "description": "图片生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
       },
       "StandardVideoTextInput": {
         "type": "object",
@@ -1503,7 +1503,7 @@
                 }
               ]
             },
-            "description": "Ordered references. Model contracts determine counts and required roles."
+            "description": "有序的参考输入。数量与必需的角色由模型合同决定。"
           }
         }
       },
@@ -1564,7 +1564,7 @@
                 }
               ]
             },
-            "description": "Ordered references. Model contracts determine counts and required roles."
+            "description": "有序的参考输入。数量与必需的角色由模型合同决定。"
           }
         }
       },
@@ -1632,7 +1632,7 @@
               "return_last_frame": {
                 "type": "boolean",
                 "default": false,
-                "description": "Seedance 2.0 only. Return the last frame with the video; requires a route supporting this option."
+                "description": "仅限 Seedance 2.0。随视频返回最后一帧；需要支持该选项的路由。"
               },
               "n": {
                 "type": "integer",
@@ -1643,7 +1643,7 @@
             }
           }
         },
-        "description": "Portable video request shape. Each model, input mode and parameter combination is validated against the model contract, and the request is rejected when no route can run it."
+        "description": "可移植的视频请求结构。每个模型、输入模式与参数组合都按模型合同校验；没有路由能执行时，请求会被拒绝。"
       },
       "StandardVideoQuoteRequest": {
         "type": "object",
@@ -1700,7 +1700,7 @@
               "return_last_frame": {
                 "type": "boolean",
                 "default": false,
-                "description": "Seedance 2.0 only. Return the last frame with the video; requires a route supporting this option."
+                "description": "仅限 Seedance 2.0。随视频返回最后一帧；需要支持该选项的路由。"
               },
               "n": {
                 "type": "integer",
@@ -1711,13 +1711,13 @@
             }
           }
         },
-        "description": "The video generation request contract without webhook_url or max_cost. A quote creates no job and charges nothing."
+        "description": "视频生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
       },
       "MaxCost": {
         "type": "string",
         "pattern": "^[0-9]{1,13}(\\.[0-9]{1,6})?$",
         "maxLength": 20,
-        "description": "Optional cap on the Job's total charge in USD, with up to 6 decimal places. Balance is not frozen: admission and every attempt submission check the live available balance against that route's estimate (catalog price for fixed routes, output estimate for usage-based routes). Every attempt the upstream actually billed is charged at the authoritative upstream amount after the managed discount, whether it succeeded, failed, or was followed by a fallback; attempts the upstream never billed cost nothing, and Yir absorbs its own delivery failures and outcome timeouts. A result the upstream billed that Yir rejects as `YIR_CONTENT_REJECTED` is charged the same way but not delivered. Any part the balance cannot cover becomes a negative balance that blocks new jobs until a top-up. With max_cost, routes whose estimate exceeds it are skipped (no remaining route rejects the request), and the Job's total charge across all attempts never exceeds it; Yir absorbs any excess. Historical jobs retain their recorded billing terms."
+        "description": "可选，Job 总费用的美元上限，最多六位小数。不冻结余额：准入与每次提交尝试前，都按实时可用余额核对该路由的估价（固定价路由用目录价，按用量计费的路由用输出估价）。上游实际计费的每次尝试，都按上游权威金额乘以托管折扣收费，无论成功、失败还是之后切换了渠道；上游从未计费的尝试不收费，Yir 自身的交付失败与结果超时由 Yir 承担。上游已计费、但被 Yir 以 `YIR_CONTENT_REJECTED` 拦截的结果，同样收费但不交付。余额不足的部分记为负余额，充值前拒绝新 Job。设置 max_cost 时，估价超过它的路由会被跳过（没有剩余路由时拒绝请求），Job 所有尝试的总费用绝不超过它，超出部分由 Yir 承担。历史 Job 保留其记录的计费条款。"
       },
       "QuoteBatchRequest": {
         "type": "object",
@@ -1859,14 +1859,14 @@
             "items": {
               "$ref": "#/components/schemas/ParameterNotice"
             },
-            "description": "Expected primary-channel handling; actual handling is reported by the successful Job."
+            "description": "首选渠道的预期处理方式；实际处理方式以成功的 Job 为准。"
           },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },
           "parameter_handling_may_vary": {
             "type": "boolean",
-            "description": "Fallback may handle parameters differently."
+            "description": "切换渠道后，参数的处理方式可能不同。"
           },
           "supply": {
             "type": "object",
@@ -1883,7 +1883,7 @@
               "requires_max_cost": {
                 "type": "boolean",
                 "deprecated": true,
-                "description": "Deprecated compatibility field, always false: no route requires max_cost. Routes without an estimate are not selectable."
+                "description": "已弃用的兼容字段，始终为 false：没有路由要求 max_cost。没有估价的路由不可选。"
               },
               "issues": {
                 "type": "array",
@@ -1895,7 +1895,7 @@
                 }
               }
             },
-            "description": "Whether any route can currently serve this request. Available supply has an empty issues array; requires_max_cost is always false. No matching supply returns available=false and no_matching_supply, with primary/max unavailable. Authentication, invalid requests, and infrastructure failures remain errors."
+            "description": "当前是否有路由能执行此请求。有可用渠道时 issues 为空数组；requires_max_cost 始终为 false。没有匹配渠道时返回 available=false 与 no_matching_supply，primary/max 为 unavailable。认证失败、无效请求和基础设施故障仍以错误返回。"
           },
           "object": {
             "type": "string",
@@ -1929,7 +1929,7 @@
           },
           "single_attempt_upper_bound": {
             "deprecated": true,
-            "description": "Deprecated compatibility field, always null: every route settles at the authoritative upstream amount, so no verified ceiling exists. Use max_cost to cap a Job.",
+            "description": "已弃用的兼容字段，始终为 null：所有路由都按上游权威金额结算，不存在经核实的上限。请用 max_cost 为 Job 封顶。",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Decimal"
@@ -1942,7 +1942,7 @@
           "has_verifiable_upper_bound": {
             "type": "boolean",
             "deprecated": true,
-            "description": "Deprecated compatibility field, always false; see single_attempt_upper_bound."
+            "description": "已弃用的兼容字段，始终为 false；见 single_attempt_upper_bound。"
           },
           "expires_at": {
             "type": "integer",
@@ -1950,7 +1950,7 @@
             "minimum": 1
           },
           "primary": {
-            "description": "Current preferred route's estimate: its catalog reference price for fixed-price routes, or an output-only estimate for usage-based routes; otherwise unavailable. The Job is charged the authoritative upstream amounts of its billed attempts after the managed discount, which can differ from this estimate. An output-only estimate excludes input charges; neither is a charge ceiling, and Submit rechecks current facts. The independent official reference is reported in official.",
+            "description": "当前首选路由的估价：固定价路由为目录参考价，按用量计费的路由为仅含输出的估价；否则为 unavailable。Job 按各次计费尝试的上游权威金额乘以托管折扣收费，可能与此估价不同。仅含输出的估价不含输入费用；两者都不是收费上限，提交时会重新核对当前数据。独立的官方参考价见 official。",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OutputQuoteEstimate"
@@ -1995,7 +1995,7 @@
             ]
           },
           "max": {
-            "description": "Deprecated compatibility field; repeats primary. Not a charge ceiling. Set max_cost to bound the charge and the routes used, including fallback.",
+            "description": "已弃用的兼容字段，与 primary 相同。不是收费上限。要限制费用及可用路由（含切换渠道），请设置 max_cost。",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OutputQuoteEstimate"
@@ -2086,7 +2086,7 @@
           "price_difference_percent": {
             "type": "object",
             "additionalProperties": false,
-            "description": "Optional comparison with the official reference. Negative values mean a lower Yir price. Complete fixed prices are compared only with complete fixed prices. Output-only estimates are compared only when both prices use identical output assumptions; that comparison excludes input and other charges.",
+            "description": "可选，与官方参考价的对比。负数表示 Yir 价格更低。完整固定价只与完整固定价比较。仅含输出的估价只有在两者采用相同输出假设时才比较，且该比较不含输入及其他费用。",
             "required": [
               "min",
               "max"
@@ -2110,7 +2110,7 @@
       "OutputQuoteEstimate": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Generated output only. Input and other charges are excluded. Not an authorization ceiling.",
+        "description": "仅含生成输出，不含输入及其他费用。不是授权上限。",
         "required": [
           "kind",
           "amount",
@@ -2154,17 +2154,17 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 1000000,
-                "description": "Billable whole output megapixels using the model's declared pixel unit; excludes input megapixels. Mutually exclusive with output_tokens."
+                "description": "按模型声明的像素单位计算的计费输出百万像素数（整数），不含输入百万像素。与 output_tokens 互斥。"
               },
               "quality": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Reference quality used for the output estimate. Omitted quality uses the catalog's medium reference when available; this does not change generation parameters."
+                "description": "输出估价采用的参考画质。省略画质时，如目录中有 medium 参考则使用它；这不会改变生成参数。"
               },
               "aspect_ratio": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Reference aspect ratio used for the output estimate. Automatic aspect ratio uses a declared square reference when available; explicitly selected unsupported ratios remain unavailable."
+                "description": "输出估价采用的参考宽高比。自动宽高比在有声明的方形参考时使用它；显式选择的不支持比例仍为 unavailable。"
               }
             }
           }
@@ -2309,7 +2309,7 @@
             "items": {
               "$ref": "#/components/schemas/ParameterNotice"
             },
-            "description": "Actual handling from the successful attempt snapshot; omitted before success."
+            "description": "取自成功尝试快照的实际处理方式；成功前省略。"
           },
           "id": {
             "type": "string",
@@ -2322,7 +2322,7 @@
           "final_provider": {
             "type": "string",
             "minLength": 1,
-            "description": "Provider of the adopted result, present only for successful jobs. Does not expose candidate routes."
+            "description": "被采用结果所属的渠道，仅成功的 Job 返回。不暴露候选路由。"
           },
           "status": {
             "type": "string",
@@ -2439,7 +2439,7 @@
         "required": [
           "status"
         ],
-        "description": "NSFW check outcome for the delivered result. `passed` with `checked_by: provider` means the upstream provider enforces content moderation; `passed` with `checked_by: yir` means Yir checked the output itself. `unchecked` means the output check was unavailable or could not be applied. Yir's output check only blocks explicit adult content. Omitted for historical results.",
+        "description": "已交付结果的 NSFW 检查结果。`passed` 且 `checked_by: provider` 表示由上游渠道执行内容审核；`passed` 且 `checked_by: yir` 表示由 Yir 自行检查输出。`unchecked` 表示输出检查不可用或无法执行。Yir 的输出检查只拦截露骨的成人内容。历史结果不返回此字段。",
         "properties": {
           "status": {
             "type": "string",
@@ -2489,7 +2489,7 @@
                 "additional_results_unavailable"
               ]
             },
-            "description": "The primary result was delivered, but an optional additional result could not be delivered. Does not change Job success or authorize regeneration. Omitted when no delivery warning exists, including historical results."
+            "description": "主结果已交付，但一个可选的附加结果未能交付。不改变 Job 的成功状态，也不授权重新生成。没有交付警告时省略，历史结果同样省略。"
           },
           "content_safety": {
             "$ref": "#/components/schemas/ResultContentSafety"
@@ -2629,7 +2629,7 @@
           "savings": {
             "$ref": "#/components/schemas/Savings",
             "deprecated": true,
-            "description": "Deprecated: no longer returned since 2026-10-02. Post-pay charges the actual upstream amount, so an estimate-based saving would mislead. Kept for SDK compatibility; use official_comparison."
+            "description": "已弃用：自 2026-10-02 起不再返回。后付费按上游实际金额收费，基于估价的节省金额会造成误导。为 SDK 兼容保留；请使用 official_comparison。"
           },
           "official_comparison": {
             "$ref": "#/components/schemas/OfficialComparison"
@@ -2638,7 +2638,7 @@
       },
       "ComputeCharge": {
         "type": "object",
-        "description": "Read-only billing facts for managed supply billed by Yir.",
+        "description": "由 Yir 收费的托管供应的只读计费数据。",
         "additionalProperties": false,
         "required": [
           "supply_type",
@@ -2729,7 +2729,7 @@
       "OfficialComparison": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Successful jobs only. Complete fixed USD official price frozen at admission for the exact request. Savings is baseline minus all Yir charges, including recovery attempts; it may be negative. Omitted for historical jobs, dynamic prices and missing baselines.",
+        "description": "仅成功的 Job 返回。为该请求在准入时冻结的完整固定美元官方价。节省金额为基准价减去 Yir 的全部收费（含恢复尝试），可能为负。历史 Job、动态价格和缺少基准价时省略。",
         "required": [
           "baseline_amount",
           "savings_amount"
@@ -2890,7 +2890,7 @@
               "expired",
               "failed"
             ],
-            "description": "Completion starts asynchronous metadata analysis. Wait for ready before referencing this file in a job."
+            "description": "完成上传后会开始异步元数据分析。请等到 ready 后再在 Job 中引用此文件。"
           },
           "width": {
             "type": "integer",
@@ -2928,7 +2928,7 @@
       },
       "FileUpload": {
         "type": "object",
-        "description": "Every new upload receives a multipart plan, and the Yir SDKs accept multipart only. Replaying a batch created before the multipart migration can still return the retired single-PUT plan, whose shape is outside this schema (type \"single\" with method, url, and headers); such batches cannot be resumed through the SDKs and should be created again.",
+        "description": "每个新上传都会得到分片（multipart）计划，Yir SDK 只接受分片上传。重放分片迁移之前创建的批次时，仍可能返回已退役的单次 PUT 计划，其结构不在本 Schema 内（type 为 \"single\"，带 method、url 和 headers）；这类批次无法通过 SDK 恢复，应重新创建。",
         "additionalProperties": false,
         "required": [
           "type",
@@ -3020,7 +3020,7 @@
           "input_mode",
           "parameter_rules"
         ],
-        "description": "Declared public parameter handling, separate from runtime eligibility.",
+        "description": "声明的公开参数处理方式，与运行时的路由可用性无关。",
         "properties": {
           "provider": {
             "type": "string"
@@ -3235,7 +3235,7 @@
           "version": {
             "type": "string",
             "pattern": "^[a-f0-9]{64}$",
-            "description": "Present in API responses; omitted from the static contract file bundled with the SDKs."
+            "description": "API 响应中返回；SDK 附带的静态合同文件中省略。"
           },
           "models": {
             "type": "array",
@@ -3245,7 +3245,7 @@
             }
           }
         },
-        "description": "Language-neutral static model contracts generated with this Standard OpenAPI release. Runtime price, health, authorization and route facts are excluded."
+        "description": "与语言无关的静态模型合同，随本次 Standard OpenAPI 版本生成。不含运行时的价格、健康状况、授权与路由数据。"
       },
       "ModelContractList": {
         "type": "object",
@@ -3463,7 +3463,7 @@
           },
           "max_duration_by_reference_role": {
             "type": "object",
-            "description": "Maximum generated video duration in seconds when a reference of the keyed role is present; not input media duration.",
+            "description": "存在该角色的参考输入时，生成视频的最大时长（秒）；不是输入媒体的时长。",
             "additionalProperties": {
               "type": "integer",
               "minimum": 1
@@ -3529,7 +3529,7 @@
               "only_provider": {
                 "type": "string",
                 "minLength": 1,
-                "description": "The parameter is ignored unless routing.only contains exactly this provider."
+                "description": "除非 routing.only 恰好只包含此渠道，否则忽略该参数。"
               },
               "reason": {
                 "type": "string",
@@ -3538,7 +3538,7 @@
               "message": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Static warning text for SDKs; contains no request values."
+                "description": "供 SDK 使用的静态警告文本；不含任何请求值。"
               }
             }
           },

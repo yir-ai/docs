@@ -79,7 +79,14 @@ export default defineConfig({
       },
     ],
   },
+  // Chinese reference first: generated from the English spec by
+  // scripts/localize-openapi.mjs and openapi/i18n/zh.json.
   reference: [openapi({
+    spec: "openapi/gateway-openapi.reference.zh.json",
+    route: "/zh/docs/reference",
+    codeSamples: ["curl", "js", "python"],
+    playground: false,
+  }), openapi({
     spec: "openapi/gateway-openapi.reference.json",
     route: "/docs/reference",
     codeSamples: ["curl", "js", "python"],

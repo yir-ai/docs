@@ -9,6 +9,7 @@
     "preview": "pnpm exec blume preview",
     "check:public": "node ./scripts/check-public-boundary.mjs",
     "publish:check": "pnpm run check:public && pnpm run test && pnpm run validate",
+    "localize:openapi": "node ./scripts/localize-openapi.mjs",
     "test": "node --test ./scripts/*.test.mjs",
     "validate": "pnpm exec blume validate"
   },
