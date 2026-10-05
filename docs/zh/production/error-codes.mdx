@@ -21,6 +21,7 @@ description: Yir 所有稳定错误码的 HTTP 状态、出现位置、是否可
 - `retryable` 表示稍后再试是否可能成功。
 - `action` 建议下一步：`fix_request`、`modify_input`、`add_funds`、`retry_later` 或 `contact_support`。
 - `request_id` 标识这次 HTTP 请求，联系支持时请提供。
+- 字段级的 `YIR_INVALID_REQUEST` 错误带 `details`。每一项给出字段 `field`（如 `parameters.resolution`）、稳定原因码 `reason`（`unsupported`、`required`、`wrong_type`、`not_allowed`、`invalid`、`unknown_field`、`invalid_body` 或 `retired`），字段取值固定时还给出模型合同中的允许值 `allowed`。据此修正请求，不要解析 `message`。
 
 Job 失败时，`GET /v1/jobs/{id}` 与 `GET /v1/jobs/{id}/status` 中都有相同的 `error` 对象（不含 `request_id`）。
 

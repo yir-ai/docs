@@ -3,7 +3,7 @@
   "info": {
     "title": "Yir Standard 异步 AIGC API",
     "version": "1.0.0-preview",
-    "description": "Yir 统一异步 AI 网关的公开 REST API：为图片和视频生成请求报价、提交 Job、上传输入文件、读取模型合同、跟踪 Job。"
+    "description": "Yir 统一异步 AI 网关的公开 REST API：报价并提交图片和视频生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
   },
   "servers": [
     {
@@ -880,7 +880,9 @@
         "required": true,
         "schema": {
           "type": "string",
-          "pattern": "^[1-9][0-9]*$"
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "不透明的 Job ID。"
         }
       },
       "FileID": {
@@ -1005,10 +1007,9 @@
             "type": "string",
             "enum": [
               "cost",
-              "speed",
-              "balanced"
+              "speed"
             ],
-            "description": "覆盖 Routing Profile 的默认路由排序。cost（新 Profile 的默认值）按估价从低到高排序。speed 按同一模型与规格近期实测的上游生成耗时中位数从快到慢排序；近期样本少于 10 个的路由排在其后，按估价排序。balanced 是 cost 的已弃用别名，为现有集成保留。max_cost、only 与 fallback 照常生效。"
+            "description": "覆盖路由配置的默认排序方式。cost（默认）按估价从低到高排序路线。speed 按同一模型与规格观测到的上游中位延迟从快到慢排序；近期样本少于 10 个的路线排在后面，并按估价排序。max_cost、only 与 fallback 照常生效。"
           },
           "only": {
             "type": "array",
@@ -1152,28 +1153,12 @@
           },
           "parameters": {
             "type": "object",
-            "additionalProperties": false,
+            "additionalProperties": true,
+            "description": "生成参数。模型合同（GET /v1/models?include=parameters）列出每个模型的参数、允许值和默认值；此处只说明通用参数。省略的参数取模型公布的默认值；模型合同未列出的参数会被拒绝。",
             "properties": {
               "quality": {
                 "type": "string",
-                "enum": [
-                  "low",
-                  "medium",
-                  "high",
-                  "xhigh",
-                  "max"
-                ],
                 "description": "最低图片画质档位，可选值由模型合同决定。对 GPT Image 而言，该档位是路由约束：只有支持该档位的渠道会执行请求，且不会被忽略或降级。省略时任何渠道都可执行，支持画质档位的渠道使用 medium。不接受 auto。"
-              },
-              "web_search": {
-                "type": "boolean",
-                "default": false,
-                "description": "Nano Banana 2 网络搜索。需要明确支持搜索的渠道和有效报价。"
-              },
-              "image_search": {
-                "type": "boolean",
-                "default": false,
-                "description": "Nano Banana 2 图片搜索。需要 web_search=true，且渠道明确支持该功能。"
               },
               "resolution": {
                 "type": "string",
@@ -1226,29 +1211,13 @@
           },
           "parameters": {
             "type": "object",
-            "additionalProperties": false,
+            "additionalProperties": true,
+            "description": "生成参数。模型合同（GET /v1/models?include=parameters）列出每个模型的参数、允许值和默认值；此处只说明通用参数。省略的参数取模型公布的默认值；模型合同未列出的参数会被拒绝。",
             "properties": {
               "quality": {
                 "type": "string",
-                "enum": [
-                  "low",
-                  "medium",
-                  "high",
-                  "xhigh",
-                  "max"
-                ],
                 "description": "最低图片画质档位，可选值由模型合同决定。对 GPT Image 而言，该档位是路由约束：只有支持该档位的渠道会执行请求，且不会被忽略或降级。省略时任何渠道都可执行，支持画质档位的渠道使用 medium。不接受 auto。"
               },
-              "web_search": {
-                "type": "boolean",
-                "default": false,
-                "description": "Nano Banana 2 网络搜索。需要明确支持搜索的渠道和有效报价。"
-              },
-              "image_search": {
-                "type": "boolean",
-                "default": false,
-                "description": "Nano Banana 2 图片搜索。需要 web_search=true，且渠道明确支持该功能。"
-              },
               "resolution": {
                 "type": "string",
                 "minLength": 1
@@ -1256,167 +1225,6 @@
               "aspect_ratio": {
                 "type": "string",
                 "minLength": 1
-              },
-              "n": {
-                "type": "integer",
-                "enum": [
-                  1
-                ]
-              }
-            }
-          }
-        },
-        "description": "图片生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
-      },
-      "GPTImage2GenerationRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "model",
-          "input",
-          "parameters"
-        ],
-        "properties": {
-          "max_cost": {
-            "$ref": "#/components/schemas/MaxCost"
-          },
-          "model": {
-            "type": "string",
-            "enum": [
-              "openai/gpt-image-2",
-              "gpt-image-2"
-            ]
-          },
-          "input": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/StandardImageTextInput"
-              },
-              {
-                "$ref": "#/components/schemas/StandardImageReferenceInput"
-              }
-            ]
-          },
-          "routing": {
-            "$ref": "#/components/schemas/RoutingOverride"
-          },
-          "webhook_url": {
-            "type": "string",
-            "format": "uri",
-            "maxLength": 1000,
-            "pattern": "^https://"
-          },
-          "parameters": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "resolution": {
-                "type": "string",
-                "enum": [
-                  "1K",
-                  "2K",
-                  "4K",
-                  "1k",
-                  "2k",
-                  "4k"
-                ]
-              },
-              "aspect_ratio": {
-                "type": "string",
-                "enum": [
-                  "auto",
-                  "1:1",
-                  "3:2",
-                  "2:3",
-                  "4:3",
-                  "3:4",
-                  "5:4",
-                  "4:5",
-                  "16:9",
-                  "9:16",
-                  "2:1",
-                  "1:2",
-                  "3:1",
-                  "1:3",
-                  "21:9",
-                  "9:21"
-                ]
-              },
-              "n": {
-                "type": "integer",
-                "enum": [
-                  1
-                ]
-              }
-            }
-          }
-        },
-        "description": "GPT Image 2 的公开参数空间。有序的图片参考，每项选择一个 HTTPS URL 或一个已就绪的 File ID。提交时检查路由可用性。未知字段会被拒绝。"
-      },
-      "GPTImage2QuoteRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "model",
-          "input",
-          "parameters"
-        ],
-        "properties": {
-          "model": {
-            "type": "string",
-            "enum": [
-              "openai/gpt-image-2",
-              "gpt-image-2"
-            ]
-          },
-          "input": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/StandardImageTextInput"
-              },
-              {
-                "$ref": "#/components/schemas/StandardImageReferenceInput"
-              }
-            ]
-          },
-          "routing": {
-            "$ref": "#/components/schemas/RoutingOverride"
-          },
-          "parameters": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "resolution": {
-                "type": "string",
-                "enum": [
-                  "1K",
-                  "2K",
-                  "4K",
-                  "1k",
-                  "2k",
-                  "4k"
-                ]
-              },
-              "aspect_ratio": {
-                "type": "string",
-                "enum": [
-                  "auto",
-                  "1:1",
-                  "3:2",
-                  "2:3",
-                  "4:3",
-                  "3:4",
-                  "5:4",
-                  "4:5",
-                  "16:9",
-                  "9:16",
-                  "2:1",
-                  "1:2",
-                  "3:1",
-                  "1:3",
-                  "21:9",
-                  "9:21"
-                ]
               },
               "n": {
                 "type": "integer",
@@ -1614,12 +1422,13 @@
           },
           "parameters": {
             "type": "object",
-            "additionalProperties": false,
+            "additionalProperties": true,
+            "description": "生成参数。模型合同（GET /v1/models?include=parameters）列出每个模型的参数、允许值和默认值；此处只说明通用参数。省略的参数取模型公布的默认值；模型合同未列出的参数会被拒绝。",
             "properties": {
               "duration": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 30
+                "minimum": 1,
+                "description": "输出时长（秒），允许值来自模型合同。"
               },
               "resolution": {
                 "type": "string",
@@ -1631,11 +1440,6 @@
               },
               "generate_audio": {
                 "type": "boolean"
-              },
-              "return_last_frame": {
-                "type": "boolean",
-                "default": false,
-                "description": "仅限 Seedance 2.0。随视频返回最后一帧；需要支持该选项的路由。"
               },
               "n": {
                 "type": "integer",
@@ -1683,12 +1487,13 @@
           },
           "parameters": {
             "type": "object",
-            "additionalProperties": false,
+            "additionalProperties": true,
+            "description": "生成参数。模型合同（GET /v1/models?include=parameters）列出每个模型的参数、允许值和默认值；此处只说明通用参数。省略的参数取模型公布的默认值；模型合同未列出的参数会被拒绝。",
             "properties": {
               "duration": {
                 "type": "integer",
-                "minimum": 0,
-                "maximum": 30
+                "minimum": 1,
+                "description": "输出时长（秒），允许值来自模型合同。"
               },
               "resolution": {
                 "type": "string",
@@ -1700,11 +1505,6 @@
               },
               "generate_audio": {
                 "type": "boolean"
-              },
-              "return_last_frame": {
-                "type": "boolean",
-                "default": false,
-                "description": "仅限 Seedance 2.0。随视频返回最后一帧；需要支持该选项的路由。"
               },
               "n": {
                 "type": "integer",
@@ -1850,11 +1650,8 @@
           "input_mode",
           "parameters",
           "currency",
-          "single_attempt_upper_bound",
-          "has_verifiable_upper_bound",
           "expires_at",
           "primary",
-          "max",
           "official"
         ],
         "properties": {
@@ -1877,7 +1674,6 @@
             "additionalProperties": false,
             "required": [
               "available",
-              "requires_max_cost",
               "issues"
             ],
             "properties": {
@@ -1887,7 +1683,7 @@
               "requires_max_cost": {
                 "type": "boolean",
                 "deprecated": true,
-                "description": "已弃用的兼容字段，始终为 false：没有路由要求 max_cost。没有估价的路由不可选。"
+                "description": "已废弃，始终为 false。不属于合同；为 TypeScript 0.9、Go 0.10 之前的 SDK 暂时保留输出，之后会删除。"
               },
               "issues": {
                 "type": "array",
@@ -1933,7 +1729,7 @@
           },
           "single_attempt_upper_bound": {
             "deprecated": true,
-            "description": "已弃用的兼容字段，始终为 null：所有路由都按上游权威金额结算，不存在经核实的上限。请用 max_cost 为 Job 封顶。",
+            "description": "已废弃，始终为 null。不属于合同；为 TypeScript 0.9、Go 0.10 之前的 SDK 暂时保留输出，之后会删除。用 max_cost 限制 Job 总费用。",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Decimal"
@@ -1946,7 +1742,7 @@
           "has_verifiable_upper_bound": {
             "type": "boolean",
             "deprecated": true,
-            "description": "已弃用的兼容字段，始终为 false；见 single_attempt_upper_bound。"
+            "description": "已废弃，始终为 false。不属于合同；为旧版 SDK 暂时保留输出，之后会删除。"
           },
           "expires_at": {
             "type": "integer",
@@ -1999,7 +1795,8 @@
             ]
           },
           "max": {
-            "description": "已弃用的兼容字段，与 primary 相同。不是收费上限。要限制费用及可用路由（含切换渠道），请设置 max_cost。",
+            "deprecated": true,
+            "description": "已废弃，重复 primary。不属于合同；为 TypeScript 0.9、Go 0.10 之前的 SDK 暂时保留输出，之后会删除。它不是收费上限，限制费用请设置 max_cost。",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OutputQuoteEstimate"
@@ -2276,6 +2073,50 @@
               "retry_later",
               "contact_support"
             ]
+          },
+          "details": {
+            "type": "array",
+            "minItems": 1,
+            "description": "YIR_INVALID_REQUEST 错误的字段级原因，用于修正请求而无需解析 message。",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "field",
+                "reason"
+              ],
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "请求中的字段路径，例如 parameters.resolution 或 input.references.0.role。"
+                },
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "invalid_body",
+                    "unknown_field",
+                    "wrong_type",
+                    "required",
+                    "unsupported",
+                    "not_allowed",
+                    "invalid",
+                    "retired"
+                  ]
+                },
+                "allowed": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "该字段接受的合同取值；对于已下架模型，为替代模型。"
+                },
+                "expected": {
+                  "type": "string",
+                  "description": "期望的类型或条件。"
+                }
+              }
+            }
           }
         }
       },
@@ -2317,7 +2158,9 @@
           },
           "id": {
             "type": "string",
-            "pattern": "^[1-9][0-9]*$"
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "不透明的 Job ID，不要解析。"
           },
           "object": {
             "type": "string",
@@ -2391,7 +2234,9 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[1-9][0-9]*$"
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "不透明的 Job ID，不要解析。"
           },
           "status": {
             "type": "string",
@@ -2429,11 +2274,11 @@
         "properties": {
           "get": {
             "type": "string",
-            "pattern": "^/v1/jobs/[1-9][0-9]*$"
+            "pattern": "^/v1/jobs/[^/]+$"
           },
           "cancel": {
             "type": "string",
-            "pattern": "^/v1/jobs/[1-9][0-9]*/cancel$"
+            "pattern": "^/v1/jobs/[^/]+/cancel$"
           }
         }
       },
@@ -2630,11 +2475,6 @@
           "max_cost": {
             "$ref": "#/components/schemas/MaxCost"
           },
-          "savings": {
-            "$ref": "#/components/schemas/Savings",
-            "deprecated": true,
-            "description": "已弃用：自 2026-10-02 起不再返回。后付费按上游实际金额收费，基于估价的节省金额会造成误导。为 SDK 兼容保留；请使用 official_comparison。"
-          },
           "official_comparison": {
             "$ref": "#/components/schemas/OfficialComparison"
           }
@@ -2752,36 +2592,6 @@
           "source_url": {
             "type": "string",
             "format": "uri"
-          }
-        }
-      },
-      "Savings": {
-        "deprecated": true,
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "amount",
-          "kind",
-          "baseline_amount",
-          "actual_user_charge"
-        ],
-        "properties": {
-          "amount": {
-            "type": "string",
-            "pattern": "^-?(0|[0-9]+)(\\.[0-9]+)?$"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "actual",
-              "estimated"
-            ]
-          },
-          "baseline_amount": {
-            "$ref": "#/components/schemas/Decimal"
-          },
-          "actual_user_charge": {
-            "$ref": "#/components/schemas/Decimal"
           }
         }
       },
@@ -2999,7 +2809,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "const": "quality"
+            "minLength": 1
           },
           "disposition": {
             "type": "string",
@@ -3387,8 +3197,7 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video",
-              "upscale_image"
+              "generate_video"
             ]
           },
           "input_modes": {
@@ -3524,31 +3333,6 @@
           "locales"
         ],
         "properties": {
-          "policy": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "only_provider",
-              "reason",
-              "message"
-            ],
-            "properties": {
-              "only_provider": {
-                "type": "string",
-                "minLength": 1,
-                "description": "除非 routing.only 恰好只包含此渠道，否则忽略该参数。"
-              },
-              "reason": {
-                "type": "string",
-                "minLength": 1
-              },
-              "message": {
-                "type": "string",
-                "minLength": 1,
-                "description": "供 SDK 使用的静态警告文本；不含任何请求值。"
-              }
-            }
-          },
           "name": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*$"

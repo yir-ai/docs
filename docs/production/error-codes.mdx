@@ -21,6 +21,7 @@ Errors use one stable shape, whether they come back from an HTTP request or appe
 - `retryable` says whether trying again later can succeed.
 - `action` suggests what to do next: `fix_request`, `modify_input`, `add_funds`, `retry_later`, or `contact_support`.
 - `request_id` identifies the HTTP request. Include it when contacting support.
+- `details` appears on field-level `YIR_INVALID_REQUEST` errors. Each entry names the `field` (for example `parameters.resolution`), a stable `reason` (`unsupported`, `required`, `wrong_type`, `not_allowed`, `invalid`, `unknown_field`, `invalid_body` or `retired`) and, where the field takes fixed values, the `allowed` values from the model contract. Use it to correct the request instead of parsing `message`.
 
 On a failed Job, the same `error` object (without `request_id`) is in both `GET /v1/jobs/{id}` and `GET /v1/jobs/{id}/status`.
 
