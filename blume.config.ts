@@ -69,6 +69,12 @@ export default defineConfig({
   navigation: {
     repo: true,
     sidebar: { display: "flat" },
+    // Docs ship under yir.ai/docs; "/" is the yir.ai home (localized to /zh).
+    tabs: [
+      { label: { en: "Home", zh: "首页" }, path: "/home", href: "/" },
+      { label: { en: "Docs", zh: "文档" }, path: "/docs" },
+      { label: { en: "API Reference", zh: "API 参考" }, path: "/docs/reference" },
+    ],
   },
   github: { owner: "yir-ai", repo: "docs", branch: "main" },
   analytics: [script({ content: crispChat })],
