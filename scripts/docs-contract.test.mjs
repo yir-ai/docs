@@ -263,15 +263,15 @@ test(
     )
     assert.match(
       chineseReference,
-      /<link rel="canonical" href="https:\/\/yir\.ai\/zh\/docs\/reference"/,
+      /<link rel="canonical" href="https:\/\/yir\.ai\/docs\/reference"/,
     )
     assert.match(
       chineseReferenceOperation,
-      /<link rel="canonical" href="https:\/\/yir\.ai\/zh\/docs\/reference\/jobs\/get-job"/,
+      /<link rel="canonical" href="https:\/\/yir\.ai\/docs\/reference\/jobs\/get-job"/,
     )
     assert.match(
       chineseReferenceOperation,
-      /<meta property="og:url" content="https:\/\/yir\.ai\/zh\/docs\/reference\/jobs\/get-job"/,
+      /<meta property="og:url" content="https:\/\/yir\.ai\/docs\/reference\/jobs\/get-job"/,
     )
     assert.ok(
       searchIndex.some(

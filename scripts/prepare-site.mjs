@@ -151,17 +151,9 @@ function rewriteMountedPaths(content, chinese) {
       '(`/docs/`,`blume-search.json`)',
     )
 
-  if (!chinese) return rewritten
-
+  // Chinese reference pages are untranslated copies of the English OpenAPI
+  // reference, so they keep Blume's canonical to the English page.
   return rewritten
-    .replace(
-      /(<link rel="canonical" href="https:\/\/yir\.ai)\/docs\/reference(?=\/|")/gu,
-      '$1/zh/docs/reference',
-    )
-    .replace(
-      /(<meta property="og:url" content="https:\/\/yir\.ai)\/docs\/reference(?=\/|")/gu,
-      '$1/zh/docs/reference',
-    )
 }
 
 function isWithinDirectory(filePath, directory) {
