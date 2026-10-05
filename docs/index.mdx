@@ -1,11 +1,11 @@
 ---
 title: Yir Unified Async AI Gateway
-description: One API for long-running image and video generation, with request-specific quotes, automatic fallback, and durable Jobs.
+description: One API for long-running image and video generation, with automatic provider fallback, billing at the channel's actual cost, and durable Jobs.
 ---
 
 <Badge variant="warning">Developer preview</Badge>
 
-Yir is a unified asynchronous AI gateway for image and video generation. You send one Standard API request; Yir selects an eligible provider channel, tries another channel if an attempt fails (within your `max_cost`, when set), and gives you one durable Job to follow until the result is delivered.
+Generate images and videos with one Standard API request. Yir picks a provider channel, falls back to another if an attempt fails (within your `max_cost`, when set), and tracks everything in one Job until the result is delivered.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" href="/docs/getting-started/quickstart" icon="rocket">
@@ -14,13 +14,25 @@ Yir is a unified asynchronous AI gateway for image and video generation. You sen
   <Card title="Choose an integration" href="/docs/integrations" icon="plug">
     REST, SDKs, the Vercel AI SDK, or OpenAI compatibility for your stack.
   </Card>
-  <Card title="Production checklist" href="/docs/production/checklist" icon="shield-check">
-    Idempotency, polling, Webhooks, cost control, and error handling.
+  <Card title="Model catalog" href="/docs/models" icon="image">
+    Every available model, its parameters, and channel differences.
   </Card>
   <Card title="API reference" href="/docs/reference" icon="braces">
     Every public operation, generated from the reviewed OpenAPI contract.
   </Card>
 </CardGroup>
+
+## What a request looks like
+
+```bash
+curl https://gateway.yir.ai/v1/images/generations   --header "Authorization: Bearer $YIR_API_KEY"   --header "Content-Type: application/json"   --header "Idempotency-Key: my-first-job"   --data '{
+    "model": "openai/gpt-image-2",
+    "input": { "type": "text", "prompt": "A quiet observatory above a sea of clouds" },
+    "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "n": 1 }
+  }'
+```
+
+Yir answers right away with `202` and a `queued` Job. Get the result from a Webhook or `GET /v1/jobs/{id}`. See the [quickstart](/docs/getting-started/quickstart) for every step.
 
 ## How a request flows
 

@@ -1,11 +1,11 @@
 ---
 title: Yir 统一异步 AI 网关
-description: 用一个 API 完成长耗时图片与视频生成，提供按请求报价、失败自动切换和持久化 Job。
+description: 用一个 API 完成长耗时图片与视频生成：失败自动切换渠道，按渠道实际账单计费，结果由持久化 Job 交付。
 ---
 
 <Badge variant="warning">开发者预览</Badge>
 
-Yir 是面向图片与视频生成的统一异步 AI 网关。你只需发送一个 Standard API 请求：Yir 会选择合适的渠道，某次尝试失败时切换到其他渠道（设置了 `max_cost` 时不超出它），并始终用同一个持久化 Job 跟踪到结果交付。
+用一个 Standard API 请求生成图片或视频。Yir 选择渠道发起尝试，失败时自动切换到其他渠道（设置了 `max_cost` 时不超出它），全程用同一个 Job 跟踪到结果交付。
 
 <CardGroup cols={2}>
   <Card title="快速上手" href="/zh/docs/getting-started/quickstart" icon="rocket">
@@ -14,13 +14,25 @@ Yir 是面向图片与视频生成的统一异步 AI 网关。你只需发送一
   <Card title="选择接入方式" href="/zh/docs/integrations" icon="plug">
     REST、SDK、Vercel AI SDK 或 OpenAI 兼容，按现有技术栈选择。
   </Card>
-  <Card title="上线检查清单" href="/zh/docs/production/checklist" icon="shield-check">
-    幂等、轮询、Webhook、费用控制与错误处理。
+  <Card title="模型目录与参数" href="/zh/docs/models" icon="image">
+    全部可用模型、参数与渠道差异。
   </Card>
   <Card title="API 参考" href="/zh/docs/reference" icon="braces">
     由已审查的 OpenAPI 合同生成的全部公开接口。
   </Card>
 </CardGroup>
+
+## 一个请求的样子
+
+```bash
+curl https://gateway.yir.ai/v1/images/generations   --header "Authorization: Bearer $YIR_API_KEY"   --header "Content-Type: application/json"   --header "Idempotency-Key: my-first-job"   --data '{
+    "model": "openai/gpt-image-2",
+    "input": { "type": "text", "prompt": "云海之上一座安静的天文台" },
+    "parameters": { "resolution": "1K", "aspect_ratio": "1:1", "n": 1 }
+  }'
+```
+
+Yir 立即返回 `202` 和一个 `queued` 状态的 Job，之后用 Webhook 或 `GET /v1/jobs/{id}` 取结果。完整步骤见[快速上手](/zh/docs/getting-started/quickstart)。
 
 ## 请求如何流转
 
