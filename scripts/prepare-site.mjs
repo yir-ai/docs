@@ -15,7 +15,7 @@ const distRoot = path.resolve(scriptDirectory, '..', 'dist')
 const englishRoot = path.join(distRoot, 'docs')
 const chineseRoot = path.join(distRoot, 'zh', 'docs')
 
-const sharedDirectories = ['_astro', 'og']
+const sharedDirectories = ['_astro', 'og', 'blume-nav']
 const sharedFiles = [
   '404.html',
   'agent-readability.json',
@@ -135,6 +135,7 @@ function rewriteMountedPaths(content, chinese) {
   const rewritten = content
     .replace(rootPath('_astro/'), '/docs/_astro/')
     .replace(rootPath('og/'), '/docs/og/')
+    .replace(rootPath('blume-nav/'), '/docs/blume-nav/')
     .replace(rootPath('blume-search.json'), '/docs/blume-search.json')
     .replace(rootPath('agent-readability.json'), '/docs/agent-readability.json')
     .replace(rootPath('llms-full.txt'), '/docs/llms-full.txt')

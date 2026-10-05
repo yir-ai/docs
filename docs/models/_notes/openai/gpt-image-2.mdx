@@ -1,36 +1,3 @@
----
-title: GPT Image 2
-description: Generate and edit images with OpenAI GPT Image 2 on Yir, including how the quality tier selects channels.
----
-
-`openai/gpt-image-2` (alias `gpt-image-2`) is OpenAI's image generation and editing model. It supports text-to-image and image editing with reference images through the standard [image generation](/docs/guides/image-generation) endpoint.
-
-## Example
-
-```json
-{
-  "model": "openai/gpt-image-2",
-  "input": {
-    "type": "text",
-    "prompt": "A watercolor fox reading a map in a pine forest"
-  },
-  "parameters": { "resolution": "2K", "aspect_ratio": "3:2", "n": 1 }
-}
-```
-
-For image editing, set `input.type` to `image` and add `reference_image` references from the [Files API](/docs/guides/input-files).
-
-## Parameters
-
-| Parameter | Values | Default |
-| --- | --- | --- |
-| `resolution` | `1K`, `2K`, `4K` | `1K` |
-| `aspect_ratio` | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `2:1`, `1:2`, `3:1`, `1:3`, `21:9`, `9:21` | `auto` |
-| `quality` | `low`, `medium`, `high` | Not set. See [quality](#quality) |
-| `n` | `1` | `1` |
-
-The authoritative list, including reference limits, comes from `GET /v1/models/openai/gpt-image-2?view=contract`. Channels may support only some combinations, so [quote](/docs/concepts/billing#get-a-quote) the complete request.
-
 ## Quality
 
 `quality` is the minimum quality tier you need. Yir treats it as a routing constraint: it is never ignored or lowered.
@@ -82,6 +49,6 @@ Requests use Yir's [common request shape](/docs/models/official-api-differences)
 
 ## Related
 
-- [GPT Image 2.5](/docs/models/gpt-image-2-5)
+- [GPT Image 2.5](/docs/models/openai/gpt-image-2-5-flare)
 - [Routing and fallback](/docs/concepts/routing)
 - [Image generation](/docs/guides/image-generation)

@@ -42,8 +42,8 @@ const requiredPages = [
   'guides/video-generation',
   'guides/input-files',
   'models/index',
-  'models/gpt-image-2',
-  'models/gpt-image-2-5',
+  'models/openai/gpt-image-2',
+  'models/openai/gpt-image-2-5-flare',
   'models/official-api-differences',
   'concepts/task-lifecycle',
   'concepts/providers',
@@ -85,7 +85,7 @@ test('defines repo-owned English and Simplified Chinese Blume pages', async () =
 test(
   'builds production Blume docs with localized guides and no AI chat entry points',
   {
-    timeout: 120_000,
+    timeout: 300_000,
   },
   async (t) => {
     // A full release test needs sitemap/search artifacts that --isolated skips.

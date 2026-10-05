@@ -6,12 +6,12 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const rootFiles = new Set(['.gitignore', 'AGENTS.md', 'CONTRIBUTING.md', 'LICENSE', 'README.md',
   'blume.config.ts', 'components.ts', 'icon.svg', 'icon-dark.svg', 'logo.svg', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'])
-const scripts = new Set(['prepare-site.mjs', 'check-public-boundary.mjs', 'public-boundary.test.mjs', 'docs-contract.test.mjs', 'localize-openapi.mjs', 'localize-openapi.test.mjs'])
+const scripts = new Set(['prepare-site.mjs', 'check-public-boundary.mjs', 'public-boundary.test.mjs', 'docs-contract.test.mjs', 'localize-openapi.mjs', 'localize-openapi.test.mjs', 'generate-model-pages.mjs', 'generate-model-pages.test.mjs'])
 
 export function assertPublicPath(file) {
   if (file.split('/').some(part => part === '..' || part.startsWith('.env'))) throw new Error(`Non-public path: ${file}`)
   const allowed = rootFiles.has(file) ||
-    /^docs\/(?:[a-z0-9-]+\/)*(?:[a-z0-9-]+\.mdx|meta\.ts)$/.test(file) ||
+    /^docs\/(?:_?[a-z0-9-]+\/)*(?:_?[a-z0-9-]+\.mdx|meta\.ts)$/.test(file) ||
     /^components\/[A-Za-z0-9-]+\.astro$/.test(file) ||
     /^openapi\/(?:gateway-openapi(?:\.reference(?:\.zh)?)?|model-contracts|i18n\/zh)\.json$/.test(file) ||
     /^patches\/blume@[0-9.]+\.patch$/.test(file) ||

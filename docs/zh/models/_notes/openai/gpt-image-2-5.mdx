@@ -1,46 +1,15 @@
----
-title: GPT Image 2.5
-description: 在 Yir 上使用 OpenAI GPT Image 2.5 Flare 与 Sunburst 生成和编辑图片，以及画质档位如何决定可用渠道。
----
+## 版本
 
-GPT Image 2.5 是 OpenAI 的图片生成与编辑模型，提供两个版本，各自使用独立的模型 ID：
+GPT Image 2.5 有两个版本，各自使用独立的模型 ID：
 
 | 模型 ID | 别名 | 版本 |
 | --- | --- | --- |
 | `openai/gpt-image-2.5-flare` | `gpt-image-2.5-flare` | 标准：日常生图与快速迭代 |
 | `openai/gpt-image-2.5-sunburst` | `gpt-image-2.5-sunburst` | 精细：细节编辑与复杂视觉创作 |
 
-两个版本都通过统一的[图片生成](/zh/docs/guides/image-generation)接口支持文生图和最多 16 张参考图的图片编辑。
-
-## 示例
-
-```json
-{
-  "model": "openai/gpt-image-2.5-flare",
-  "input": {
-    "type": "text",
-    "prompt": "A watercolor fox reading a map in a pine forest"
-  },
-  "parameters": { "resolution": "2K", "aspect_ratio": "16:9", "n": 1 }
-}
-```
-
-图片编辑时将 `input.type` 设为 `image`，并添加来自 [Files API](/zh/docs/guides/input-files) 的 `reference_image` 参考图。
-
-## 参数
-
-| 参数 | 取值 | 默认值 |
-| --- | --- | --- |
-| `resolution` | `1K`、`2K`、`4K` | `1K` |
-| `aspect_ratio` | `auto`、`1:1`、`3:2`、`2:3`、`4:3`、`3:4`、`5:4`、`4:5`、`16:9`、`9:16`、`2:1`、`1:2`、`3:1`、`1:3`、`21:9`、`9:21` | `auto` |
-| `quality` | `low`、`medium`、`high`、`xhigh`、`max` | 不设置，见[画质](#画质) |
-| `n` | `1` | `1` |
-
-完整列表以 `GET /v1/models/{creator}/{model}?view=contract` 为准。渠道可能只支持部分组合（例如部分渠道支持的画幅更少），请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。
-
 ## 画质
 
-`quality` 表示你需要的最低画质档位，并决定哪些渠道可以执行，规则与 [GPT Image 2](/zh/docs/models/gpt-image-2#画质) 相同：不传时所有渠道可执行、按 `medium` 估价；传入档位时只走承接该档位的渠道；不接受 `auto`。
+`quality` 表示你需要的最低画质档位，并决定哪些渠道可以执行，规则与 [GPT Image 2](/zh/docs/models/openai/gpt-image-2#画质) 相同：不传时所有渠道可执行、按 `medium` 估价；传入档位时只走承接该档位的渠道；不接受 `auto`。
 
 | 渠道 | 可承接的档位 |
 | --- | --- |
@@ -83,6 +52,6 @@ APIMart `ext` 版本和 KIE 以不低于 `medium` 的固定画质出图，按张
 
 ## 相关页面
 
-- [GPT Image 2](/zh/docs/models/gpt-image-2)
+- [GPT Image 2](/zh/docs/models/openai/gpt-image-2)
 - [路由与渠道切换](/zh/docs/concepts/routing)
 - [图片生成](/zh/docs/guides/image-generation)

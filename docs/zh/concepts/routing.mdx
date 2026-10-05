@@ -70,6 +70,6 @@ Yir 上的一个模型可能由多个**渠道**提供：模型厂商的官方 AP
 - 报价包含首选渠道的 `parameter_notices`；若切换渠道后处理可能不同，还会返回 `parameter_handling_may_vary: true`。
 - 成功的 Job 及其 Webhook 包含实际产出结果那次尝试的 `parameter_notices`。
 
-另一些参数会限定可执行的渠道。对 GPT Image 而言，`quality` 是最低画质档位：只有承接该档位的渠道参与路由和渠道切换，该参数不会被忽略。各模型页面列出了渠道及其可承接的档位，如 [GPT Image 2](/zh/docs/models/gpt-image-2#画质) 与 [GPT Image 2.5](/zh/docs/models/gpt-image-2-5#画质)。
+另一些参数会限定可执行的渠道。对 GPT Image 而言，`quality` 是最低画质档位：只有承接该档位的渠道参与路由和渠道切换，该参数不会被忽略。各模型页面列出了渠道及其可承接的档位，如 [GPT Image 2](/zh/docs/models/openai/gpt-image-2#画质) 与 [GPT Image 2.5](/zh/docs/models/openai/gpt-image-2-5-flare#画质)。
 
 路由无法绕过认证、余额、支出上限、规格校验或 Yir 的尝试次数限制，也不能指定凭据。

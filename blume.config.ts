@@ -21,6 +21,8 @@ const movedPages: Record<string, string> = {
   "console/logs": "console#logs",
   "console/alerts": "console#alerts",
   "console/webhooks": "production/webhooks#endpoints-and-delivery-history",
+  "models/gpt-image-2": "models/openai/gpt-image-2",
+  "models/gpt-image-2-5": "models/openai/gpt-image-2-5-flare",
 };
 
 // Crisp chat bubble on every docs page, tagged so support can tell docs

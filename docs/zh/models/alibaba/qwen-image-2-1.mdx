@@ -1,0 +1,69 @@
+---
+title: "Qwen Image 2.1"
+description: "通义千问 Image 2.1；阿里 7B 统一生图与编辑模型，支持 1K/2K、透明通道与多图参考编辑"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `alibaba/qwen-image-2.1` | `qwen-image-2.1`、`qwen-2.1-image` | [图片生成](/zh/docs/guides/image-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+| `image` 图片输入 | 1–10 | `reference_image` |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `resolution` | 分辨率：输出内容的分辨率。 | `1K`、`2K` | `1K` | 是 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 | `1:1`、`4:3`、`3:4`、`3:2`、`2:3`、`16:9`、`9:16` | `1:1` | 是 |
+| `n` | 输出数量：本次生成的内容数量。 | `1` | `1` | 是 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "alibaba/qwen-image-2.1",
+  "input": {
+    "type": "text",
+    "prompt": "A watercolor fox reading a map in a pine forest"
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "alibaba/qwen-image-2.1",
+  "input": {
+    "type": "image",
+    "prompt": "A watercolor fox reading a map in a pine forest",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/alibaba/qwen-image-2.1?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。

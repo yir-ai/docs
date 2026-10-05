@@ -1,0 +1,75 @@
+---
+title: "Veo 3.0"
+description: "谷歌顶级高保真电影级视频生成模型，具备出色的物理世界模拟与音画同步能力"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `google/veo-3.0-generate-001` | `google/veo-3.0`、`google/veo-3`、`veo-3.0`、`veo-3`、`veo3`、`veo3.0` | [视频生成](/zh/docs/guides/video-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+| `image` 图片输入 | 1 | `first_frame` |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `duration` | 时长：输出视频的秒数。 | `4`、`6`、`8` | `8` | 是 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `720p`、`1080p` | `720p` | 是 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 | `16:9`、`9:16` | `16:9` | 是 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 | `false`、`true` | `true` | 是 |
+| `n` | 输出数量：本次生成的内容数量。 | `1` | `1` | 是 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "google/veo-3.0-generate-001",
+  "input": {
+    "type": "text",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot"
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "google/veo-3.0-generate-001",
+  "input": {
+    "type": "image",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "first_frame",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/google/veo-3.0-generate-001?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
