@@ -31,6 +31,35 @@ const movedPages: Record<string, string> = {
 // Crisp chat bubble on every docs page, tagged so support can tell docs
 // questions apart. The client router swaps <body> on navigation, so the
 // widget is carried into the incoming document to stay visible.
+// Rybbit pageviews, mirroring yir-web/lib/rybbit.ts: production host only,
+// honors DNT and opt-outs, origin-only referrer on the first view, and only
+// docs paths made of lowercase slugs; anything else (a 404 with a pasted
+// token, say) is reported as /:other. The client router swaps pages, so
+// later views are sent from astro:after-swap and the script runs once.
+const rybbitPageviews = `if (!window.__yirDocsPageviews) {
+  window.__yirDocsPageviews = true;
+  let first = true;
+  const send = () => {
+    try {
+      if (location.hostname !== "yir.ai" || window.__RYBBIT_OPTOUT__) return;
+      if (navigator.doNotTrack === "1" || localStorage.getItem("disable-rybbit") !== null) return;
+      const path = location.pathname.replace(/\\/+$/, "");
+      const pathname = /^(\\/zh)?\\/docs(\\/[a-z0-9-]{1,64})*$/.test(path) ? path : "/:other";
+      let referrer = "";
+      if (first) { try { referrer = document.referrer ? new URL(document.referrer).origin : ""; } catch {} }
+      first = false;
+      fetch("https://events.sungerine.com/api/track", {
+        method: "POST", headers: { "Content-Type": "application/json" }, mode: "cors",
+        credentials: "omit", referrerPolicy: "no-referrer", keepalive: true,
+        body: JSON.stringify({ site_id: "640b101100ba", hostname: "yir.ai", pathname, type: "pageview", referrer,
+          screenWidth: screen.width, screenHeight: screen.height, language: navigator.language }),
+      }).catch(() => {});
+    } catch {}
+  };
+  send();
+  document.addEventListener("astro:after-swap", send);
+}`;
+
 const crispChat = `if (!window.$crisp) {
   window.$crisp = [];
   window.CRISP_WEBSITE_ID = "85410c3f-bc07-428b-99d1-d5bfe5062bd9";
@@ -102,7 +131,7 @@ export default defineConfig({
     ],
   },
   github: { owner: "yir-ai", repo: "docs", branch: "main" },
-  analytics: [script({ content: crispChat })],
+  analytics: [script({ content: crispChat }), script({ content: rybbitPageviews })],
   feedback: false,
   export: false,
   ai: {
