@@ -27,7 +27,7 @@ APIMart's `ext` version and KIE render at a fixed quality of at least `medium` a
 }
 ```
 
-To get the lowest price, omit `quality`. Model detail lists each channel's tiers in `channel_parameters`, and [Model Market](https://yir.ai/models) marks the channels that do not serve the tier you select.
+Omit `quality` to let every channel compete in quotes and routing; send `low` if a lower quality is acceptable. Model detail lists each channel's tiers in `channel_parameters`, and [Model Market](https://yir.ai/models) marks the channels that do not serve the tier you select.
 
 ## Differences from the OpenAI API
 
@@ -47,7 +47,7 @@ Requests use Yir's [common request shape](/docs/models/official-api-differences)
 
 - Token-billed channels (official and APIMart's standard version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
 - Reference images on token-billed channels are billed separately as image input tokens. OpenAI counts input image tokens roughly by 32×32-pixel patches, with a per-image cap; the quote does not include them, so editing with several large references can cost noticeably more than the quoted amount.
-- APIMart's `ext` version charges a fixed price per output image by resolution, with no extra charge for references.
+- APIMart's `ext` version and KIE charge a fixed price per output image by resolution, with no extra charge for references.
 - The final charge is the sum of every channel-billed attempt's actual upstream cost × your discount, usually just the delivering attempt. See [quotes and billing](/docs/concepts/billing).
 
 ## Related

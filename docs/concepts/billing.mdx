@@ -58,7 +58,7 @@ Both `fixed` and `estimate` predict the final charge, which follows the channel'
 `max_cost` on a generation request is optional. It caps the whole Job's charge, for example `"0.25"` for US$0.25 (up to six decimal places). No model requires it.
 
 - **Omitted:** every channel-billed attempt is charged its actual cost.
-- **Set:** Yir only uses channels, including fallback channels, whose estimate is at most `max_cost`. The Job's total charge across all attempts never exceeds `max_cost`; if the actual cost is higher, Yir absorbs the difference.
+- **Set:** Yir only uses channels, including fallback channels, whose estimate fits within what remains of `max_cost` after earlier attempts' charges. The Job's total charge across all attempts never exceeds `max_cost`; if the actual cost is higher, Yir absorbs the difference.
 - **Too low:** if no eligible channel's estimate fits, the submission is rejected with `400 YIR_INVALID_REQUEST`. If no further attempt fits after a failure, the Job fails with `YIR_BUDGET_EXCEEDED`.
 
 Submission checks prices again. A quote you obtained earlier does not guarantee the same price or availability.
@@ -68,8 +68,8 @@ Submission checks prices again. A quote you obtained earlier does not guarantee 
 1. **Admission** checks your live available balance against the first channel's estimate. Nothing is reserved. Before each later attempt, the balance is checked again against that channel's estimate. While your available balance is below US$5 and another of your Jobs is running, a new Job waits in `queued` and rechecks every 10 seconds; if it still cannot start after 30 minutes, it fails with `YIR_INSUFFICIENT_BALANCE`.
 2. **Each attempt the channel billed** is charged when it ends: the channel's actual upstream cost × your discount, rounded up to US$0.000001. This includes the delivered attempt, an attempt that failed before a fallback, and `YIR_CONTENT_REJECTED` output the provider generated and billed but Yir did not deliver. The Job's total is capped by `max_cost` when set.
 3. **Attempts the channel never billed** cost nothing, so most failed and cancelled Jobs are free. Yir also absorbs its own failures: a result Yir could not deliver (`YIR_RESULT_DELIVERY_FAILED`) and an attempt whose outcome the channel never confirmed (`YIR_OUTCOME_TIMEOUT`). A failed attempt is charged only from a confirmed channel bill; if the bill never arrives, Yir absorbs it.
-5. **Exceptions.** If the bill for a delivered result is missing or conflicting, or the discounted actual cost is more than three times that attempt's estimate and at least US$0.02 above it, Yir charges the estimate frozen when the attempt was submitted and reconciles the difference itself.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
+5. **Exceptions.** If the bill for a delivered result is missing or conflicting, or the discounted actual cost is more than three times that attempt's estimate and at least US$0.02 above it, Yir charges the estimate frozen when the attempt was submitted and absorbs the difference.
 
 If your balance cannot cover a charge at settlement, the balance becomes negative. A negative balance blocks new Jobs until a top-up repays it; Jobs already admitted continue. Yir never charges your payment method automatically.
 
@@ -77,7 +77,7 @@ If your balance cannot cover a charge at settlement, the balance becomes negativ
 
 For supported channels, put `"billing_mode": "actual"` on both your quote and generation requests. This explicitly authorizes the actual cost of every channel-billed attempt, including charges known only after generation. Do not send `max_cost` with this mode: there is no customer spending cap, and an unpaid amount becomes Job debt.
 
-The initial supported combinations are Kling 2.6 or 3.0 Motion Control with `routing.only` set to `["kie"]`, `["apimart"]`, or `["kie", "apimart"]`, and FLUX 2 Pro image editing with `routing.only: ["fal"]`. You must specify the channels explicitly. Other models or channels reject this mode; normal input and file requirements still apply.
+The initial supported combinations are Kling 2.6 or 3.0 Motion Control with `routing.only` set to `["kie"]`, `["apimart"]`, or `["kie", "apimart"]`, and FLUX 2 Pro image editing with `routing.only: ["fal"]`. You must specify the channels explicitly. APIMart Kling Motion Control and FAL FLUX 2 Pro image editing have no pre-generation estimate, so they run only in this mode; KIE Motion Control has an estimate and also works without it. Other models or channels reject this mode; normal input and file requirements still apply.
 
 Yir requires a positive available wallet balance and no outstanding debt before admitting a new Job. Each channel-billed attempt is charged from its authoritative bill and the discount frozen for that attempt, and the Job settles once when it ends. If your wallet cannot cover it, the unpaid amount becomes Job debt. A future manual recharge repays the oldest debt first; repayment does not charge the same Job again. Outstanding debt blocks new Jobs, while already admitted Jobs continue under their saved authorization.
 

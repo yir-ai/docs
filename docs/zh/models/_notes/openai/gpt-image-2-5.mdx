@@ -27,7 +27,7 @@ APIMart `ext` 版本和 KIE 以不低于 `medium` 的固定画质出图，按张
 }
 ```
 
-需要最低价时不传 `quality`。模型详情的 `channel_parameters` 列出各渠道可承接的档位；在[模型市场](https://yir.ai/zh/models)选择画质档位时，不承接该档位的渠道会被标出。
+不传 `quality` 时所有渠道都参与报价和路由；能接受较低画质时可传 `low`。模型详情的 `channel_parameters` 列出各渠道可承接的档位；在[模型市场](https://yir.ai/zh/models)选择画质档位时，不承接该档位的渠道会被标出。
 
 ## 与 OpenAI API 的差异
 
@@ -47,7 +47,7 @@ APIMart `ext` 版本和 KIE 以不低于 `medium` 的固定画质出图，按张
 
 - 按 Token 计费的渠道（官方渠道与 APIMart 标准版本）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
 - 按 Token 计费的渠道会把参考图另按图片输入 Token 计费。OpenAI 大致按 32×32 像素块计算输入图 Token，单张有上限；报价不包含这部分，因此使用多张大尺寸参考图编辑时，实际费用可能明显高于报价金额。
-- APIMart `ext` 版本按输出分辨率每张固定计价，参考图不另收费。
+- APIMart `ext` 版本和 KIE 按输出分辨率每张固定计价，参考图不另收费。
 - 最终费用为每次渠道计了费的尝试的上游实际费用 × 你的折扣之和，通常只有交付结果的那次，见[报价与计费](/zh/docs/concepts/billing)。
 
 ## 相关页面

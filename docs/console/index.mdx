@@ -110,9 +110,9 @@ By default, details show the prompt length and the number of references. During 
 
 Prompts, inputs, and results are kept for 7 days after the Job is created; summary logs for 90 days. Billing records are kept separately. Logs are not an asset library, so download any results you need. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).
 
-## Alerts
+## Notifications [#alerts]
 
-The bell in the Console top bar shows how many alerts are active and opens a panel listing them, most urgent first. Each alert links to the page where you can fix it. [Console → Alerts](https://yir.ai/console/alerts) shows the same list as a full page.
+The bell in the Console top bar shows how many alerts are active and opens a panel listing them, most urgent first. Each alert links to the page where you can fix it. [Console → Notifications](https://yir.ai/console/notifications) shows the same list as a full page, along with the alert history.
 
 | Alert | Severity | Raised when |
 | --- | --- | --- |
@@ -123,4 +123,4 @@ The bell in the Console top bar shows how many alerts are active and opens a pan
 | High job failure rate | Warning or critical | A high share of finished Jobs failed in the recent window. Content rejections (`YIR_CONTENT_REJECTED`) are not counted. |
 | Webhook delivery failing | Warning | The latest Webhook delivery to an endpoint failed. |
 
-Alerts clear themselves once the condition is resolved. The low-balance threshold is set on the Billing page, which can also send one email per low-balance episode. Yir never tops up or charges your payment method automatically.
+Alerts clear themselves once the condition is resolved. Yir emails you once per alert when an API Key reaches its spend limit, is about to expire or has expired, or when more than half of recent Jobs fail; you can turn these emails off on the Notifications page. The low-balance threshold is set on the Billing page, which can also send one email per low-balance episode. Yir never tops up or charges your payment method automatically.

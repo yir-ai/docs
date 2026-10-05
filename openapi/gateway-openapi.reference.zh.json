@@ -2652,13 +2652,15 @@
             "type": "string",
             "enum": [
               "managed"
-            ]
+            ],
+            "description": "固定为 managed：由 Yir 采购并运行供应。"
           },
           "billed_by": {
             "type": "string",
             "enum": [
               "yir"
-            ]
+            ],
+            "description": "固定为 yir：费用从你的 Yir 钱包扣除。"
           },
           "amount": {
             "$ref": "#/components/schemas/Decimal"
@@ -2667,7 +2669,8 @@
             "type": "string",
             "enum": [
               "yir_price_rule"
-            ]
+            ],
+            "description": "固定为 yir_price_rule：该次尝试的渠道上游实际费用 × 你的折扣，见「报价与计费」。"
           },
           "usage": {
             "type": "array",

@@ -44,14 +44,14 @@ Ask your agent in plain language:
 - "Generate a 16:9 hero image of a lighthouse at dusk with Yir."
 - "Make a 5-second video from ./first-frame.png with Yir."
 
-You can also run the script directly:
+You can also run the script directly from where you installed it (shown here for Claude Code):
 
 ```sh
 # Text to image
-node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
+node ~/.claude/skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
 
 # Text to video
-node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
 ```
 
-Results are saved to `./yir-output` by default. Run `node skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.
+Results are saved to `./yir-output` by default. Run `node ~/.claude/skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.

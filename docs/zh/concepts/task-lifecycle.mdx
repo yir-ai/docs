@@ -90,7 +90,7 @@ Yir 不是素材库。Job 成功后请尽快把需要的结果复制到自己的
 | `{"status": "passed", "checked_by": "yir"}` | 渠道没有可靠的审核，由 Yir 在交付前自行检测了结果。 |
 | `{"status": "unchecked"}` | 该结果无法检测。 |
 
-带参考图的 Job 在发送给渠道前，Yir 会对这些参考图检测一次，查找对真实人物或未成年人的性化内容。检测拦截时，Job 以 `YIR_CONTENT_REJECTED` 失败，未发送、不收费；检测服务不可用时，Yir 可能先换其他渠道重试，仍不成功则 Job 以 `YIR_TEMPORARILY_UNAVAILABLE`（可重试）失败，未发送、不收费，请稍后重新提交。纯文字 Job 以及视频、音频参考不做 Yir 检测。Yir 的输出检测只覆盖图片结果，拦截露骨成人内容；无审核渠道的视频结果为 `unchecked`。状态为 `passed` 时，可以跳过你自己对结果的 NSFW 检测；为 `unchecked` 或没有该字段（该字段上线前交付的结果）时，请按你自己的策略处理。未通过检测的输出不会交付：Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/production/error-codes)，只有渠道已对该次生成计费时才收费。Webhook 携带相同的 `result` 对象。
+带参考图的 Job 在发送给渠道前，Yir 会对提示词和这些参考图检测一次，查找露骨性内容和涉及未成年人的内容。检测拦截时，Job 以 `YIR_CONTENT_REJECTED` 失败，未发送、不收费；检测服务不可用时，Yir 可能先换其他渠道重试，仍不成功则 Job 以 `YIR_TEMPORARILY_UNAVAILABLE`（可重试）失败，未发送、不收费，请稍后重新提交。状态为 `passed` 时，可以跳过你自己对结果的 NSFW 检测；为 `unchecked` 或没有该字段（该字段上线前交付的结果）时，请按你自己的策略处理。未通过检测的输出不会交付：Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/production/error-codes)，只有渠道已对该次生成计费时才收费。Webhook 携带相同的 `result` 对象。
 
 ## 终态只处理一次
 

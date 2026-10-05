@@ -14,7 +14,7 @@ Set `webhook_url` on a generation request to receive the Job when it reaches `su
 }
 ```
 
-The URL must use HTTPS. You can also register up to 5 [endpoints](#endpoints-and-delivery-history) in Console; every enabled endpoint receives all terminal events for your account. A request's `webhook_url` is delivered in addition to those endpoints, and a URL that matches a registered endpoint is delivered only once. All deliveries are signed with the same account signing secret.
+The URL must use HTTPS on the default port 443. You can also register up to 5 [endpoints](#endpoints-and-delivery-history) in Console; every enabled endpoint receives all terminal events for your account. A request's `webhook_url` is delivered in addition to those endpoints, and a URL that matches a registered endpoint is delivered only once. All deliveries are signed with the same account signing secret.
 
 ## Delivery headers
 
@@ -111,7 +111,7 @@ Do not log signatures, secrets, or result URLs.
 
 | Endpoint setting | Rules |
 | --- | --- |
-| **URL** | A public HTTPS URL, up to 1000 characters. Each URL can be registered once. |
+| **URL** | A public HTTPS URL on port 443, up to 1000 characters. Each URL can be registered once. |
 | **Description** | Optional, up to 200 characters. |
 | **Enabled** | Only enabled endpoints receive deliveries. Disable an endpoint to pause it without deleting it. |
 
@@ -127,4 +127,4 @@ Each endpoint shows its total deliveries, success rate, and latest delivery. **V
 | Retrying | The delivery failed and Yir will retry it automatically; the next retry time is shown. |
 | Failed | Retries are exhausted, or the address was rejected (for example, not a public HTTPS host) and is not retried. |
 
-Deliveries to a request-level `webhook_url` appear in that Job's detail in Logs. When the latest delivery to an endpoint fails, [Alerts](/docs/console#alerts) shows a warning.
+Deliveries to a request-level `webhook_url` appear in that Job's detail in Logs. When the latest delivery to an endpoint fails, [Notifications](/docs/console#alerts) shows a warning.

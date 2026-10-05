@@ -36,7 +36,7 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 |---|---|
 | `size` | `宽x高`，按模型能力就近匹配分辨率档位和画幅（如不支持 3:2 的模型把 `1536x1024` 落到 4:3），不会把横图改成竖图；模型没有该方向的画幅时返回 400。不传或 `auto` 用模型默认值 |
 | `quality` | `low` / `medium` / `high`（`hd` 视作 `high`），模型没有对应档位时用模型默认值 |
-| `response_format` | `url`（默认）或 `b64_json`。结果超过 12 MB 时 `b64_json` 退回 `url` |
+| `response_format` | `url`（默认）或 `b64_json`。读取结果文件失败时，该图退回 `url` |
 | `n` | 只支持 1 |
 | `resolution`、`aspect_ratio` | Yir 扩展字段，直接指定档位与画幅（如 `4K`、`21:9`），优先于 `size` |
 
@@ -50,7 +50,7 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 |---|---|
 | `seconds` | 视频秒数。不传时按 Sora 默认 4 秒，模型不支持 4 秒时用模型默认值。请与 new-api 计费设置保持一致 |
 | `size` | `宽x高`，按短边匹配 480p / 720p / 1080p / 4K，并按同一方向就近匹配画幅 |
-| `input_reference` | multipart 上传一张图作为首帧 |
+| `input_reference` | 一张首帧图：multipart 文件，或 `{image_url}`（JSON 或 multipart），取值为 HTTPS URL 或 Base64 data URL。不支持 `file_id` |
 | `resolution`、`aspect_ratio`、`generate_audio` | Yir 扩展字段 |
 
 提交后立即返回 `id`（即 Yir Job ID）。new-api 会自动轮询，并通过 `/content` 下载结果，支持 Range。
@@ -64,9 +64,10 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 ## 已知限制
 
 - 结果链接有效至结果过期（任务创建后 7 天）；需要更久保存请用 `b64_json` 或自行转存。
-- 图片同步等待超过 10 分钟会返回超时错误，Job 仍会继续，成功后照常计费；终端中途断开也一样。请凭响应头 `X-Yir-Job-Id` 对账。
+- 图片同步等待超过 10 分钟会返回 `200` 且带 `error`（`yir_wait_timeout`），Job 仍会继续，成功后照常计费；终端中途断开也一样。请凭响应头 `X-Yir-Job-Id` 对账。
 - new-api 非流式中转在出图完成前不会向终端发送数据。出图较慢时，终端客户端的超时应设到 10 分钟以上，或改用 `stream: true`（v1.0 RC 会转成流式返回）。
 - 暂不支持 `n > 1`、`mask` 和 JSON 格式的图片编辑。
+- 输入图片须为 PNG、JPEG 或 WebP，每张不超过 25 MB；multipart 请求体总计不超过 32 MB。
 - 结果链接与响应头里能看出 Yir；不希望暴露时请用 `b64_json`。
 
 ## 排障
@@ -78,6 +79,6 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 | 402 `insufficient_quota` | 余额不足，new-api 会自动禁用渠道；充值后重新启用 |
 | 403 | Key 月度上限已到 |
 | 503 | 暂无可用供应，new-api 会换渠道重试 |
-| 200 且带 `error` | Job 已执行但失败（如内容审核拦截），只按渠道实际计费收费，通常为零 |
+| 200 且带 `error` | Job 已执行但失败（如内容审核拦截），或 10 分钟等待超时（`yir_wait_timeout`）而 Job 仍在继续；失败的 Job 只按渠道实际计费收费，通常为零 |
 
 反馈问题时请附上响应头 `X-Yir-Job-Id`。

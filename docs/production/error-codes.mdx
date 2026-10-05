@@ -30,7 +30,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 
 | Code | HTTP | Meaning | What to do |
 | --- | --- | --- | --- |
-| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`, or its `max_cost` is below every eligible channel's estimate. A generation request that references a missing, failed, or expired input file, or a reference `url` that cannot be imported, also returns this code (a quote returns `supply.available: false` instead). A failed URL import is `retryable: true` for remote timeouts, connection failures, HTTP 429, and 5xx. | Fix the request. Check the model's [contract](/docs/models). |
+| `YIR_INVALID_REQUEST` | 400 | The body, parameters, or references break the API or model contract, or a generation request has no `Idempotency-Key`, or its `max_cost` is below every eligible channel's estimate. A generation request that references a missing, failed, or expired input file, or a reference `url` that cannot be imported, also returns this code (a quote returns `supply.available: false` for a failed or expired file). A failed URL import is `retryable: true` for remote timeouts, connection failures, HTTP 429, and 5xx. | Fix the request. Check the model's [contract](/docs/models). |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | The `routing` object is invalid, for example an empty `only` or a variant outside `only`. | Fix `routing`. See [routing](/docs/concepts/routing). |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | Reserved in the contract and not returned today. An invalid `routing` returns `YIR_INVALID_ROUTING_OVERRIDE`. | Handle it like `YIR_INVALID_ROUTING_OVERRIDE` if you match on every code. |
 | `YIR_UNAUTHORIZED` | 401 | Missing, wrong, rotated, revoked, or expired key, or a disallowed source IP. | Check the key and its settings in Console. Do not retry unchanged. |
@@ -38,9 +38,9 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_SPEND_LIMIT_EXCEEDED` | 403 | The key's monthly spend limit would be exceeded. | Raise the limit or wait for the next UTC month. |
 | `YIR_MODEL_NOT_FOUND` | 404 | Unknown model ID in a model path. | Use a canonical ID from `GET /v1/models`. |
 | `YIR_JOB_NOT_FOUND` | 404 | No such Job for this account, or it is older than 90 days. | Check the Job ID and the key's account. |
-| `YIR_FILE_NOT_FOUND` | 404 | Files API only: no such input file for this account. | Check the file ID, or upload again. |
+| `YIR_FILE_NOT_FOUND` | 404 | Files API or a quote: no such input file for this account. | Check the file ID, or upload again. |
 | `YIR_IDEMPOTENCY_CONFLICT` | 409 | This idempotency key was already used with a different request. | Resend the original request, or use a new key for a new request. |
-| `YIR_FILE_NOT_READY` | 409 | The file is not `ready` yet: from `/complete` or `/content` before the upload is completed, or from a generation request that references a file still in `pending_upload` or `processing` (`retryable: true`). `GET /v1/files/{id}` returns `200` with `status` instead. | Finish uploading and call `/complete`, wait for `ready`, then retry with the same idempotency key. |
+| `YIR_FILE_NOT_READY` | 409 | The file is not `ready` yet: from `/complete` or `/content` before the upload is completed, or from a quote or generation request that references a file still in `pending_upload` or `processing` (`retryable: true`). `GET /v1/files/{id}` returns `200` with `status` instead. | Finish uploading and call `/complete`, wait for `ready`, then retry with the same idempotency key. |
 | `YIR_JOB_NOT_CANCELLABLE` | 409 | The Job already succeeded or failed. | Nothing to cancel. Read the Job. |
 | `YIR_FILE_EXPIRED` | 410 | Files API only (`/complete`, `/content`): the input file has expired. `GET /v1/files/{id}` returns `200` with `status: "expired"` instead. | Upload it again. |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |

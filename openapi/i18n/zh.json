@@ -84,5 +84,8 @@
   "Language-neutral static model contracts generated with this Standard OpenAPI release. Runtime price, health, authorization and route facts are excluded.": "与语言无关的静态模型合同，随本次 Standard OpenAPI 版本生成。不含运行时的价格、健康状况、授权与路由数据。",
   "Maximum generated video duration in seconds when a reference of the keyed role is present; not input media duration.": "存在该角色的参考输入时，生成视频的最大时长（秒）；不是输入媒体的时长。",
   "The parameter is ignored unless routing.only contains exactly this provider.": "除非 routing.only 恰好只包含此渠道，否则忽略该参数。",
-  "Static warning text for SDKs; contains no request values.": "供 SDK 使用的静态警告文本；不含任何请求值。"
+  "Static warning text for SDKs; contains no request values.": "供 SDK 使用的静态警告文本；不含任何请求值。",
+  "Always managed: Yir buys and runs the supply for you.": "固定为 managed：由 Yir 采购并运行供应。",
+  "Always yir: the charge is deducted from your Yir wallet.": "固定为 yir：费用从你的 Yir 钱包扣除。",
+  "Always yir_price_rule: the channel's actual upstream cost for this attempt times your discount, as described in Quotes and billing.": "固定为 yir_price_rule：该次尝试的渠道上游实际费用 × 你的折扣，见「报价与计费」。"
 }

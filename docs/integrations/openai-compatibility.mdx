@@ -36,7 +36,7 @@ When calling directly with an OpenAI SDK, set `base_url` to `https://gateway.yir
 |---|---|
 | `size` | `WIDTHxHEIGHT`. Matched to the model's nearest resolution tier and aspect ratio (a model without 3:2 renders `1536x1024` as 4:3). Landscape never becomes portrait or the reverse; a model with no ratio in that orientation returns 400. Omitted or `auto` uses the model default |
 | `quality` | `low` / `medium` / `high` (`hd` means `high`). Uses the model default when the model has no matching tier |
-| `response_format` | `url` (default) or `b64_json`. Results over 12 MB fall back to `url` |
+| `response_format` | `url` (default) or `b64_json`. If a result file cannot be read, that image falls back to `url` |
 | `n` | Only 1 |
 | `resolution`, `aspect_ratio` | Yir extensions that set the tier and ratio directly (such as `4K`, `21:9`) and take precedence over `size` |
 
@@ -50,7 +50,7 @@ The request waits for the image for up to 10 minutes and sends a newline every 1
 |---|---|
 | `seconds` | Video length. Defaults to Sora's 4 seconds, or the model default when the model does not offer 4 seconds. Keep it consistent with your new-api pricing |
 | `size` | `WIDTHxHEIGHT`. The short edge selects 480p / 720p / 1080p / 4K, and the aspect ratio is matched within the same orientation |
-| `input_reference` | One multipart image used as the first frame |
+| `input_reference` | One first-frame image: a multipart file, or `{image_url}` (JSON or multipart) with an HTTPS URL or a Base64 data URL. `file_id` is not supported |
 | `resolution`, `aspect_ratio`, `generate_audio` | Yir extensions |
 
 Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and downloads the result from `/content`, which supports Range requests.
@@ -64,9 +64,10 @@ Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and do
 ## Known limitations
 
 - Result links stay valid until the result expires, 7 days after the Job was created; use `b64_json` or copy the file if you need it longer.
-- An image that takes longer than the 10-minute wait returns a timeout error, but the Job continues and is charged if it succeeds. The same applies when the end client disconnects. Reconcile with the `X-Yir-Job-Id` response header.
+- An image that takes longer than the 10-minute wait returns `200` with an `error` body (`yir_wait_timeout`), but the Job continues and is charged if it succeeds. The same applies when the end client disconnects. Reconcile with the `X-Yir-Job-Id` response header.
 - new-api's non-streaming relay sends nothing to the end client until the image is ready. For slow models, set the client timeout above 10 minutes, or use `stream: true` (the v1.0 RC relays it as a stream).
 - `n > 1`, `mask`, and JSON image edits are not supported.
+- Input images must be PNG, JPEG, or WebP, up to 25 MB each; a multipart request body is limited to 32 MB.
 - Result links and response headers reveal Yir; use `b64_json` if that matters.
 
 ## Troubleshooting
@@ -78,6 +79,6 @@ Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and do
 | 402 `insufficient_quota` | Insufficient balance; new-api disables the channel. Re-enable it after topping up |
 | 403 | The key's monthly limit is reached |
 | 503 | No supply is available; new-api retries on another channel |
-| 200 with `error` | The Job ran but failed (for example, blocked by content moderation); it is charged only what the channel billed, usually nothing |
+| 200 with `error` | The Job ran but failed (for example, blocked by content moderation), or the 10-minute wait timed out (`yir_wait_timeout`) while the Job continues; a failed Job is charged only what the channel billed, usually nothing |
 
 Include the `X-Yir-Job-Id` response header when reporting a problem.

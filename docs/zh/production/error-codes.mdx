@@ -30,7 +30,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 
 | 错误码 | HTTP | 含义 | 处理方式 |
 | --- | --- | --- | --- |
-| `YIR_INVALID_REQUEST` | 400 | 请求体、参数或参考素材不符合 API 或模型合同，或生成请求缺少 `Idempotency-Key`，或其 `max_cost` 低于所有可用渠道的估价。生成请求引用不存在、处理失败或已过期的输入文件，或参考 `url` 无法导入时，也返回此错误码（报价则返回 `supply.available: false`）。URL 导入因远端超时、连接失败、HTTP 429 或 5xx 失败时 `retryable` 为 `true`。 | 修正请求，查看模型[合同](/zh/docs/models)。 |
+| `YIR_INVALID_REQUEST` | 400 | 请求体、参数或参考素材不符合 API 或模型合同，或生成请求缺少 `Idempotency-Key`，或其 `max_cost` 低于所有可用渠道的估价。生成请求引用不存在、处理失败或已过期的输入文件，或参考 `url` 无法导入时，也返回此错误码（报价对处理失败或已过期的文件返回 `supply.available: false`）。URL 导入因远端超时、连接失败、HTTP 429 或 5xx 失败时 `retryable` 为 `true`。 | 修正请求，查看模型[合同](/zh/docs/models)。 |
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | `routing` 对象无效，例如 `only` 为空，或 `variants` 中的渠道不在 `only` 内。 | 修正 `routing`，见[路由](/zh/docs/concepts/routing)。 |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | 合同中的保留错误码，目前不会返回。`routing` 无效时返回 `YIR_INVALID_ROUTING_OVERRIDE`。 | 如果对每个错误码分别处理，按 `YIR_INVALID_ROUTING_OVERRIDE` 处理即可。 |
 | `YIR_UNAUTHORIZED` | 401 | Key 缺失、错误、已轮换、已吊销、已过期，或来源 IP 不被允许。 | 在 Console 检查 Key 及其设置，不要原样重试。 |
@@ -38,9 +38,9 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | `YIR_SPEND_LIMIT_EXCEEDED` | 403 | 会超出该 Key 的月度支出上限。 | 提高上限，或等到下一个 UTC 自然月。 |
 | `YIR_MODEL_NOT_FOUND` | 404 | 模型路径中的模型 ID 不存在。 | 使用 `GET /v1/models` 返回的规范 ID。 |
 | `YIR_JOB_NOT_FOUND` | 404 | 该账户下没有此 Job，或已超过 90 天。 | 检查 Job ID 和 Key 所属账户。 |
-| `YIR_FILE_NOT_FOUND` | 404 | 仅 Files 接口：该账户下没有此输入文件。 | 检查文件 ID，或重新上传。 |
+| `YIR_FILE_NOT_FOUND` | 404 | Files 接口或报价：该账户下没有此输入文件。 | 检查文件 ID，或重新上传。 |
 | `YIR_IDEMPOTENCY_CONFLICT` | 409 | 该幂等键已用于另一个不同的请求。 | 重发原始请求；若是新请求，使用新键。 |
-| `YIR_FILE_NOT_READY` | 409 | 文件尚未 `ready`：上传未完成时调用 `/complete`、`/content`，或生成请求引用了仍处于 `pending_upload`、`processing` 的文件（`retryable: true`）。`GET /v1/files/{id}` 则返回 `200` 并在 `status` 中体现。 | 完成上传并调用 `/complete`，等到 `ready` 后用同一个幂等键重试。 |
+| `YIR_FILE_NOT_READY` | 409 | 文件尚未 `ready`：上传未完成时调用 `/complete`、`/content`，或报价、生成请求引用了仍处于 `pending_upload`、`processing` 的文件（`retryable: true`）。`GET /v1/files/{id}` 则返回 `200` 并在 `status` 中体现。 | 完成上传并调用 `/complete`，等到 `ready` 后用同一个幂等键重试。 |
 | `YIR_JOB_NOT_CANCELLABLE` | 409 | Job 已成功或已失败。 | 无需取消，读取 Job 即可。 |
 | `YIR_FILE_EXPIRED` | 410 | 仅 Files 接口（`/complete`、`/content`）：输入文件已过期。`GET /v1/files/{id}` 则返回 `200` 且 `status` 为 `expired`。 | 重新上传。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | 当前没有渠道能在约束内执行此请求。 | 稍后重试、放宽 `routing` 或调整参数；报价可查看 `supply`。 |
