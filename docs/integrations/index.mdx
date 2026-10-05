@@ -1,0 +1,15 @@
+---
+title: Choose an integration
+description: Compare the Standard API, the official SDKs, the Vercel AI SDK, and the OpenAI-compatible endpoints, and pick the one that fits your stack.
+---
+
+All four options call the same Standard API, so Jobs, routing, and billing work the same way. They differ only in how you call Yir and which features you can reach.
+
+| Your situation | Use | Notes |
+| --- | --- | --- |
+| New project, any language | Standard API (REST) | Plain HTTP with the full feature set. Start with the [quickstart](/docs/getting-started/quickstart); see the [API reference](/docs/reference) for every endpoint. |
+| TypeScript or Go backend | [SDK](/docs/integrations/sdk) | Adds polling backoff, typed errors, file uploads, and Webhook verification on top of the Standard API. |
+| Already on the Vercel AI SDK | [Vercel AI SDK](/docs/integrations/vercel-ai-sdk) | Call Yir through `generateImage` and the video functions with minimal code changes. |
+| Already integrated with OpenAI Images, Sora, or new-api | [OpenAI compatibility and new-api](/docs/integrations/openai-compatibility) | Change only the Base URL and key. Results are returned synchronously; Webhooks and full routing control are not available. |
+
+If unsure, use the Standard API or an SDK. Every option authenticates with a Yir API Key only; see [authentication](/docs/getting-started/authentication).

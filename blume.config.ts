@@ -2,6 +2,26 @@ import { defineConfig } from "blume";
 import { openapi } from "blume/reference";
 import { filesystem } from "blume/sources";
 
+// Pages moved in the 2026-10 navigation restructure. Old URLs stay reachable
+// for inbound links from yir.ai pages and search engines.
+const movedPages: Record<string, string> = {
+  "guides/clients": "integrations/sdk",
+  "guides/vercel-ai-sdk": "integrations/vercel-ai-sdk",
+  "guides/openai-compatibility": "integrations/openai-compatibility",
+  "guides/models": "models",
+  "guides/official-api-differences": "models/official-api-differences",
+  "guides/webhooks": "production/webhooks",
+  "guides/production-integration": "production/checklist",
+  "support/error-codes": "production/error-codes",
+  "support/troubleshooting": "production/troubleshooting",
+  "console/api-keys": "console#api-keys",
+  "console/routing": "console#routing-profiles",
+  "console/playground": "console#playground",
+  "console/logs": "console#logs",
+  "console/alerts": "console#alerts",
+  "console/webhooks": "production/webhooks#endpoints-and-delivery-history",
+};
+
 export default defineConfig({
   title: "Yir Docs",
   description:
@@ -10,6 +30,13 @@ export default defineConfig({
   content: {
     sources: [filesystem({ root: "docs", prefix: "docs" })],
   },
+  redirects: Object.entries(movedPages).flatMap(([from, to]) =>
+    ["/docs", "/zh/docs"].map((prefix) => ({
+      from: `${prefix}/${from}`,
+      to: `${prefix}/${to}`,
+      status: 301 as const,
+    })),
+  ),
   deployment: {
     site: "https://yir.ai",
   },

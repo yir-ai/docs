@@ -1,0 +1,54 @@
+---
+title: Model catalog and parameters
+description: Discover supported models, read their parameter contracts, and validate requests before submitting.
+---
+
+Model support and parameter rules come from the API, so a new model does not require an SDK upgrade. Prices and current availability come from [quotes](/docs/concepts/billing#get-a-quote), not from the model contract.
+
+## List models
+
+```bash
+curl https://gateway.yir.ai/v1/models \
+  --header "Authorization: Bearer $YIR_API_KEY"
+```
+
+The compact response lists model IDs and localized labels. Add `?include=parameters` to expand every model's operations, input modes, reference rules, and parameters. Both responses carry the same `version` hash for the whole contract; cache by it.
+
+## Read one model's contract
+
+```bash
+curl "https://gateway.yir.ai/v1/models/bytedance/seedance-2.0?view=contract" \
+  --header "Authorization: Bearer $YIR_API_KEY"
+```
+
+A contract describes, for each operation (`generate_image` or `generate_video`):
+
+- **Input modes** (`text`, `image`, `reference`) and, for each, the allowed reference roles and their minimum and maximum counts.
+- **Parameters** with type, whether required, allowed `values` or `minimum`/`maximum`, and `default`.
+- **Labels and descriptions** in English and Simplified Chinese, for building forms.
+
+Without `view=contract`, `GET /v1/models/{creator}/{model}` returns the model's market detail, including channel parameter rules (`channel_parameters`). The SDKs read it with `getModel` / `GetModel`; its prices are for display only, so quote before submitting.
+
+## Model IDs and aliases
+
+Canonical IDs use `creator/model`, for example `openai/gpt-image-2` or `google/nano-banana-pro`. Some models also accept aliases, such as `seedance-2.0` for `bytedance/seedance-2.0`. Aliases work in quote and generation requests, but resource paths such as `/v1/models/{creator}/{model}` require the canonical ID. Browse all models, prices, and channels in [Model Market](https://yir.ai/models).
+
+## What a contract does not tell you
+
+A parameter being valid does not mean every channel can run it right now, or that a price exists for it. Always quote the complete request. The Gateway remains the final authority: requests that break the contract fail with `400 YIR_INVALID_REQUEST`, and unknown models with `404 YIR_MODEL_NOT_FOUND`.
+
+## Validating in your app
+
+The TypeScript SDK can validate requests locally against a catalog you load or generate:
+
+```ts
+import { createNodeYirClient } from "@yir-ai/sdk/server";
+import { validateModelParameters } from "@yir-ai/sdk/frontend";
+
+const client = createNodeYirClient();
+const catalog = await client.getModelContracts();
+validateModelParameters("openai/gpt-image-2", "generate_image", "text",
+  { resolution: "1K", aspect_ratio: "1:1", n: 1 }, catalog);
+```
+
+To ship a snapshot with your front end, generate it during development with `pnpm exec yir-models --output src/models.ts`. The command fetches the catalog from the Gateway, so `YIR_API_KEY` must be set in its environment. The snapshot contains parameter metadata only, with no prices or credentials. Refresh it when you want to offer new models.

@@ -101,7 +101,7 @@ Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 ## 账户与 Key 的限制
 
 - **余额。** 可用余额不足以覆盖首选渠道估价，或余额为负时，Job 以 `402 YIR_INSUFFICIENT_BALANCE` 拒绝。请在 Console 充值。可以在账单页设置低余额邮件提醒。
-- **每个 API Key 的月度支出上限。** 可选，在 [Console → API Key](/zh/docs/console/api-keys) 设置。准入时把新 Job 的估价加上该 Key 当前 UTC 自然月已结算费用；超过上限时请求以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，不创建 Job。仍在执行的 Job 不计入，因此并发 Job 可能让 Key 略超上限。进行中的 Job 不会被中断。
+- **每个 API Key 的月度支出上限。** 可选，在 [Console → API Key](/zh/docs/console#api-keys) 设置。准入时把新 Job 的估价加上该 Key 当前 UTC 自然月已结算费用；超过上限时请求以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，不创建 Job。仍在执行的 Job 不计入，因此并发 Job 可能让 Key 略超上限。进行中的 Job 不会被中断。
 
 ## 为自己的产品定价
 

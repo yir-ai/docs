@@ -34,28 +34,26 @@ const requiredPages = [
   'index',
   'getting-started/authentication',
   'getting-started/quickstart',
-  'console/playground',
-  'console/routing',
-  'console/api-keys',
-  'console/logs',
-  'console/webhooks',
-  'console/alerts',
-  'guides/production-integration',
+  'integrations/index',
+  'integrations/sdk',
+  'integrations/vercel-ai-sdk',
+  'integrations/openai-compatibility',
   'guides/image-generation',
   'guides/video-generation',
   'guides/input-files',
-  'guides/models',
-  'guides/webhooks',
-  'guides/clients',
-  'guides/vercel-ai-sdk',
+  'models/index',
   'models/gpt-image-2',
   'models/gpt-image-2-5',
+  'models/official-api-differences',
   'concepts/task-lifecycle',
   'concepts/providers',
   'concepts/routing',
   'concepts/billing',
-  'support/error-codes',
-  'support/troubleshooting',
+  'production/webhooks',
+  'production/checklist',
+  'production/error-codes',
+  'production/troubleshooting',
+  'console/index',
 ]
 
 const reviewedOperations = [
@@ -127,8 +125,8 @@ test(
         blumeRoot,
         'dist',
         'docs',
-        'guides',
-        'production-integration',
+        'production',
+        'checklist',
         'index.html',
       ),
       'utf8',
@@ -139,8 +137,8 @@ test(
         'dist',
         'zh',
         'docs',
-        'guides',
-        'production-integration',
+        'production',
+        'checklist',
         'index.html',
       ),
       'utf8',
@@ -219,8 +217,8 @@ test(
     )
 
     for (const [html, language, pagePath] of [
-      [englishGuide, 'en', '/docs/guides/production-integration'],
-      [chineseGuide, 'zh', '/zh/docs/guides/production-integration'],
+      [englishGuide, 'en', '/docs/production/checklist'],
+      [chineseGuide, 'zh', '/zh/docs/production/checklist'],
       [reference, 'en', '/docs/reference'],
       [chineseReference, 'zh', '/zh/docs/reference'],
     ]) {
@@ -239,15 +237,15 @@ test(
     assert.match(reference, /Yir Standard Async AIGC API/)
     assert.match(
       englishGuide,
-      /<link rel="canonical" href="https:\/\/yir\.ai\/docs\/guides\/production-integration"/,
+      /<link rel="canonical" href="https:\/\/yir\.ai\/docs\/production\/checklist"/,
     )
     assert.match(
       sitemap,
-      /<loc>https:\/\/yir\.ai\/docs\/guides\/production-integration<\/loc>/,
+      /<loc>https:\/\/yir\.ai\/docs\/production\/checklist<\/loc>/,
     )
     assert.match(
       sitemap,
-      /<loc>https:\/\/yir\.ai\/zh\/docs\/guides\/production-integration<\/loc>/,
+      /<loc>https:\/\/yir\.ai\/zh\/docs\/production\/checklist<\/loc>/,
     )
     assert.match(
       englishProviders,
@@ -275,16 +273,27 @@ test(
     )
     assert.ok(
       searchIndex.some(
-        (page) => page.route === '/docs/guides/production-integration',
+        (page) => page.route === '/docs/production/checklist',
       ),
     )
     assert.ok(
       searchIndex.some(
-        (page) => page.route === '/zh/docs/guides/production-integration',
+        (page) => page.route === '/zh/docs/production/checklist',
       ),
     )
     assert.ok(searchIndex.some((page) => page.route === '/docs/concepts/providers'))
     assert.ok(searchIndex.some((page) => page.route === '/zh/docs/concepts/providers'))
+
+    for (const [from, to] of [
+      [['docs', 'guides', 'clients'], '/docs/integrations/sdk'],
+      [['zh', 'docs', 'console', 'webhooks'], '/zh/docs/production/webhooks'],
+    ]) {
+      const redirect = await readFile(
+        path.join(blumeRoot, 'dist', ...from, 'index.html'),
+        'utf8',
+      )
+      assert.ok(redirect.includes(`url=${to}"`) || redirect.includes(`url=https://yir.ai${to}"`), `${from.join('/')} must redirect to ${to}`)
+    }
 
     assert.deepEqual(rootEntries, [
       'docs',
@@ -294,8 +303,8 @@ test(
     assert.doesNotMatch(englishGuide, /(?<![A-Za-z0-9_-])\/_astro\//)
     assert.doesNotMatch(englishGuide, /docs\.yir\.ai/)
     assert.doesNotMatch(chineseGuide, /href="(?:https:\/\/yir\.ai)?\/docs\/zh\//)
-    assert.match(englishGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/guides\/production-integration\.mdx"/)
-    assert.match(chineseGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/zh\/guides\/production-integration\.mdx"/)
+    assert.match(englishGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/production\/checklist\.mdx"/)
+    assert.match(chineseGuide, /href="https:\/\/github\.com\/yir-ai\/docs\/edit\/main\/docs\/zh\/production\/checklist\.mdx"/)
     assert.match(searchClient, /`\/docs\/`,`blume-search\.json`/)
     assert.equal(agentReadability.artifacts.api, undefined)
     assert.equal(agentReadability.artifacts.aiCatalog, undefined)
@@ -322,7 +331,7 @@ test(
       const html = await readFile(file, 'utf8')
       assert.doesNotMatch(
         html,
-        /href="\/(?:getting-started|guides|concepts|reference|support)(?:\/|")/u,
+        /href="\/(?:getting-started|integrations|guides|concepts|production|reference|support)(?:\/|")/u,
         `${path.relative(blumeRoot, file)} links outside the Docs mounts`,
       )
       assert.doesNotMatch(html, /rel="(?:ai-catalog|ard|service-desc)"/u)

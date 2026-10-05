@@ -124,6 +124,6 @@ const file = await createAndUploadFile(
 console.log(file.id, file.status); // "ready": reference it by file.id
 ```
 
-请持久化该幂等键，崩溃后用同一个键恢复。见 [SDK](/zh/docs/guides/clients)。
+请持久化该幂等键，崩溃后用同一个键恢复。见 [SDK](/zh/docs/integrations/sdk)。
 
 自 TypeScript SDK 0.4.0 和 Go SDK 0.5.0 起，上传辅助函数会等待分析，默认超时五分钟。可用 `waitForFileReady` / `WaitForFileReady` 继续等待；本地超时不会取消服务端分析。读取 ready 文件时，`getFileContentURL` / `GetFileContentURL`（TypeScript 0.5.0 / Go 0.6.0）返回其签名 URL，不会把 API Key 发给存储端。

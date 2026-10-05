@@ -11,17 +11,14 @@ Yir 是面向图片与视频生成的统一异步 AI 网关。你只需发送一
   <Card title="快速上手" href="/zh/docs/getting-started/quickstart" icon="rocket">
     几分钟内用 cURL 生成第一张图片。
   </Card>
-  <Card title="上线检查清单" href="/zh/docs/guides/production-integration" icon="shield-check">
-    幂等、轮询、Webhook、费用控制与错误处理。
+  <Card title="选择接入方式" href="/zh/docs/integrations" icon="plug">
+    REST、SDK、Vercel AI SDK 或 OpenAI 兼容，按现有技术栈选择。
   </Card>
-  <Card title="SDK" href="/zh/docs/guides/clients" icon="package">
-    TypeScript 与 Go 客户端，覆盖报价、Job、文件与 Webhook。
+  <Card title="上线检查清单" href="/zh/docs/production/checklist" icon="shield-check">
+    幂等、轮询、Webhook、费用控制与错误处理。
   </Card>
   <Card title="API 参考" href="/zh/docs/reference" icon="braces">
     由已审查的 OpenAPI 合同生成的全部公开接口。
-  </Card>
-  <Card title="OpenAI 兼容" href="/zh/docs/guides/openai-compatibility" icon="plug">
-    已在用 OpenAI Images、Sora 或 new-api？只需更换 Base URL 和 Key。
   </Card>
 </CardGroup>
 
@@ -46,13 +43,14 @@ sequenceDiagram
 - **按渠道实际账单付费。** 渠道计了费的每次尝试都按折扣后金额收取，失败的也一样；渠道没计费的尝试不收费，Yir 自身的交付失败与超时由 Yir 承担。见[报价与计费](/zh/docs/concepts/billing)。
 - **无需上游凭据。** 只使用 Yir API Key 认证。见[身份认证](/zh/docs/getting-started/authentication)。
 
-## 按需查阅
+## 按目标查找
 
-| 目标 | 页面 |
-| --- | --- |
-| 生成图片或视频 | [图片生成](/zh/docs/guides/image-generation) · [视频生成](/zh/docs/guides/video-generation) |
-| 使用自己的参考素材 | [输入文件](/zh/docs/guides/input-files) |
-| 查找模型及其参数 | [模型与参数](/zh/docs/guides/models) · [GPT Image 2](/zh/docs/models/gpt-image-2) · [GPT Image 2.5](/zh/docs/models/gpt-image-2-5) |
-| 通过回调接收结果 | [Webhook](/zh/docs/guides/webhooks) |
-| 控制执行渠道 | [路由](/zh/docs/concepts/routing) |
-| 处理错误 | [错误码](/zh/docs/support/error-codes) |
+| 目标 | 先看 | 再看 |
+| --- | --- | --- |
+| 第一次接入 | [快速上手](/zh/docs/getting-started/quickstart) | [选择接入方式](/zh/docs/integrations) · [报价与计费](/zh/docs/concepts/billing) |
+| 从 OpenAI Images、Sora 或 new-api 迁移 | [OpenAI 兼容与 new-api](/zh/docs/integrations/openai-compatibility) | [与官方 API 的差异](/zh/docs/models/official-api-differences) |
+| 生成图片或视频 | [图片生成](/zh/docs/guides/image-generation) · [视频生成](/zh/docs/guides/video-generation) | [输入文件](/zh/docs/guides/input-files) |
+| 查模型和参数 | [模型目录与参数](/zh/docs/models) | [模型市场](https://yir.ai/zh/models) |
+| 控制费用和渠道 | [报价与计费](/zh/docs/concepts/billing) | [路由与渠道切换](/zh/docs/concepts/routing) |
+| 准备上线 | [上线检查清单](/zh/docs/production/checklist) | [Webhook](/zh/docs/production/webhooks) · [Job 生命周期](/zh/docs/concepts/task-lifecycle) |
+| 处理报错 | [错误码](/zh/docs/production/error-codes) | [故障排查](/zh/docs/production/troubleshooting) |

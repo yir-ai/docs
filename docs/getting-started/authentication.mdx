@@ -21,7 +21,7 @@ Store the key in a secret manager or server environment variable:
 export YIR_API_KEY="your-yir-api-key"
 ```
 
-Create additional keys when you want separate environments or applications, each with its own spend limit, expiry, IP allowlist, and usage statistics. See [API Keys in Console](/docs/console/api-keys).
+Create additional keys when you want separate environments or applications, each with its own spend limit, expiry, IP allowlist, and usage statistics. See [API Keys in Console](/docs/console#api-keys).
 
 ## Keep keys safe
 
@@ -34,4 +34,4 @@ Create additional keys when you want separate environments or applications, each
 
 A key is rejected with `401 YIR_UNAUTHORIZED` when it is wrong, rotated, revoked, expired, or used from an address outside its IP allowlist. The response does not reveal which reason applies. Check the key's status in Console.
 
-A valid key can still be refused when creating a Job: `403 YIR_SPEND_LIMIT_EXCEEDED` means the key reached its monthly spend limit, and `402 YIR_INSUFFICIENT_BALANCE` means the account needs funds. See [error codes](/docs/support/error-codes).
+A valid key can still be refused when creating a Job: `403 YIR_SPEND_LIMIT_EXCEEDED` means the key reached its monthly spend limit, and `402 YIR_INSUFFICIENT_BALANCE` means the account needs funds. See [error codes](/docs/production/error-codes).

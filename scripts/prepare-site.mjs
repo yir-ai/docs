@@ -60,6 +60,9 @@ await rm(path.join(distRoot, 'api'), { force: true, recursive: true })
 await rm(path.join(distRoot, 'openapi.json'), { force: true })
 await rm(path.join(distRoot, 'vercel.json'), { force: true })
 await rm(path.join(distRoot, '_headers'), { force: true })
+// Redirect pages live under the mounts; nginx serves them as static HTML.
+await rm(path.join(distRoot, '_redirects'), { force: true })
+await rm(path.join(distRoot, 'blume-redirects.json'), { force: true })
 await rm(path.join(distRoot, '.well-known'), { force: true, recursive: true })
 
 await rewriteTextFiles(distRoot)
@@ -143,7 +146,7 @@ function rewriteMountedPaths(content, chinese) {
     .replace(rootPath('zh/docs.md'), '/zh/docs/index.md')
     .replace(rootPath('zh/docs.mdx'), '/zh/docs/index.mdx')
     .replace(
-      /(^|["'(\s`>]|https:\/\/yir\.ai)\/(getting-started|guides|concepts|reference|support)(?=\/|["'#?`\s<])/gu,
+      /(^|["'(\s`>]|https:\/\/yir\.ai)\/(getting-started|integrations|guides|concepts|production|reference|support)(?=\/|["'#?`\s<])/gu,
       `$1${docsPrefix}/$2`,
     )
     .replace(

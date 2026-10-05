@@ -5,7 +5,7 @@ description: 使用 Yir Standard API 生成第一张图片，跟踪 Job 并下�
 
 本文用 cURL 调用 GPT Image 2 生成一张图片，只需三步：提交、查询状态、下载。
 
-已在用 OpenAI Images、Sora 接口或 new-api？见 [OpenAI 兼容](/zh/docs/guides/openai-compatibility)，更换 Base URL 即可接入。
+已在用 OpenAI Images、Sora 接口或 new-api？见 [OpenAI 兼容](/zh/docs/integrations/openai-compatibility)，更换 Base URL 即可接入。
 
 ## 准备工作
 
@@ -60,7 +60,7 @@ export YIR_JOB_ID="$(jq -r '.id' job.json)"
 ```
 
 :::info
-幂等键让提交可以安全重试。请求超时后，在同一个终端中再次运行同一条命令即可：相同的键和请求体会返回原来的 Job，而不是新建一个。换新键会创建另一个单独收费的 Job。不带键的请求会以 `400 YIR_INVALID_REQUEST` 拒绝。见[幂等提交](/zh/docs/guides/production-integration#幂等提交)。
+幂等键让提交可以安全重试。请求超时后，在同一个终端中再次运行同一条命令即可：相同的键和请求体会返回原来的 Job，而不是新建一个。换新键会创建另一个单独收费的 Job。不带键的请求会以 `400 YIR_INVALID_REQUEST` 拒绝。见[幂等提交](/zh/docs/production/checklist#幂等提交)。
 :::
 
 ## 2. 等待 Job 完成
@@ -96,10 +96,10 @@ curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 
 结果地址是短期签名链接，不要向它发送 API Key。请把文件复制到自己的存储。结果自 Job 创建起保留 7 天，见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
 
-如果 Job 为 `failed`，读取 `error.code` 与 `error.action`，并在[错误码](/zh/docs/support/error-codes)中查阅。失败的 Job 只按渠道实际计费的尝试收费，多数失败不产生费用。
+如果 Job 为 `failed`，读取 `error.code` 与 `error.action`，并在[错误码](/zh/docs/production/error-codes)中查阅。失败的 Job 只按渠道实际计费的尝试收费，多数失败不产生费用。
 
 ## 下一步
 
 - **先看价格。** 用相同请求体调用 `POST /v1/images/quotes`，提交前查看估价。见[报价与计费](/zh/docs/concepts/billing)。
-- **使用 SDK。** [TypeScript 与 Go SDK](/zh/docs/guides/clients) 已处理轮询退避、错误和文件上传。
-- **准备上线。** 按[上线检查清单](/zh/docs/guides/production-integration)逐项确认。
+- **使用 SDK。** [TypeScript 与 Go SDK](/zh/docs/integrations/sdk) 已处理轮询退避、错误和文件上传。
+- **准备上线。** 按[上线检查清单](/zh/docs/production/checklist)逐项确认。

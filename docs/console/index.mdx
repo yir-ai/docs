@@ -1,0 +1,128 @@
+---
+title: Console
+description: Manage API Keys and Routing Profiles, try models in Playground, review Jobs in Logs, and act on Alerts in the Yir Console.
+---
+
+[Yir Console](https://yir.ai/console) is where you manage keys and routing and inspect Jobs. Everything it does also has an API; this page explains the screens. Webhook endpoints are covered in [Webhooks](/docs/production/webhooks#endpoints-and-delivery-history).
+
+## API Keys
+
+Manage keys in [Console → API Keys](https://yir.ai/console/api-keys). Every key authenticates Gateway requests with `Authorization: Bearer <YIR_API_KEY>`. See [authentication](/docs/getting-started/authentication).
+
+### Default key
+
+Every account has one default key. It cannot be revoked and never expires, but you can rotate its secret.
+
+### Additional keys
+
+Create extra keys for separate applications or environments. Each key has its own:
+
+| Setting | Effect |
+| --- | --- |
+| **Routing Profile** | The default [routing](#routing-profiles) for requests made with this key. Request-level `routing` can narrow it. Changing it applies to Jobs admitted afterward; admitted Jobs keep the routing frozen at admission. The key secret does not change. |
+| **Monthly spend limit** | Optional cap for the current UTC month. New Jobs that would exceed it fail with `403 YIR_SPEND_LIMIT_EXCEEDED`; running Jobs are not interrupted. The key list shows spend so far. |
+| **Expiration** | Never, or 30, 90, or 365 days from when you save. After expiry, requests fail with `401 YIR_UNAUTHORIZED`. You can extend an expired key at any time. |
+| **IP allowlist** | Optional. Only requests from matching IPv4, IPv6, or CIDR ranges are accepted. Leave it off for dynamic egress, local development, or serverless platforms. |
+
+Usage statistics and Logs are attributed per key.
+
+### Secret actions
+
+- **Reveal and copy.** You can reveal a key's secret again later in Console.
+- **Rotate.** Issues a new secret for the same key. The old secret stops working as soon as rotation succeeds; the key's name, settings, and history are kept. If rotation fails, the old secret remains valid.
+- **Revoke.** Permanently disables an additional key.
+
+If a secret may have leaked, rotate or revoke the key immediately. An IP allowlist reduces the damage of a leak but does not replace rotation.
+
+## Routing Profiles
+
+A **Routing Profile** holds the default routing for every API Key bound to it. Manage profiles in [Console → Routing](https://yir.ai/console/routing).
+
+### What a profile sets
+
+| Setting | Effect |
+| --- | --- |
+| **Mode** | **Lowest price** orders channels by estimated price. **Fastest** orders channels by recently observed generation time; channels without enough recent Jobs fall back to price order. Use separate profiles when different products need different trade-offs. |
+| **Fallback** | Whether Yir may try another channel after an attempt is confirmed failed. Recommended on. |
+
+Every account has a default profile. You can create more profiles, rename or edit them, and delete ones you no longer need. Each API Key is bound to one profile, which you choose when creating or editing the key. The profile list shows how many keys use each one.
+
+Profiles created earlier may also carry model or channel restrictions. These are shown on the profile and still apply; request-level routing can narrow them but never widen them.
+
+Custom channel ordering is not available. Yir chooses among eligible channels automatically.
+
+### Overriding per request
+
+A request's `routing` object takes precedence over the profile for that request: it can change `preference` and `fallback`, restrict channels with `only`, and choose `variants`. See [routing and fallback](/docs/concepts/routing) for the full rules.
+
+Routing never selects credentials and cannot bypass authentication, balance, spend limits, specification checks, or attempt limits.
+
+## Playground
+
+[Console → Playground](https://yir.ai/console/playground) is a no-code way to try models. It calls the same Standard API your code uses, so what you see matches real integration behavior.
+
+### Before you generate
+
+1. Pick a model and set its parameters. Options come from the model's public contract; the quote tells you whether it can run right now.
+2. Pick one of your API Keys. Playground uses it by ID, and the browser never receives its secret. Expired keys are not listed.
+3. Review the quote. It shows the current price for this exact request.
+
+Playground uses the selected key's [Routing Profile](#routing-profiles) and all of the key's limits. Requests are sent from Yir's web server, so a key with an IP allowlist must allow that server's address; the code examples run from your own environment instead.
+
+### After you submit
+
+Submitting creates a **real Job with real charges**. Result cards poll the Job and show its status, output, and charge. Open [Logs](#logs) for the full record.
+
+Recent results are restored from references stored in your browser. Clearing browser data does not delete Jobs; the complete history stays in Logs.
+
+### Safe retries
+
+Before submitting, Playground saves your draft and its idempotency key in this browser tab (without secrets or file contents). If the response is lost, retrying the unchanged request reuses the same key, so no duplicate Job is created. Reloading the tab restores the last unconfirmed draft but never submits it automatically. Changing the request or submitting again after a Job was returned creates a new Job.
+
+A polling error keeps the last known status and polling continues; it does not mean the generation failed.
+
+Results are kept for 7 days after the Job is created. Download anything you want to keep.
+
+## Logs
+
+[Console → Logs](https://yir.ai/console/logs) lists your Jobs. Use the list to scan outcomes and open a Job for details.
+
+### Job details
+
+When available, the detail page shows:
+
+- the result and its status;
+- the channel that produced the result, and whether fallback recovered the Job (counted only when an earlier attempt was confirmed failed and a later one succeeded);
+- the total Yir charge, and a comparison with the official reference price when a like-for-like price exists (negative differences are shown as they are; unknown costs are never shown as savings);
+- input transfer facts and one execution timeline.
+
+### Content rejected
+
+When a content safety check rejects a Job (Yir's check of reference images before submission, the provider's moderation, or Yir's own check on image output from providers without moderation), the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/production/error-codes). It is free unless the provider had already generated and billed the result; then the upstream cost is charged and the result is not delivered. Logs label these Jobs Content rejected instead of Failed, and the time chart shows them as a separate segment: the Failed legend filters execution failures only, and the Content rejected legend filters rejected Jobs only. Analytics success rates leave them out. Change the prompt or references before submitting again.
+
+For successful Jobs, details show the result's [content safety](/docs/concepts/task-lifecycle#content-safety) outcome next to the files: passed (provider), passed (Yir), or not checked.
+
+### Privacy
+
+By default, details show the prompt length and the number of references. During the first 7 days you can expand your stored prompt. Reference URLs, file IDs, raw provider responses, credentials, and internal routing data are never shown.
+
+### Retention
+
+Prompts, inputs, and results are kept for 7 days after the Job is created; summary logs for 90 days. Billing records are kept separately. Logs are not an asset library, so download any results you need. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).
+
+## Alerts
+
+[Console → Alerts](https://yir.ai/console/alerts) lists everything about your account that currently needs attention, most urgent first. Each alert links to the page where you can fix it.
+
+| Alert | Severity | Raised when |
+| --- | --- | --- |
+| Low balance | Warning, or critical when the balance is used up | Available balance falls below your low-balance alert threshold. With no balance, new Jobs cannot be submitted. |
+| Key spend limit | Warning near the limit, critical when reached | An API Key approaches or reaches its monthly spend limit. At the limit, new Jobs on that key are rejected. |
+| Key expired | Critical | An API Key has expired and its requests are rejected. |
+| Key expiring | Warning | An API Key expires within 7 days. |
+| High job failure rate | Warning or critical | A high share of finished Jobs failed in the recent window. Content rejections (`YIR_CONTENT_REJECTED`) are not counted. |
+| Webhook delivery failing | Warning | The latest Webhook delivery to an endpoint failed. |
+
+The page also shows a 7-day chart of failed Jobs against all finished Jobs, both excluding content rejections.
+
+Alerts clear themselves once the condition is resolved. The low-balance threshold is set on the Billing page, which can also send one email per low-balance episode. Yir never tops up or charges your payment method automatically.

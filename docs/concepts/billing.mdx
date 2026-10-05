@@ -101,7 +101,7 @@ Billing is final when the Job reaches a terminal state. Read the terminal Job's 
 ## Account and key limits
 
 - **Balance.** A Job is rejected with `402 YIR_INSUFFICIENT_BALANCE` when your available balance does not cover the first channel's estimate, or while your balance is negative. Top up in Console. You can set a low-balance email alert on the Billing page.
-- **Monthly spend limit per API Key.** Optional, set in [Console → API Keys](/docs/console/api-keys). Admission adds the new Job's estimate to the key's settled charges for the current UTC month. If the total would exceed the limit, the request fails with `403 YIR_SPEND_LIMIT_EXCEEDED` and no Job is created. Jobs still running are not counted, so concurrent Jobs can take a key slightly past its limit. Running Jobs are never interrupted.
+- **Monthly spend limit per API Key.** Optional, set in [Console → API Keys](/docs/console#api-keys). Admission adds the new Job's estimate to the key's settled charges for the current UTC month. If the total would exceed the limit, the request fails with `403 YIR_SPEND_LIMIT_EXCEEDED` and no Job is created. Jobs still running are not counted, so concurrent Jobs can take a key slightly past its limit. Running Jobs are never interrupted.
 
 ## Pricing your own product
 

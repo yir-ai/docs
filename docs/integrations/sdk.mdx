@@ -1,0 +1,164 @@
+---
+title: SDKs
+description: Use the official TypeScript and Go SDKs to quote, submit, wait for, and collect Yir Jobs.
+---
+
+The official SDKs are open source in [yir-ai/sdk](https://github.com/yir-ai/sdk) and cover quotes, generation, Job waiting, cancellation, file uploads, and Webhook verification. You can also call the REST API directly; the [quickstart](/docs/getting-started/quickstart) uses cURL. Systems already built on OpenAI Images, Sora, or new-api can switch without code changes through [OpenAI compatibility](/docs/integrations/openai-compatibility).
+
+| Language | Package | Current version |
+| --- | --- | --- |
+| TypeScript | `@yir-ai/sdk` | `0.8.0` |
+| Go | `github.com/yir-ai/sdk/go` | `v0.9.0` |
+
+Both clients read `YIR_API_KEY` from your server and default to `https://gateway.yir.ai`. Keep them on the server; the browser entry points of the TypeScript package contain only pure helpers and types.
+
+## Install
+
+<CodeGroup>
+
+```sh TypeScript
+pnpm add @yir-ai/sdk@0.8.0
+```
+
+```sh Go
+go get github.com/yir-ai/sdk/go@v0.9.0
+```
+
+</CodeGroup>
+
+The TypeScript package is ESM and needs a runtime with native `fetch`, Web Crypto, and `Blob` (Node.js 22 or later). The Go module requires Go 1.25 or later.
+
+## Generate an image end to end
+
+<CodeGroup>
+
+```ts TypeScript
+import { createNodeYirClient } from "@yir-ai/sdk/server";
+import type { StandardImageGenerationRequest } from "@yir-ai/sdk/shared";
+
+const client = createNodeYirClient(); // reads YIR_API_KEY
+
+const request: StandardImageGenerationRequest = {
+  model: "openai/gpt-image-2",
+  input: { type: "text", prompt: "A quiet observatory above a sea of clouds" },
+  parameters: { resolution: "1K", aspect_ratio: "1:1", n: 1 },
+};
+
+const quote = await client.quoteImage(request);
+if (!quote.supply.available) {
+  throw new Error("No supply for this request");
+}
+console.log(quote.primary.amount); // estimate, not a ceiling
+
+// Persist the request and key before submitting so you can recover.
+// Optional: add max_cost to cap the Job's charge.
+const saved = { request, idempotencyKey: crypto.randomUUID() };
+
+const job = await client.submitImage(saved.request, saved.idempotencyKey);
+const done = await client.waitForJob(job.id, { timeoutMs: 5 * 60_000 });
+
+console.log(done.status, done.billing?.total_charged_by_yir);
+if (done.result?.availability === "available") {
+  console.log(done.result.files[0].url); // copy to your own storage
+}
+```
+
+```go Go
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+
+client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{})
+if err != nil {
+	return err
+}
+
+request := yir.GenerationRequest{
+	Model:      "openai/gpt-image-2",
+	Input:      yir.GenerationInput{Type: "text", Prompt: "A quiet observatory above a sea of clouds"},
+	Parameters: map[string]any{"resolution": "1K", "aspect_ratio": "1:1", "n": 1},
+}
+
+quote, err := client.QuoteImage(ctx, request)
+if err != nil {
+	return err
+}
+if !quote.Supply.Available {
+	return errors.New("no supply for this request")
+}
+
+// Persist the request and key before submitting so you can recover.
+// Optional: set MaxCost to cap the Job's charge.
+saved := yir.SubmitRequest{GenerationRequest: request}
+key := "order-123-image-1"
+
+job, err := client.SubmitImage(ctx, saved, key)
+if err != nil {
+	return err // An unknown outcome is not a failure: retry with the same saved request and key.
+}
+
+final, err := client.WaitJob(ctx, job.ID, yir.WaitOptions{})
+var failed *yir.JobError
+if errors.As(err, &failed) {
+	return fmt.Errorf("job %s ended %s", failed.Job.ID, failed.Job.Status)
+}
+if err != nil {
+	return err // Local timeout: the Job keeps running. Resume with job.ID later.
+}
+fmt.Println(final.Status)
+if final.Billing != nil {
+	fmt.Println(final.Billing.TotalChargedByYir)
+}
+if final.Result != nil && final.Result.Availability == "available" && len(final.Result.Files) > 0 {
+	fmt.Println(final.Result.Files[0].URL) // copy to your own storage
+}
+```
+
+</CodeGroup>
+
+The Go snippet is the body of a function returning `error`, importing `context`, `errors`, `fmt`, `os`, `time`, and `yir "github.com/yir-ai/sdk/go"`. The repository contains a [compile-checked example](https://github.com/yir-ai/sdk/blob/main/go/client_example_test.go).
+
+## API overview
+
+| Capability | TypeScript | Go |
+| --- | --- | --- |
+| Quote | `quoteImage`, `quoteVideo`, `quoteBatch` | `QuoteImage`, `QuoteVideo`, `QuoteBatch` |
+| Submit | `submitImage`, `submitVideo` | `SubmitImage`, `SubmitVideo` |
+| Jobs | `getJob`, `getJobStatus`, `cancelJob`, `waitForJob` | `GetJob`, `GetJobStatus`, `CancelJob`, `WaitJob` |
+| Files | `createFiles`, `uploadFile`, `createAndUploadFile`, `getFile`, `completeFile`, `waitForFileReady`, `getFileContentURL` | `CreateFiles`, `UploadFile`, `CreateAndUploadFile`, `GetFile`, `CompleteFile`, `WaitForFileReady`, `GetFileContentURL` |
+| Webhooks | `verifyWebhookSignature`, `constructWebhookEvent` | `VerifyWebhookSignature`, `ConstructWebhookEvent` |
+| Models | `getModelContracts`, `getModelContract`, `getModel` | `GetModelContracts`, `GetModelContract`, `GetModel` |
+
+In TypeScript, `uploadFile`, `createAndUploadFile`, and `waitForFileReady` are functions exported from `@yir-ai/sdk/server`, not client methods. Pass the client as the first argument, for example `createAndUploadFile(client, metadata, data, key)`. In Go they are client methods. See [Input files](/docs/guides/input-files#with-an-sdk).
+
+## Behavior to know
+
+- **Idempotency keys.** The API requires a key on every generation request. If you omit the key argument, the SDK generates a random one for that call, which protects only that single HTTP call; calling again without a key can create another billable Job. Pass your own persisted key, and reuse it with the exact request to recover after a crash or an unknown outcome. Submit is never retried automatically.
+- **Waiting.** `waitForJob` / `WaitJob` long-poll the status endpoint (each query held for up to 20 seconds, falling back to 5 s, 10 s, then 20 s back-off if the Gateway does not hold) and read the full Job once at the end. A timeout or abort only stops local waiting; the Job keeps running. Resume with the saved ID.
+- **Errors.** API errors expose `status`, `code`, `retryable`, and `action`. A failed or cancelled Job raises `YirJobError` (TypeScript) or `JobError` (Go) carrying the complete Job. Branch on `code`, not on messages. See [error codes](/docs/production/error-codes).
+- **Validation.** Local parameter validation needs a model catalog you pass in; otherwise the Gateway validates. See [models and parameters](/docs/models).
+
+## Upgrading
+
+**TypeScript 0.3.0 / Go 0.4.0.** Waiting now backs off (5 s, then 10 s, then 20 s) instead of polling every 2 seconds; set `pollIntervalMs` / `WaitOptions.PollInterval` to keep a fixed interval. `constructWebhookEvent` / `ConstructWebhookEvent` are new. No call signatures change.
+
+**TypeScript 0.3.1 / Go 0.4.1.** `constructWebhookEvent` / `ConstructWebhookEvent` also reject Job IDs that `getJob` / `GetJob` would reject (they must match `^[1-9][0-9]*$`). The `poll` argument of `pollDelayMs` / `PollDelay` is the zero-based index of the query that just completed. No call signatures change.
+
+**TypeScript 0.3.2 / Go 0.4.2.** TypeScript counts the 20,000-character prompt limit in Unicode code points, so prompts with emoji are no longer rejected early. Go `Quote.Validate` rejects quotes whose `supply` disagrees with their prices, matching TypeScript. No call signatures change.
+
+**TypeScript 0.4.0 / Go 0.5.0 (breaking for URL references).** Every media reference needs a `file_id`; external reference URLs were rejected at the time (the Gateway now accepts public HTTPS `url` references again, see [input files](/docs/guides/input-files#public-urls)). Upload the original bytes through the [Files API](/docs/guides/input-files) first. Upload helpers wait for the file to be `ready` (five-minute default timeout), and `waitForFileReady` / `WaitForFileReady` resume waiting for a saved file ID. The Vercel AI SDK adapter accepts only bytes; download URL inputs in your application first. Quote validation also accepts server-authorized uncapped supply.
+
+**TypeScript 0.4.1 / Go 0.5.1.** Compatible with the previous release. Go `Job` adds `FinalProvider`, `URLs`, and `Usage`, and `JobBilling` adds its charge breakdown, matching TypeScript. Error code constants (`YIR_ERROR_CODES` / `ErrCode*`) are new, and the User-Agent reports the SDK version. TypeScript `cancelJob` accepts an abort signal and rejects a response that is not the requested Job. Bundled model contracts match the current server: `alibaba/qwen-image-2.1` is added, Gemini Omni accepts `duration`, `wan-2.6` allows at most 5 references, and the `kie/gemini-omni-video` alias is removed. This affects only validation against the bundled catalog.
+
+**TypeScript 0.5.0 / Go 0.6.0.** `getModel` / `GetModel` read a model's market detail, and `getFileContentURL` / `GetFileContentURL` return a ready file's short-lived signed URL without following the redirect, so your API Key never reaches storage. Fetch that URL without Gateway credentials. In TypeScript, code that implements `YirClient` or `YirFileClient` itself must add the new methods, and a custom transport must honor `redirect: "manual"` for `getFileContentURL`; callers of `createNodeYirClient` need no change.
+
+**TypeScript 0.6.0 / Go 0.7.0 (breaking).** Explicit `billing_mode: "actual"` is supported. `ComputeCharge` describes only managed supply billed by Yir: its `amount` is never null (Go `Amount` changes from `*string` to `string`). Without a catalog, local validation checks only the protocol skeleton and leaves model rules to the Gateway; fields and enum values newer than the SDK pass through, and types widen with `(string & {})`, so exhaustive `switch` statements need a default branch.
+
+**TypeScript 0.7.0 / Go 0.8.0 (breaking).** Waiting long-polls by default (`statusWaitSeconds` / `WaitOptions.StatusWait`, 20 seconds). Job and file statuses newer than the SDK are treated as in progress. An authentic Webhook that is not a terminal Job reports `unsupported_event`; acknowledge it with a 2xx. A catalog applies only to the models it describes. TypeScript also limits each Gateway request to 30 seconds by default (`timeoutMs`), and error bodies without a code use `http_error`.
+
+**TypeScript 0.8.0 / Go 0.9.0.** Compatible. `result.content_safety` reports whether the delivered result passed an NSFW check, and `routing.preference` adds `speed`; `balanced` is a deprecated alias of `cost`.
+
+Full release notes are in the [TypeScript](https://github.com/yir-ai/sdk/blob/main/typescript/CHANGELOG.md) and [Go](https://github.com/yir-ai/sdk/blob/main/go/CHANGELOG.md) changelogs.
+
+**From 0.1.0.** TypeScript 0.2 and Go 0.2 removed bundled model lists and client-side price tables, and switched waiting to the status endpoint (`onPoll` / `OnPoll` now receive a status summary). Go 0.3.0 made the idempotency key argument variadic. Read the [migration guide](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md) before upgrading.
+
+Python is not an official SDK. Use REST from Python; the [Webhooks guide](/docs/production/webhooks) includes a Python signature check.

@@ -5,7 +5,7 @@ description: Generate your first image with the Yir Standard API, follow its Job
 
 This walkthrough generates one image with GPT Image 2 using cURL. It takes three requests: submit, check status, download.
 
-Already using the OpenAI Images or Sora API, or new-api? See [OpenAI compatibility](/docs/guides/openai-compatibility) to switch by changing the Base URL.
+Already using the OpenAI Images or Sora API, or new-api? See [OpenAI compatibility](/docs/integrations/openai-compatibility) to switch by changing the Base URL.
 
 ## Before you begin
 
@@ -60,7 +60,7 @@ export YIR_JOB_ID="$(jq -r '.id' job.json)"
 ```
 
 :::info
-The key makes the submission safe to retry. If the request times out, run the same command again in the same shell: the same key and body return the original Job instead of creating a second one. A new key would create a new, separately charged Job. Requests without a key are rejected with `400 YIR_INVALID_REQUEST`. See [idempotent submission](/docs/guides/production-integration#idempotent-submission).
+The key makes the submission safe to retry. If the request times out, run the same command again in the same shell: the same key and body return the original Job instead of creating a second one. A new key would create a new, separately charged Job. Requests without a key are rejected with `400 YIR_INVALID_REQUEST`. See [idempotent submission](/docs/production/checklist#idempotent-submission).
 :::
 
 ## 2. Wait for the Job to finish
@@ -96,10 +96,10 @@ curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 
 The result URL is a short-lived signed link: do not send your API Key to it. Copy the file to your own storage. Results are kept for 7 days after the Job is created (see [results and retention](/docs/concepts/task-lifecycle#results-and-retention)).
 
-If the Job `failed`, read `error.code` and `error.action` and look it up in [error codes](/docs/support/error-codes). A failed Job is charged only what the channel actually billed for its attempts; most failures bill nothing.
+If the Job `failed`, read `error.code` and `error.action` and look it up in [error codes](/docs/production/error-codes). A failed Job is charged only what the channel actually billed for its attempts; most failures bill nothing.
 
 ## Next steps
 
 - **Check the price first.** Call `POST /v1/images/quotes` with the same body to see a price estimate before you submit. See [quotes and billing](/docs/concepts/billing).
-- **Use an SDK.** The [TypeScript and Go SDKs](/docs/guides/clients) handle polling back-off, errors, and file uploads.
-- **Go to production.** Follow the [production checklist](/docs/guides/production-integration).
+- **Use an SDK.** The [TypeScript and Go SDKs](/docs/integrations/sdk) handle polling back-off, errors, and file uploads.
+- **Go to production.** Follow the [production checklist](/docs/production/checklist).

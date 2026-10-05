@@ -1,0 +1,128 @@
+---
+title: Console
+description: 在 Yir Console 中管理 API Key 与 Routing Profile，用调试台试用模型，在日志中查看 Job，并处理告警。
+---
+
+[Yir Console](https://yir.ai/zh/console) 用于管理 Key 与路由、查看 Job。本页按页面说明各项功能；Webhook 端点见 [Webhook](/zh/docs/production/webhooks#endpoints-and-delivery-history)。
+
+## API Key [#api-keys]
+
+在 [Console → API Key](https://yir.ai/zh/console/api-keys) 中管理 Key。每个 Key 都通过 `Authorization: Bearer <YIR_API_KEY>` 认证 Gateway 请求，见[身份认证](/zh/docs/getting-started/authentication)。
+
+### 默认 Key
+
+每个账户有一个默认 Key。它不能吊销、永不过期，但可以轮换 Secret。
+
+### 其他 Key
+
+可以为不同应用或环境创建额外的 Key。每个 Key 有独立的设置：
+
+| 设置 | 作用 |
+| --- | --- |
+| **Routing Profile** | 使用该 Key 的请求默认采用的[路由](#routing-profiles)。请求中的 `routing` 可以进一步收窄。修改后只影响之后准入的 Job，已准入的 Job 沿用准入时冻结的路由；Key 的 Secret 不变。 |
+| **月度支出上限** | 可选，针对当前 UTC 自然月。会超出上限的新 Job 以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，进行中的 Job 不会被中断。Key 列表显示当月已用金额。 |
+| **到期时间** | 永不过期，或自保存时起 30、90、365 天。到期后请求以 `401 YIR_UNAUTHORIZED` 拒绝，可随时延长已过期的 Key。 |
+| **IP 白名单** | 可选，仅接受来自匹配的 IPv4、IPv6 或 CIDR 网段的请求。出口 IP 不固定、本地开发或 Serverless 环境请保持关闭。 |
+
+用量统计和日志按 Key 归属。
+
+### Secret 操作
+
+- **显示与复制。** 之后仍可在 Console 中再次显示 Key 的 Secret。
+- **轮换。** 为同一个 Key 签发新 Secret。轮换成功后旧 Secret 立即失效，Key 的名称、设置和历史保持不变；轮换失败时旧 Secret 继续有效。
+- **吊销。** 永久停用一个额外的 Key。
+
+Secret 可能泄露时，请立即轮换或吊销。IP 白名单能降低泄露后的影响，但不能替代轮换。
+
+## Routing Profile [#routing-profiles]
+
+**Routing Profile** 保存绑定到它的所有 API Key 的默认路由。在 [Console → 路由](https://yir.ai/zh/console/routing)中管理。
+
+### Profile 的设置
+
+| 设置 | 作用 |
+| --- | --- |
+| **模式** | **价格优先**按估价从低到高选择渠道；**速度优先**按近期实测的生成耗时从快到慢选择，近期样本不足的渠道按价格排序。不同产品需要不同取舍时，可以建多个 Profile 分别绑定 Key。 |
+| **渠道切换** | 尝试被确认失败后，是否允许 Yir 切换到其他渠道。建议开启。 |
+
+每个账户都有一个默认 Profile。你可以创建更多 Profile、重命名或编辑，并删除不再需要的 Profile。每个 API Key 绑定一个 Profile，在创建或编辑 Key 时选择。Profile 列表显示每个 Profile 关联的 Key 数量。
+
+较早创建的 Profile 可能还带有模型或渠道限制。这些限制会显示在 Profile 上并继续生效；请求级路由只能收窄、不能放宽它们。
+
+不支持自定义渠道顺序，Yir 会在合格渠道中自动选择。
+
+### 按请求覆盖
+
+请求中的 `routing` 对象在该请求中优先于 Profile：可以修改 `preference` 和 `fallback`，用 `only` 限定渠道，并选择 `variants`。完整规则见[路由与渠道切换](/zh/docs/concepts/routing)。
+
+路由不能指定凭据，也不能绕过认证、余额、支出上限、规格校验或尝试次数限制。
+
+## 调试台 [#playground]
+
+[Console → 调试台](https://yir.ai/zh/console/playground)让你无需写代码即可试用模型。它调用的就是你代码中使用的 Standard API，因此看到的行为与真实集成一致。
+
+### 生成之前
+
+1. 选择模型并设置参数。选项来自模型的公开合同；报价会告诉你当前能否执行。
+2. 选择一个 API Key。调试台按 ID 使用它，浏览器不会拿到 Secret。已过期的 Key 不会出现在列表中。
+3. 查看报价，即当前这个具体请求的价格。
+
+调试台使用所选 Key 的 [Routing Profile](#routing-profiles) 和该 Key 的所有限制。请求从 Yir 的 Web 服务器发出，因此启用了 IP 白名单的 Key 必须允许该服务器地址；代码示例则从你自己的环境发出。
+
+### 提交之后
+
+提交会创建**真实 Job 并产生真实费用**。结果卡片会轮询 Job，显示状态、输出和收费。完整记录见[日志](#logs)。
+
+最近的结果通过浏览器中保存的引用恢复。清除浏览器数据不会删除 Job，完整历史保留在日志中。
+
+### 安全重试
+
+提交前，调试台会把草稿及其幂等键保存在当前浏览器标签页中（不含 Secret 或文件内容）。如果响应丢失，重试未修改的请求会复用同一个键，不会产生重复 Job。刷新标签页会恢复最近一次未确认的草稿，但不会自动提交。修改请求，或在已返回 Job 后再次提交，都会创建新的 Job。
+
+轮询出错时会保留最后已知状态并继续轮询，这并不表示生成失败。
+
+结果自 Job 创建起保留 7 天，请及时下载需要保存的内容。
+
+## 日志 [#logs]
+
+[Console → 日志](https://yir.ai/zh/console/logs)列出你的 Job。可以在列表中快速浏览结果，并打开单个 Job 查看详情。
+
+### Job 详情
+
+在可用时，详情页展示：
+
+- 结果及其状态；
+- 产出结果的渠道，以及是否通过渠道切换恢复（仅当之前的尝试被确认失败、之后的尝试成功时计为恢复）；
+- Yir 收取的总费用；存在同规格可比价格时，还会与官方参考价对比（差价为负也如实展示，未知成本不会显示为节省）；
+- 输入传输信息和一条执行时间线。
+
+### 内容拦截
+
+Job 被内容安全检测拒绝时（Yir 在提交前对参考图的检测、渠道的审核，或 Yir 对无审核渠道图片结果的检测），Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/production/error-codes)。通常不收费；若渠道已生成结果并计费，则按上游费用收费且不交付结果。日志将这类 Job 标为「内容拦截」而不是「失败」，时间分布图中单独成段：点击「失败」图例只筛选执行失败，点击「内容拦截」只筛选被拦截的 Job。分析页的成功率不计入这类 Job。请修改提示词或参考素材后再提交。
+
+成功的 Job 在详情的结果文件旁显示[内容安全](/zh/docs/concepts/task-lifecycle#内容安全)结论：已通过（上游）、已通过（Yir）或未检测。
+
+### 隐私
+
+默认只显示提示词长度和参考素材数量。前 7 天内可以展开查看保存的提示词。参考素材地址、文件 ID、渠道原始响应、凭据和内部路由数据都不会显示。
+
+### 保留期
+
+提示词、输入和结果自 Job 创建起保留 7 天，摘要日志保留 90 天，计费记录单独保存。日志不是素材库，请下载需要的结果。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
+
+## 告警 [#alerts]
+
+[Console → 告警](https://yir.ai/zh/console/alerts)按紧急程度列出账户当前需要处理的问题，每条告警都链接到可以处理它的页面。
+
+| 告警 | 级别 | 触发条件 |
+| --- | --- | --- |
+| 余额不足 | 警告；余额耗尽时为严重 | 可用余额低于你设置的低余额阈值。余额为零时无法提交新 Job。 |
+| Key 支出上限 | 接近时为警告，达到时为严重 | 某个 API Key 接近或达到月度支出上限。达到上限后，该 Key 的新 Job 会被拒绝。 |
+| Key 已过期 | 严重 | 某个 API Key 已过期，其请求被拒绝。 |
+| Key 即将过期 | 警告 | 某个 API Key 将在 7 天内过期。 |
+| Job 失败率偏高 | 警告或严重 | 近期已结束的 Job 中失败比例偏高。内容拦截（`YIR_CONTENT_REJECTED`）不计入。 |
+| Webhook 投递失败 | 警告 | 某个回调地址最近一次投递失败。 |
+
+页面还提供最近 7 天失败 Job 与全部已结束 Job 的对比图，两者都不含内容拦截。
+
+问题解决后告警会自动消失。低余额阈值在账单页设置，并可在每次余额不足时发送一封提醒邮件。Yir 不会自动充值或自动扣款。

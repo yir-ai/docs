@@ -21,7 +21,7 @@ Authorization: Bearer <YIR_API_KEY>
 export YIR_API_KEY="your-yir-api-key"
 ```
 
-需要区分环境或应用时，可以另建 Key。每个 Key 有独立的月度支出上限、到期时间、IP 白名单和用量统计。见 [Console 中的 API Keys](/zh/docs/console/api-keys)。
+需要区分环境或应用时，可以另建 Key。每个 Key 有独立的月度支出上限、到期时间、IP 白名单和用量统计。见 [Console 中的 API Keys](/zh/docs/console#api-keys)。
 
 ## 安全使用
 
@@ -34,4 +34,4 @@ export YIR_API_KEY="your-yir-api-key"
 
 Key 错误、已轮换、已吊销、已过期，或来源 IP 不在白名单内时，请求以 `401 YIR_UNAUTHORIZED` 拒绝，响应不会说明具体原因，请到 Console 查看 Key 状态。
 
-Key 有效时，创建 Job 仍可能被拒绝：`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度支出上限，`402 YIR_INSUFFICIENT_BALANCE` 表示账户余额不足。见[错误码](/zh/docs/support/error-codes)。
+Key 有效时，创建 Job 仍可能被拒绝：`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度支出上限，`402 YIR_INSUFFICIENT_BALANCE` 表示账户余额不足。见[错误码](/zh/docs/production/error-codes)。

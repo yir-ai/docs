@@ -11,17 +11,14 @@ Yir is a unified asynchronous AI gateway for image and video generation. You sen
   <Card title="Quickstart" href="/docs/getting-started/quickstart" icon="rocket">
     Generate your first image with cURL in a few minutes.
   </Card>
-  <Card title="Production checklist" href="/docs/guides/production-integration" icon="shield-check">
-    Idempotency, polling, Webhooks, cost control, and error handling.
+  <Card title="Choose an integration" href="/docs/integrations" icon="plug">
+    REST, SDKs, the Vercel AI SDK, or OpenAI compatibility for your stack.
   </Card>
-  <Card title="SDKs" href="/docs/guides/clients" icon="package">
-    TypeScript and Go clients for quotes, Jobs, files, and Webhooks.
+  <Card title="Production checklist" href="/docs/production/checklist" icon="shield-check">
+    Idempotency, polling, Webhooks, cost control, and error handling.
   </Card>
   <Card title="API reference" href="/docs/reference" icon="braces">
     Every public operation, generated from the reviewed OpenAPI contract.
-  </Card>
-  <Card title="OpenAI compatibility" href="/docs/guides/openai-compatibility" icon="plug">
-    Already on OpenAI Images, Sora, or new-api? Change the Base URL and key.
   </Card>
 </CardGroup>
 
@@ -46,13 +43,14 @@ sequenceDiagram
 - **Pay the channel's actual bill.** Every attempt the channel billed is charged after your discount, even if it failed; attempts the channel never billed cost nothing, and Yir absorbs its own delivery failures and timeouts. See [quotes and billing](/docs/concepts/billing).
 - **No provider credentials.** Authenticate with your Yir API Key only. See [authentication](/docs/getting-started/authentication).
 
-## Find what you need
+## Find by goal
 
-| Goal | Page |
-| --- | --- |
-| Generate images or videos | [Images](/docs/guides/image-generation) · [Videos](/docs/guides/video-generation) |
-| Use your own reference media | [Input files](/docs/guides/input-files) |
-| Discover models and their parameters | [Models and parameters](/docs/guides/models) · [GPT Image 2](/docs/models/gpt-image-2) · [GPT Image 2.5](/docs/models/gpt-image-2-5) |
-| Receive results by callback | [Webhooks](/docs/guides/webhooks) |
-| Control which channels run | [Routing](/docs/concepts/routing) |
-| Handle an error | [Error codes](/docs/support/error-codes) |
+| Goal | Start with | Then |
+| --- | --- | --- |
+| Integrate for the first time | [Quickstart](/docs/getting-started/quickstart) | [Choose an integration](/docs/integrations) · [Quotes and billing](/docs/concepts/billing) |
+| Migrate from OpenAI Images, Sora, or new-api | [OpenAI compatibility and new-api](/docs/integrations/openai-compatibility) | [Differences from official APIs](/docs/models/official-api-differences) |
+| Generate images or videos | [Image generation](/docs/guides/image-generation) · [Video generation](/docs/guides/video-generation) | [Input files](/docs/guides/input-files) |
+| Look up models and parameters | [Model catalog and parameters](/docs/models) | [Model marketplace](https://yir.ai/models) |
+| Control cost and channels | [Quotes and billing](/docs/concepts/billing) | [Routing and fallback](/docs/concepts/routing) |
+| Go to production | [Production checklist](/docs/production/checklist) | [Webhooks](/docs/production/webhooks) · [Job lifecycle](/docs/concepts/task-lifecycle) |
+| Handle an error | [Error codes](/docs/production/error-codes) | [Troubleshooting](/docs/production/troubleshooting) |
