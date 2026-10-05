@@ -1,0 +1,57 @@
+---
+title: Agent Skill
+description: 安装 Yir 官方 Agent Skill，让 Claude Code、Codex 等编程 Agent 直接生成图片和视频。
+---
+
+官方 `yir` Skill 让 Claude Code、Codex 等编程 Agent 通过 Yir 生成图片、编辑本地图片和生成视频。它会列出模型和价格、报价、提交 Job、等待结果并把文件保存到本地。Skill 开源在 [yir-ai/skills](https://github.com/yir-ai/skills)。
+
+需要 Node.js 18 或更高版本，自带脚本无其他依赖。
+
+## 安装
+
+把 `skills/yir` 复制到 Agent 的 skills 目录。
+
+<CodeGroup>
+
+```sh Claude Code
+git clone https://github.com/yir-ai/skills.git
+cp -r skills/skills/yir ~/.claude/skills/yir
+```
+
+```sh Codex
+git clone https://github.com/yir-ai/skills.git
+cp -r skills/skills/yir ~/.codex/skills/yir
+```
+
+</CodeGroup>
+
+Claude Code 也可以放在项目内的 `.claude/skills/`。其他支持 `SKILL.md` 的 Agent 指向同一目录即可。
+
+## 设置 API Key
+
+在 Yir Console 创建 API Key，并在 Agent 运行的环境中设置，见[身份认证](/zh/docs/getting-started/authentication)。
+
+```sh
+export YIR_API_KEY="..."
+```
+
+Job 费用从 Yir 钱包扣除。
+
+## 使用
+
+直接用自然语言告诉 Agent：
+
+- “用 Yir 生成一张 16:9 的黄昏灯塔主图。”
+- “用 Yir 把 ./first-frame.png 做成 5 秒视频。”
+
+也可以直接运行脚本：
+
+```sh
+# 文生图
+node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
+
+# 文生视频
+node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+```
+
+结果默认保存到 `./yir-output`。运行 `node skills/yir/scripts/yir.mjs --help` 查看全部命令，包括 `models`、`quote` 和 `job <id> --wait --download`。

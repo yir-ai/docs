@@ -1,0 +1,57 @@
+---
+title: Agent Skill
+description: Install the official Yir Agent Skill so Claude Code, Codex, and other coding agents can generate images and videos directly.
+---
+
+The official `yir` skill lets coding agents such as Claude Code and Codex generate images, edit local images, and generate videos through Yir. It lists models and prices, quotes a request, submits the Job, waits for the result, and saves the files locally. The skill is open source in [yir-ai/skills](https://github.com/yir-ai/skills).
+
+It needs Node.js 18 or later; the bundled script has no dependencies.
+
+## Install
+
+Copy `skills/yir` into your agent's skills directory.
+
+<CodeGroup>
+
+```sh Claude Code
+git clone https://github.com/yir-ai/skills.git
+cp -r skills/skills/yir ~/.claude/skills/yir
+```
+
+```sh Codex
+git clone https://github.com/yir-ai/skills.git
+cp -r skills/skills/yir ~/.codex/skills/yir
+```
+
+</CodeGroup>
+
+For Claude Code you can also use `.claude/skills/` inside a project. Other agents that support `SKILL.md` skills can point at the same folder.
+
+## Set your API Key
+
+Create an API Key in the Yir Console, then set it in the environment your agent runs in. See [authentication](/docs/getting-started/authentication).
+
+```sh
+export YIR_API_KEY="..."
+```
+
+Jobs are billed to your Yir wallet.
+
+## Use
+
+Ask your agent in plain language:
+
+- "Generate a 16:9 hero image of a lighthouse at dusk with Yir."
+- "Make a 5-second video from ./first-frame.png with Yir."
+
+You can also run the script directly:
+
+```sh
+# Text to image
+node skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
+
+# Text to video
+node skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+```
+
+Results are saved to `./yir-output` by default. Run `node skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.
