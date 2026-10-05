@@ -3,12 +3,12 @@ title: Playground
 description: Quote, submit, and inspect real image and video Jobs from Console without writing code.
 ---
 
-[Console → Playground](https://yir.ai/console/playground) is a no-code way to try models. It calls the same Standard Gateway API your code uses, so what you see matches real integration behavior.
+[Console → Playground](https://yir.ai/console/playground) is a no-code way to try models. It calls the same Standard API your code uses, so what you see matches real integration behavior.
 
 ## Before you generate
 
 1. Pick a model and set its parameters. Options come from the model's public contract; the quote tells you whether it can run right now.
-2. Pick one of your API keys. Playground uses it by ID, and the browser never receives its secret. Expired keys are not listed.
+2. Pick one of your API Keys. Playground uses it by ID, and the browser never receives its secret. Expired keys are not listed.
 3. Review the quote. It shows the current price for this exact request.
 
 Playground uses the selected key's [Routing Profile](/docs/console/routing) and all of the key's limits. Requests are sent from Yir's web server, so a key with an IP allowlist must allow that server's address; the code examples run from your own environment instead.

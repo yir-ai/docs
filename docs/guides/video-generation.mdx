@@ -13,7 +13,7 @@ Submit video Jobs to `POST /v1/videos/generations`. Video Jobs follow the same [
 | `image` | Animate from a start frame, optionally to an end frame | `first_frame`, `last_frame` |
 | `reference` | Guide the video with mixed media | `reference_image`, `reference_video`, `reference_audio` |
 
-Upload all image, video, and audio references through the [Files API](/docs/guides/input-files). Wait for analysis to reach `ready`, then reference each file by `role` and `file_id`. Generation requests reject external URLs.
+Reference each image, video, or audio input by `role` plus either a `file_id` from the [Files API](/docs/guides/input-files) (wait for `ready` first) or a public HTTPS `url` that Yir downloads at submission. See [input files](/docs/guides/input-files#public-urls) for URL limits.
 
 Which modes, roles, and counts a model accepts is defined in its contract. For example, Seedance 2.0 accepts `first_frame` plus an optional `last_frame` in `image` mode, and in `reference` mode up to 9 images, 3 videos, and 3 audio clips (at least one image or video).
 

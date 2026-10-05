@@ -1,9 +1,20 @@
 ---
 title: 输入文件
-description: 用 Files API 上传参考图片、视频和音频，并在生成请求中引用。
+description: 用 Files API 上传参考图片、视频和音频，或直接传公开 HTTPS URL，在图片与视频生成请求中引用这些素材。
 ---
 
-所有图片、视频和音频参考都必须先通过 Files API 上传；生成请求不接受外部参考 URL。生成接口不接受 Base64、Data URL 或 multipart 请求体。
+每个图片、视频或音频参考可以用 Files API 返回的 `file_id`，也可以用公开的 HTTPS `url`，二选一。生成接口不接受 Base64、Data URL 或 multipart 请求体。
+
+## 公开 URL
+
+在 `input.references`（视频的 `input.image` 同样适用）中传 `{ "role": "...", "url": "https://..." }`。提交时 Yir 下载一次并存为输入文件，每次尝试和渠道切换都读取同一份字节：
+
+- 仅 HTTPS，最长 2,048 个字符；最多跟随 3 次跳转，拒绝内网与保留地址。
+- 最大 100 MiB，媒体类型按文件内容识别。
+- 无法导入的 URL 返回 `400 YIR_INVALID_REQUEST` 并指明对应参考；仅远端超时、连接失败、HTTP 429 和 5xx 时 `retryable` 为 `true`。
+- 报价不下载 URL，依赖输入媒体的价格只是估算。
+
+文件超过 100 MiB、需要按实际媒体精确报价，或源文件不能公开访问时，请使用 Files API。TypeScript SDK 与 Vercel AI SDK 适配器只发送 `file_id` 参考。
 
 ## 限制
 

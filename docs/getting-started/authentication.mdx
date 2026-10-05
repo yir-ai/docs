@@ -1,9 +1,9 @@
 ---
 title: Authentication
-description: Authenticate every Yir Gateway request with a Yir API key in a Bearer header.
+description: Authenticate every Yir Gateway request with a Yir API Key in a Bearer header.
 ---
 
-Every Gateway request uses a Yir API key in the standard HTTP Bearer header:
+Every Gateway request uses a Yir API Key in the standard HTTP Bearer header:
 
 ```http
 Authorization: Bearer <YIR_API_KEY>
@@ -13,7 +13,7 @@ Authorization: Bearer <YIR_API_KEY>
 
 ## Get your key
 
-Every account has a **default API key**, so you can start immediately. Open [Console → API Keys](https://yir.ai/console/api-keys) to reveal and copy it.
+Every account has a **default API Key**, so you can start immediately. Open [Console → API Keys](https://yir.ai/console/api-keys) to reveal and copy it.
 
 Store the key in a secret manager or server environment variable:
 
@@ -28,7 +28,7 @@ Create additional keys when you want separate environments or applications, each
 - Use keys only in server-side code. Never put them in browser or mobile apps, public repositories, URLs, screenshots, or support tickets.
 - Use a separate key for production, CI, and local development so you can rotate or revoke each one independently.
 - Rotate a key immediately if it may have been exposed. The old secret stops working as soon as rotation succeeds.
-- Do not send provider API keys (for example OpenAI or Google keys) to Yir. Yir uses its own managed provider accounts and never accepts upstream credentials from requests.
+- Do not send provider API Keys (for example OpenAI or Google keys) to Yir. Yir uses its own managed provider accounts and never accepts upstream credentials from requests.
 
 ## Why a request can be rejected
 

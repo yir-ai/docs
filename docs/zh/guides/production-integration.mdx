@@ -49,7 +49,7 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用可控�
 
 二选一或组合使用：
 
-- **轮询：** 以退避节奏（5 秒、10 秒、20 秒）查询 `GET /v1/jobs/{id}/status`，进入终态后读取一次 `GET /v1/jobs/{id}`。
+- **轮询：** 用 `GET /v1/jobs/{id}/status?wait=20` 长轮询（不用 `wait` 时按 5 秒、10 秒、20 秒退避），进入终态后读取一次 `GET /v1/jobs/{id}`。见[长轮询](/zh/docs/concepts/task-lifecycle#长轮询)。
 - **Webhook：** 设置 `webhook_url` 并处理终态 Job，见 [Webhook](/zh/docs/guides/webhooks)。
 
 常见的稳健做法是以 Webhook 为主信号，并保留低频轮询兜底丢失的回调。无论哪种方式，终态 Job 都要**按 Job ID 只处理一次**。
@@ -64,7 +64,7 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用可控�
 | 本地等待到达截止时间 | 停止等待，保留 Job ID，稍后继续。不要重新提交。 |
 | 状态为 `succeeded` | 读取完整 Job，复制 `result.files`，记录 `billing.total_charged_by_yir`。 |
 | 状态为 `failed` | 读取完整 Job，处理 `error.code`，并对账 `billing.total_charged_by_yir`：渠道计了费的尝试（如被 `YIR_CONTENT_REJECTED` 拦截的已计费输出）照实收费，多数失败为零。 |
-| 状态为 `cancelled` | 读取完整 Job，`error` 可能为 `null`，不收费。 |
+| 状态为 `cancelled` | 读取完整 Job，`error` 可能为 `null`。通常不收费，除非停止前渠道已对某次尝试计费；记录 `billing.total_charged_by_yir`。 |
 | 完整 Job 查询失败 | 重试该查询，不要仅凭状态摘要结算。 |
 | `401`、`403` 或 `404` | 修正 Key、上限或 Job ID，不要盲目重试。 |
 | `429 YIR_RATE_LIMITED` 或 `503` | 稍后退避重试。 |
@@ -83,4 +83,4 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用可控�
 
 ## 联系支持
 
-请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 以及错误响应中的 `request_id`。不要发送完整 API Key、提示词、源素材或签名密钥。
+发邮件到 [support@yir.ai](mailto:support@yir.ai)，或使用 Console 中的支持按钮。请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 以及错误响应中的 `request_id`。不要发送完整 API Key、提示词、源素材或签名密钥。

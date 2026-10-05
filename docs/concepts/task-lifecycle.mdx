@@ -64,7 +64,7 @@ Show "Stop requested" in your UI in the second case and keep polling. Cancelling
 
 ## Unknown outcomes
 
-Occasionally a provider does not confirm whether an attempt succeeded. Yir keeps the Job active while it reconciles. If the outcome stays unknown for too long, Yir closes the Job as `failed` with `YIR_OUTCOME_TIMEOUT` and charges nothing. A result that arrives later does not reopen or charge the Job.
+Occasionally a provider does not confirm whether an attempt succeeded. Yir keeps the Job active while it reconciles. If the outcome stays unknown for too long, Yir closes the Job as `failed` with `YIR_OUTCOME_TIMEOUT` and does not charge that attempt; earlier attempts the channel billed are still charged. A result that arrives later does not reopen or charge the Job.
 
 ## Results and retention
 

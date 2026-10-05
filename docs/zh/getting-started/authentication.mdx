@@ -13,7 +13,7 @@ Authorization: Bearer <YIR_API_KEY>
 
 ## 获取 Key
 
-每个账户都有一个**默认 API Key**，可以直接开始使用。打开 [Console → API Keys](https://yir.ai/zh/console/api-keys) 显示并复制。
+每个账户都有一个**默认 API Key**，可以直接开始使用。打开 [Console → API Key](https://yir.ai/zh/console/api-keys) 显示并复制。
 
 把 Key 存入 Secret Manager 或服务端环境变量：
 
@@ -28,7 +28,7 @@ export YIR_API_KEY="your-yir-api-key"
 - 只在服务端代码中使用 Key，不要放入浏览器或移动应用、公开仓库、URL、截图或工单。
 - 生产、CI 和本地开发分别使用不同 Key，便于单独轮换或吊销。
 - 怀疑泄露时立即轮换。轮换成功后旧 Secret 立即失效。
-- 不要向 Yir 发送上游服务商的 API Key（例如 OpenAI 或 Google 的 Key）。Yir 使用自己托管的供应账户，请求中的上游凭据一律不接受。
+- 不要向 Yir 发送上游渠道的 API Key（例如 OpenAI 或 Google 的 Key）。Yir 使用自己托管的渠道账户，请求中的上游凭据一律不接受。
 
 ## 请求被拒绝的原因
 

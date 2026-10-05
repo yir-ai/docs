@@ -1,6 +1,6 @@
 ---
 title: Differences from official APIs
-description: How Yir's model parameters map to each provider's own API, which official options are not available, and the model-specific differences to know when migrating.
+description: How Yir's model parameters map to each provider's own API, which official options are unavailable, and what differs per model when migrating.
 ---
 
 Yir exposes every model through one request shape so that a request can be quoted reliably and moved between channels. That means some parameters are named or structured differently from the model maker's own API, some official options are not available, and a few models accept only part of the official value range. This page lists those differences. When you migrate code written for a provider's API, check it against this page and the model's contract.
@@ -15,13 +15,13 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 | Execution | Often synchronous, sometimes streamed. | Always an asynchronous Job. Poll, long-poll or use a Webhook; there is no streaming or partial-image output. See [Job lifecycle](/docs/concepts/task-lifecycle). |
 | Output size | Usually pixel sizes (`size`, `width`/`height`) or provider-specific presets. | `resolution` (a tier such as `1K`, `2K`, `4K`, or `480p`, `720p`, `1080p`) plus `aspect_ratio`. Yir translates them into each channel's native size, so exact pixel dimensions can differ by channel. |
 | Number of outputs | Many APIs accept `n` greater than 1. | `n` is always `1`. Submit one Job per output, each with its own idempotency key. |
-| Reference inputs | URLs, base64 data or multipart uploads, with provider-specific field names. | Upload through the [Files API](/docs/guides/input-files) and pass `file_id` with a role such as `reference_image`, `first_frame`, `last_frame`, `reference_video` or `reference_audio`. External URLs and inline data are rejected. |
+| Reference inputs | URLs, base64 data or multipart uploads, with provider-specific field names. | A `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`, with a role such as `reference_image`, `first_frame`, `last_frame`, `reference_video` or `reference_audio`. Base64, data URLs and multipart bodies are rejected. |
 | Unlisted parameters | Provider-specific options such as `seed`, `negative_prompt`, `style`, `output_format`, `background`, `moderation` or `user`. | Not accepted. `parameters` only takes the names in the model's contract; anything else fails with `400 YIR_INVALID_REQUEST`. Yir never forwards unknown fields to a channel. |
 | Defaults | The provider's defaults, sometimes "let the model decide". | The `default` in Yir's contract. An omitted parameter means that default, which can differ from the provider's (see the model sections below). |
 | Value ranges | Full official range. | Sometimes a subset of the official values, chosen so the request can be priced in advance and served by more than one channel. Explicit values are never silently rewritten: if no channel can serve a value, the quote reports `no_matching_supply` and a generation request is rejected. |
 | Output files | Inline base64 or provider URLs, in the provider's format. | Files copied to Yir storage and returned as short-lived signed URLs in `result.files`. The file format is whatever the delivering channel produces. |
 | Content moderation settings | Some APIs let you relax or tune moderation. | Not configurable. Channels apply their own moderation; Yir checks reference images before submission and image output from channels without moderation. See [content safety](/docs/concepts/task-lifecycle#content-safety). |
-| Credentials | Your own provider key. | Your Yir API key only. Yir does not accept or forward provider keys. |
+| Credentials | Your own provider key. | Your Yir API Key only. Yir does not accept or forward provider keys. |
 
 ## Model-specific differences
 

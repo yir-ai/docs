@@ -7,13 +7,13 @@ A **provider** (or channel) is an upstream platform that runs a model: the model
 
 ## Managed supply
 
-Yir Cloud runs every Job on provider accounts that Yir manages and pays for. You fund one Yir wallet; Yir handles provider accounts, capacity, and billing, and charges you only for delivered results (see [quotes and billing](/docs/concepts/billing)).
+Yir Cloud runs every Job on provider accounts that Yir manages and pays for. You fund one Yir wallet; Yir handles provider accounts, capacity, and billing, and passes each channel's actual bill through to you at your discount; attempts the channel never billed cost nothing (see [quotes and billing](/docs/concepts/billing)).
 
 A channel being listed for a model does not guarantee it can run your request right now. Execution depends on the parameters it supports, its current availability, and your `max_cost`, if set. A quote tells you whether any channel can currently serve a specific request.
 
 ## Your credentials
 
-- Requests use your Yir API key only.
+- Requests use your Yir API Key only.
 - Yir does not accept your own provider keys (BYOK), custom base URLs, custom providers, or model mappings.
 - Provider credentials stay on Yir's servers and never appear in responses, logs, or Webhooks.
 

@@ -5,7 +5,7 @@ description: Call Yir with the OpenAI Images and Sora Videos protocols; new-api 
 
 Yir serves OpenAI Images and Sora `/v1/videos` compatible endpoints at `https://gateway.yir.ai/openai`. Systems already built on the OpenAI protocol only need a new Base URL and key. In new-api (verified on v0.13.x and the v1.0 RC), add one channel of type OpenAI; no plugin or code change is needed.
 
-The compatible endpoints call the Standard API internally, so Jobs, routing, and billing work as described elsewhere in these docs. Use the Standard API directly when you need asynchronous submission, webhooks, or full routing control.
+The compatible endpoints call the Standard API internally, so Jobs, routing, and billing work as described elsewhere in these docs. Use the Standard API directly when you need asynchronous submission, Webhooks, or full routing control.
 
 ## new-api channel settings
 
@@ -13,7 +13,7 @@ The compatible endpoints call the Standard API internally, so Jobs, routing, and
 |---|---|
 | Channel type | OpenAI |
 | Base URL | `https://gateway.yir.ai/openai` |
-| Key | A Yir API key (`yir_sk_…`) created on the Console API Keys page |
+| Key | A Yir API Key (`yir_sk_…`) created on the Console API Keys page |
 | Models | The Yir model IDs to expose; use **Fetch models** to load them |
 
 - **Fetch models** lists only models with current supply, by canonical ID. Aliases still work in requests.
@@ -57,7 +57,7 @@ Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and do
 
 ## Billing
 
-- As with the Standard API, only successfully delivered results are charged; failures are free. See [Billing](/docs/concepts/billing).
+- As with the Standard API, you pay the channel's actual bill × your discount; attempts the channel never billed cost nothing. See [Billing](/docs/concepts/billing).
 - Price the channel in new-api at your own rates: per image, and per second for video. Yir model pages list the prices for each configuration.
 - Set a monthly spend limit on the key in the Console to contain mistakes in configuration.
 

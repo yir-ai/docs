@@ -28,7 +28,7 @@ The URL must use HTTPS. You can also register up to 5 endpoints in [Console → 
 
 ## Verify the signature
 
-Webhooks are signed with your account's **Webhook signing secret**, which is separate from your API key. Find it in [Console → Webhooks](https://yir.ai/console/webhooks).
+Webhooks are signed with your account's **Webhook signing secret**, which is separate from your API Key. Find it in [Console → Webhooks](https://yir.ai/console/webhooks).
 
 1. Read the **raw request body bytes** before parsing JSON.
 2. Reject the request if `Yir-Webhook-Timestamp` is more than 300 seconds from your clock.

@@ -5,7 +5,7 @@ description: Control which provider channels and channel variants may run a requ
 
 A model on Yir can be served by several **provider channels**: the model maker's official API and other certified suppliers. For each Job, Yir picks an eligible channel, and if an attempt is confirmed failed, it can fall back to another channel, staying within your `max_cost` when you set one.
 
-You influence this with the optional `routing` object on quote and generation requests. Without it, the Routing Profile bound to your API key applies (see [Console routing](/docs/console/routing)).
+You influence this with the optional `routing` object on quote and generation requests. Without it, the Routing Profile bound to your API Key applies (see [Console routing](/docs/console/routing)).
 
 ```json
 {
@@ -22,7 +22,7 @@ You influence this with the optional `routing` object on quote and generation re
 
 | Field | Values | Effect |
 | --- | --- | --- |
-| `preference` | `cost`, `speed` | `cost` (default) orders channels by estimated price, lowest first. `speed` orders channels by their observed upstream generation time (median over recent jobs); channels with too few recent jobs come after, ordered by price. `balanced` is still accepted as a deprecated alias of `cost`. Defaults to the key's Routing Profile. |
+| `preference` | `cost`, `speed` | `cost` (default) orders channels by estimated price, lowest first. `speed` orders channels by their observed upstream generation time (median over recent Jobs); channels with too few recent Jobs come after, ordered by price. `balanced` is still accepted as a deprecated alias of `cost`. Defaults to the key's Routing Profile. |
 | `only` | 1–16 channel IDs | Unordered allowlist. Selection and fallback stay inside it. A single entry pins one channel, which is useful for testing. |
 | `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
 | `fallback` | `true`, `false` | `false` allows only one provider attempt. Defaults to the key's Routing Profile. |
@@ -54,7 +54,7 @@ Variants of the same channel can differ in billing and in the specifications the
 
 ## How fallback works
 
-Yir moves to another channel only after the current attempt is **confirmed failed**. Slow or unknown attempts are never abandoned to trigger fallback. By default a Job may try up to two distinct third-party channels followed by the official channel, subject to:
+Yir moves to another channel only after the current attempt is **confirmed failed**. Slow or unknown attempts are never abandoned to trigger fallback. By default a Job may try up to three channels, at most two third-party and one official, in `preference` order (the official channel can come first), subject to:
 
 - your `only` and `variants` choices, and any restriction on the key's Routing Profile;
 - the model and parameters each channel supports;

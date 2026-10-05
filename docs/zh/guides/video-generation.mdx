@@ -1,6 +1,6 @@
 ---
 title: 视频生成
-description: 从文本、首尾帧，或图片、视频、音频混合参考生成视频。
+description: 使用 Yir Standard API 从文本、首尾帧，或图片、视频、音频混合参考生成视频，并了解时长、分辨率与参考限制。
 ---
 
 视频 Job 提交到 `POST /v1/videos/generations`。视频遵循与图片相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)和[路由](/zh/docs/concepts/routing)规则，但通常需要数分钟而不是数秒，因此 [Webhook](/zh/docs/guides/webhooks) 往往比轮询更合适。
@@ -13,7 +13,7 @@ description: 从文本、首尾帧，或图片、视频、音频混合参考生�
 | `image` | 从首帧开始生成，可选指定尾帧 | `first_frame`、`last_frame` |
 | `reference` | 用多种素材引导视频 | `reference_image`、`reference_video`、`reference_audio` |
 
-所有图片、视频和音频参考都必须先通过[输入文件 API](/zh/docs/guides/input-files)上传，等待分析状态为 `ready` 后，用 `role` 和 `file_id` 引用。生成请求不接受外部 URL。
+每个图片、视频或音频参考用 `role` 加上 `file_id`（先通过 [Files API](/zh/docs/guides/input-files) 上传并等到 `ready`）或由 Yir 在提交时下载的公开 HTTPS `url` 引用。URL 限制见[输入文件](/zh/docs/guides/input-files#公开-url)。
 
 模型支持哪些输入方式、角色和数量由其合同决定。例如 Seedance 2.0 在 `image` 模式下接受一个 `first_frame` 和可选的 `last_frame`；在 `reference` 模式下最多接受 9 张图片、3 段视频和 3 段音频（至少一张图片或一段视频）。
 

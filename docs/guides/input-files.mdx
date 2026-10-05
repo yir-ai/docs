@@ -1,9 +1,20 @@
 ---
 title: Input files
-description: Upload reference images, videos, and audio with the Files API and use them in generation requests.
+description: Reference images, videos, and audio in generation requests by uploading them with the Files API or passing a public HTTPS URL.
 ---
 
-Upload every image, video, and audio reference through the Files API. External reference URLs are not accepted. Generation endpoints do not accept Base64, data URLs, or multipart bodies.
+Give each image, video, or audio reference as either a `file_id` from the Files API or a public HTTPS `url`. Generation endpoints do not accept Base64, data URLs, or multipart bodies.
+
+## Public URLs
+
+Pass `{ "role": "...", "url": "https://..." }` in `input.references` (or `input.image` for video). At submission, Yir downloads the URL once and stores it as an input file, so every attempt and fallback reads the same bytes:
+
+- HTTPS only, up to 2,048 characters. At most 3 redirects; private and reserved addresses are refused.
+- Up to 100 MiB. The media type is detected from the file contents.
+- A URL that cannot be imported returns `400 YIR_INVALID_REQUEST` naming the reference. `retryable` is `true` only for remote timeouts, connection failures, HTTP 429, and 5xx.
+- Quotes do not download URLs, so prices that depend on input media are only estimated.
+
+Use the Files API for files over 100 MiB, for exact media-dependent quotes, or when the source is not publicly reachable. The TypeScript SDK and the Vercel AI SDK adapter send only `file_id` references.
 
 ## Limits
 
@@ -22,7 +33,7 @@ Files are temporary. They expire at `expires_at`, and checking their status does
     Send file metadata to `POST /v1/files`. Add an `Idempotency-Key` header so a retried request returns the same plan.
   </Step>
   <Step title="Upload the bytes">
-    For each entry in `upload.parts`, `PUT` the matching byte range to its `url`, in `part_number` order. Do not send your Yir API key to these URLs.
+    For each entry in `upload.parts`, `PUT` the matching byte range to its `url`, in `part_number` order. Do not send your Yir API Key to these URLs.
   </Step>
   <Step title="Complete the file">
     Call `POST /v1/files/{id}/complete` with an empty JSON body. The file enters `processing`. Poll `GET /v1/files/{id}` until `ready`; stop on `failed` or `expired`.
@@ -81,18 +92,18 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
   --data '{}'
 ```
 
-Only `ready` files can be used in requests. A referenced file that is missing, not ready, or expired is reported differently by each endpoint:
+Only `ready` files can be used in requests. A referenced file that is missing, not yet ready, or expired is reported differently by each endpoint:
 
 | Endpoint | Result |
 | --- | --- |
 | Quote | `200` with `supply.available: false` and `issues: ["no_matching_supply"]`. A file that expires before the quote does is treated the same way. |
-| Generation | `400 YIR_INVALID_REQUEST`. No Job is created. |
+| Generation | Not yet ready (`pending_upload` or `processing`): `409 YIR_FILE_NOT_READY`, retryable once the file is `ready`. Missing, failed, or expired: `400 YIR_INVALID_REQUEST`. No Job is created. |
 | `GET /v1/files/{id}` | `200` with the file snapshot; read its `status` (`pending_upload`, `processing`, `ready`, `expired`, or `failed`). An unknown file returns `404 YIR_FILE_NOT_FOUND`. |
 | `POST /v1/files/{id}/complete`, `GET /v1/files/{id}/content` | `404 YIR_FILE_NOT_FOUND`, `409 YIR_FILE_NOT_READY`, or `410 YIR_FILE_EXPIRED`. |
 
 ## Reading a file back
 
-`GET /v1/files/{id}` returns the current status. `GET /v1/files/{id}/content` redirects (`307`) to a short-lived signed URL. Send your API key only to the Gateway, not to the redirect target. The `url` field on a File is a path for this authenticated read, not a reference URL for generation requests.
+`GET /v1/files/{id}` returns the current status. `GET /v1/files/{id}/content` redirects (`307`) to a short-lived signed URL. Send your API Key only to the Gateway, not to the redirect target. The `url` field on a File is a path for this authenticated read, not a reference URL for generation requests.
 
 ## With an SDK
 
@@ -113,6 +124,6 @@ const file = await createAndUploadFile(
 console.log(file.id, file.status); // "ready": reference it by file.id
 ```
 
-Persist the key and reuse it to recover after a crash. See [SDKs](/docs/guides/clients).
+Persist the idempotency key and reuse it to recover after a crash. See [SDKs](/docs/guides/clients).
 
-Since TypeScript SDK 0.4.0 and Go SDK 0.5.0, upload helpers wait for analysis with a five-minute default timeout. Resume with `waitForFileReady` / `WaitForFileReady`; a local timeout does not cancel analysis. To read a ready file back, `getFileContentURL` / `GetFileContentURL` (TypeScript 0.5.0 / Go 0.6.0) return its signed URL without sending your API key to storage.
+Since TypeScript SDK 0.4.0 and Go SDK 0.5.0, upload helpers wait for analysis with a five-minute default timeout. Resume with `waitForFileReady` / `WaitForFileReady`; a local timeout does not cancel analysis. To read a ready file back, `getFileContentURL` / `GetFileContentURL` (TypeScript 0.5.0 / Go 0.6.0) return its signed URL without sending your API Key to storage.

@@ -14,7 +14,7 @@ description: 通过 HTTPS 回调接收终态 Job，校验签名，并确保只�
 }
 ```
 
-地址必须使用 HTTPS。也可以在 [Console → Webhooks](/zh/docs/console/webhooks) 中注册最多 5 个端点，所有已启用的端点都会收到账户下全部终态事件。请求中的 `webhook_url` 会在这些端点之外额外投递；与已注册端点相同的地址只投递一次。所有投递都使用同一个账户签名密钥签名。
+地址必须使用 HTTPS。也可以在 [Console → Webhook](/zh/docs/console/webhooks) 中注册最多 5 个端点，所有已启用的端点都会收到账户下全部终态事件。请求中的 `webhook_url` 会在这些端点之外额外投递；与已注册端点相同的地址只投递一次。所有投递都使用同一个账户签名密钥签名。
 
 ## 投递 Header
 
@@ -28,7 +28,7 @@ description: 通过 HTTPS 回调接收终态 Job，校验签名，并确保只�
 
 ## 校验签名
 
-Webhook 使用账户的 **Webhook 签名密钥**签名，它与 API Key 相互独立，可在 [Console → Webhooks](https://yir.ai/zh/console/webhooks) 查看。
+Webhook 使用账户的 **Webhook 签名密钥**签名，它与 API Key 相互独立，可在 [Console → Webhook](https://yir.ai/zh/console/webhooks) 查看。
 
 1. 在解析 JSON 之前读取**原始请求体字节**。
 2. 若 `Yir-Webhook-Timestamp` 与本机时间相差超过 300 秒，拒绝请求。
@@ -101,7 +101,7 @@ SDK 提供同样的校验：TypeScript 为 `verifyWebhookSignature` 与 `constru
 
 接收端未返回 `2xx` 时，Yir 会自动重试。重试使用相同的事件 ID，但时间戳和签名会更新；重试不会重新提交 Job，也不会重复收费。不支持手动重新投递。
 
-端点、签名密钥与投递记录在 [Console → Webhooks](/zh/docs/console/webhooks) 中管理。
+端点、签名密钥与投递记录在 [Console → Webhook](/zh/docs/console/webhooks) 中管理。
 
 回调丢失时，只要 Job 仍在保留期内，`GET /v1/jobs/{id}` 始终返回同一个终态 Job。很多集成把 Webhook 当作唤醒信号，同时保留低频轮询作为兜底。
 

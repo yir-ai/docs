@@ -22,7 +22,7 @@ Look up specific codes in [error codes](/docs/support/error-codes). For the prob
     The body changed between attempts. Retries must be byte-for-byte the same request: same parameters, references, `routing`, `max_cost`, and `webhook_url`. Load the saved request instead of rebuilding it.
   </AccordionItem>
   <AccordionItem title="The Job has been running for a long time">
-    Keep querying the same Job ID. Slow or unconfirmed attempts are not failures, and a replacement request would run and charge separately. Videos can take several minutes. If the provider never confirms, Yir closes the Job as failed with `YIR_OUTCOME_TIMEOUT` and no charge.
+    Keep querying the same Job ID. Slow or unconfirmed attempts are not failures, and a replacement request would run and charge separately. Videos can take several minutes. If the provider never confirms, Yir closes the Job as failed with `YIR_OUTCOME_TIMEOUT` and does not charge that attempt.
   </AccordionItem>
   <AccordionItem title="I cancelled, but the Job still succeeded and was charged">
     After a provider submission, cancellation only stops further fallback attempts. The attempt already running can still succeed and is then charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
@@ -34,7 +34,7 @@ Look up specific codes in [error codes](/docs/support/error-codes). For the prob
     Check `parameter_notices` on the quote and the finished Job. Some channels ignore certain parameters. GPT Image `quality` is never ignored; it limits routing to channels that serve the tier (see [GPT Image 2](/docs/models/gpt-image-2#quality)).
   </AccordionItem>
   <AccordionItem title="Webhook signatures never verify">
-    Verify the raw request bytes before any JSON parsing or re-serialization. Use the Webhook signing secret from Console → Webhooks, not your API key, and sign `timestamp + "." + id + "." + body`. Check that your server clock is accurate within 300 seconds.
+    Verify the raw request bytes before any JSON parsing or re-serialization. Use the Webhook signing secret from Console → Webhooks, not your API Key, and sign `timestamp + "." + id + "." + body`. Check that your server clock is accurate within 300 seconds.
   </AccordionItem>
   <AccordionItem title="The same Job was processed twice">
     Polling and Webhooks, or a Webhook and its retry, can report the same terminal Job. Deduplicate events by `Yir-Webhook-Id` and apply business effects once per `job.id`.
@@ -43,6 +43,6 @@ Look up specific codes in [error codes](/docs/support/error-codes). For the prob
 
 ## Contacting support
 
-Include the Job ID, endpoint, approximate UTC time, HTTP status, `error.code`, and `request_id`. You may include the first few characters of the key. Never send the full API key, Webhook secret, prompts, or source media.
+Email [support@yir.ai](mailto:support@yir.ai) or use the support button in Console. Include the Job ID, endpoint, approximate UTC time, HTTP status, `error.code`, and `request_id`. You may include the first few characters of the key. Never send the full API Key, Webhook secret, prompts, or source media.
 
 Found a mistake in these docs? Use **Report a documentation error** at the top of any page.

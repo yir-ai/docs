@@ -72,14 +72,14 @@ Requests use Yir's [common request shape](/docs/guides/official-api-differences)
 | `background`, `output_format`, `output_compression`, `moderation` | Not available. |
 | `stream`, `partial_images` | Not available; the result arrives when the Job finishes. |
 | `mask` for inpainting | Not available; edit with `reference_image` references and the prompt. |
-| Image URLs or base64 inputs | Upload with the [Files API](/docs/guides/input-files) and pass `file_id`. |
+| Image URLs or base64 inputs | Pass a public HTTPS `url`, or upload with the [Files API](/docs/guides/input-files) and pass `file_id`. Base64 is not accepted. |
 
 ## Billing
 
 - Token-billed channels (official and APIMart's standard version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
 - Reference images on token-billed channels are billed separately as image input tokens. OpenAI counts input image tokens roughly by 32×32-pixel patches, with a per-image cap; the quote does not include them, so editing with several large references can cost noticeably more than the quoted amount.
 - APIMart's `ext` version charges a fixed price per output image by resolution, with no extra charge for references.
-- The final charge is the delivering channel's actual upstream cost × your discount. See [quotes and billing](/docs/concepts/billing).
+- The final charge is the sum of every channel-billed attempt's actual upstream cost × your discount, usually just the delivering attempt. See [quotes and billing](/docs/concepts/billing).
 
 ## Related
 

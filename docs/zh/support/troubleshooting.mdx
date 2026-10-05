@@ -1,6 +1,6 @@
 ---
 title: 故障排查
-description: 排查认证、提交、轮询、结果和 Webhook 的常见问题。
+description: 排查 Yir 接入中认证、提交与幂等、轮询、结果下载和 Webhook 验签的常见问题，以及如何联系支持。
 ---
 
 具体错误码请查阅[错误码](/zh/docs/support/error-codes)。下列问题请从第一项检查开始。
@@ -10,7 +10,7 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
     确认 Header 为 `Authorization: Bearer <key>`，而不是 `X-API-Key`。在 Console 检查该 Key 是否已轮换、吊销或过期，以及 IP 白名单是否包含服务器的出口地址。调试时不要打印完整 Key。
   </AccordionItem>
   <AccordionItem title="提交返回 402 或 403">
-    `402 YIR_INSUFFICIENT_BALANCE` 表示余额不足以覆盖本次估价或余额为负，请先充值。`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度上限，可在 Console → API Keys 提高。
+    `402 YIR_INSUFFICIENT_BALANCE` 表示余额不足以覆盖本次估价或余额为负，请先充值。`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度上限，可在 Console → API Key 提高。
   </AccordionItem>
   <AccordionItem title="提交返回 422 YIR_NO_EXECUTABLE_ROUTE">
     当前没有渠道能执行这个具体请求。先报价并检查 `supply`，然后移除过严的 `routing.only` 或 `variants`、提高 `max_cost`，或尝试其他参数。
@@ -22,7 +22,7 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
     两次请求的内容不同。重试必须是完全相同的请求：参数、参考素材、`routing`、`max_cost` 和 `webhook_url` 都相同。请读取已保存的请求，而不是重新构建。
   </AccordionItem>
   <AccordionItem title="Job 运行了很久">
-    继续查询同一个 Job ID。慢或未确认的尝试不代表失败，替代请求会单独执行并单独收费。视频可能需要数分钟。若渠道始终未确认，Yir 会以 `YIR_OUTCOME_TIMEOUT` 将 Job 关闭为失败，且不收费。
+    继续查询同一个 Job ID。慢或未确认的尝试不代表失败，替代请求会单独执行并单独收费。视频可能需要数分钟。若渠道始终未确认，Yir 会以 `YIR_OUTCOME_TIMEOUT` 将 Job 关闭为失败，且不对该次尝试收费。
   </AccordionItem>
   <AccordionItem title="已经取消，但 Job 仍然成功并收费">
     向渠道提交之后，取消只会停止后续的渠道切换，正在进行的尝试仍可能成功并因此收费。见[取消](/zh/docs/concepts/task-lifecycle#取消)。
@@ -34,7 +34,7 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
     查看报价和已完成 Job 中的 `parameter_notices`。部分渠道会忽略某些参数。GPT Image 的 `quality` 不会被忽略，而是只走承接该档位的渠道（见 [GPT Image 2](/zh/docs/models/gpt-image-2#画质)）。
   </AccordionItem>
   <AccordionItem title="Webhook 签名始终校验失败">
-    必须在任何 JSON 解析或重新序列化之前，用原始请求字节校验。使用 Console → Webhooks 中的签名密钥而不是 API Key，签名内容为 `timestamp + "." + id + "." + body`。确认服务器时钟误差在 300 秒以内。
+    必须在任何 JSON 解析或重新序列化之前，用原始请求字节校验。使用 Console → Webhook 中的签名密钥而不是 API Key，签名内容为 `timestamp + "." + id + "." + body`。确认服务器时钟误差在 300 秒以内。
   </AccordionItem>
   <AccordionItem title="同一个 Job 被处理了两次">
     轮询与 Webhook，或 Webhook 与其重试，可能报告同一个终态 Job。请按 `Yir-Webhook-Id` 对事件去重，并按 `job.id` 只执行一次业务动作。
@@ -43,6 +43,6 @@ description: 排查认证、提交、轮询、结果和 Webhook 的常见问题�
 
 ## 联系支持
 
-请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 和 `request_id`，可以附上 Key 的前几位字符。不要发送完整 API Key、Webhook 密钥、提示词或源素材。
+发邮件到 [support@yir.ai](mailto:support@yir.ai)，或使用 Console 中的支持按钮。请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 和 `request_id`，可以附上 Key 的前几位字符。不要发送完整 API Key、Webhook 密钥、提示词或源素材。
 
 发现文档错误？请点击任意页面顶部的**报告文档错误**。

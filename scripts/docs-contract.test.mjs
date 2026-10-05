@@ -235,7 +235,7 @@ test(
     assert.match(englishGuide, /Production checklist/)
     assert.match(chineseGuide, /上线检查清单/)
     assert.match(englishProviders, /Providers and managed supply/)
-    assert.match(chineseProviders, /服务商与托管供应/)
+    assert.match(chineseProviders, /渠道与托管供应/)
     assert.match(reference, /Yir Standard Async AIGC API/)
     assert.match(
       englishGuide,

@@ -71,14 +71,14 @@ APIMart 标准版本和 KIE 没有画质开关，以不低于 `medium` 的固定
 | `background`、`output_format`、`output_compression`、`moderation` | 不可用。 |
 | `stream`、`partial_images` | 不可用；结果在 Job 结束时返回。 |
 | 局部重绘的 `mask` | 不可用；用 `reference_image` 参考图和提示词编辑。 |
-| 图片 URL 或 base64 输入 | 通过 [Files API](/zh/docs/guides/input-files) 上传，传 `file_id`。 |
+| 图片 URL 或 base64 输入 | 传公开 HTTPS `url`，或通过 [Files API](/zh/docs/guides/input-files) 上传后传 `file_id`；不接受 base64。 |
 
 ## 计费
 
 - 按 Token 计费的渠道（官方渠道与 APIMart `official` 版本）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
 - 按 Token 计费的渠道会把参考图另按图片输入 Token 计费。OpenAI 大致按 32×32 像素块计算输入图 Token，单张有上限；估价不包含这部分。
 - 按张固定计价的渠道返回 `kind: fixed`，档位不影响价格。
-- 最终费用为交付渠道的上游实际费用 × 你的折扣，见[报价与计费](/zh/docs/concepts/billing)。
+- 最终费用为每次渠道计了费的尝试的上游实际费用 × 你的折扣之和，通常只有交付结果的那次，见[报价与计费](/zh/docs/concepts/billing)。
 
 ## 相关页面
 

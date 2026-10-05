@@ -15,7 +15,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
 | 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 固定为 `1`。每个输出提交一个 Job，各用独立的幂等键。 |
-| 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | 通过 [Files API](/zh/docs/guides/input-files) 上传，用 `file_id` 加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`。外部 URL 和内联数据会被拒绝。 |
+| 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
 | 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
 | 取值范围 | 官方完整范围。 | 有时只支持官方取值的一部分，以便事先报价并由多个渠道承接。显式传入的值不会被悄悄改写：没有渠道能承接时，报价返回 `no_matching_supply`，生成请求被拒绝。 |
@@ -135,15 +135,15 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `bfl/flux-pro-1.1-ultra` | `aspect_ratio` | 21:9 到 9:21 之间任意比例；默认 `16:9`。 | 5 种比例；默认 `1:1`。`2K` 表示 Ultra 固定的约 4 MP 尺寸。 |
 | `prodia/flux-fast-schnell` | 尺寸、`steps`、`style_preset` | 每边 256–1920 像素，1–4 步，17 种风格预设。 | 只有 `1K` 的 `1:1`（1024×1024）；步数和风格预设不可用。 |
 
-### 可灵与 MiniMax
+### Kling 与 MiniMax
 
 | 模型 | 参数或功能 | 官方 API | Yir |
 | --- | --- | --- | --- |
-| `klingai/kling-2.6` | 图生视频、原生音频、音色 | 支持。 | 不可用。只有文生视频（无声）和动作控制。首尾帧请用可灵 3.0。 |
+| `klingai/kling-2.6` | 图生视频、原生音频、音色 | 支持。 | 不可用。只有文生视频（无声）和动作控制。首尾帧请用 Kling 3.0。 |
 | `klingai/kling-2.6`、`klingai/kling-3.0` | 动作控制的 `character_orientation`、保留原声 | 可选 `image` 或 `video`；默认保留参考视频的声音。 | 朝向固定跟随视频；不提供保留原声。 |
 | `klingai/kling-3.0` | `duration` | 3–15 之间任意整数。 | `3`、`5`、`10` 或 `15`。 |
 | `klingai/kling-3.0` | `multi_shot`、主体元素、音色 | 支持。 | 不可用。 |
-| `klingai/kling-3.0` | 可灵 3.0 Omni（多图参考、视频编辑） | 独立端点。 | 未提供。 |
+| `klingai/kling-3.0` | Kling 3.0 Omni（多图参考、视频编辑） | 独立端点。 | 未提供。 |
 | `minimax/hailuo-2.3`、`minimax/hailuo-2.3-fast` | `prompt_optimizer`、`fast_pretreatment` | 支持。 | 不可用。与 MiniMax 一致，`1080p` 只能配 6 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 为 `480p`（MiniMax 的 H3 Max 默认 `768P`）、5 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | 有首帧时的 `aspect_ratio` | 任何取值都按 `adaptive` 处理。 | 只接受 `adaptive`。 |

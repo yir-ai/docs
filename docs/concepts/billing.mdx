@@ -65,18 +65,19 @@ Submission checks prices again. A quote you obtained earlier does not guarantee 
 
 ## How a Job is charged
 
-1. **Admission** checks your live available balance against the first channel's estimate. Nothing is reserved. Before each later attempt, the balance is checked again against that channel's estimate.
+1. **Admission** checks your live available balance against the first channel's estimate. Nothing is reserved. Before each later attempt, the balance is checked again against that channel's estimate. While your available balance is below US$5 and another of your Jobs is running, a new Job waits in `queued` and rechecks every 10 seconds; if it still cannot start after 30 minutes, it fails with `YIR_INSUFFICIENT_BALANCE`.
 2. **Each attempt the channel billed** is charged when it ends: the channel's actual upstream cost × your discount, rounded up to US$0.000001. This includes the delivered attempt, an attempt that failed before a fallback, and `YIR_CONTENT_REJECTED` output the provider generated and billed but Yir did not deliver. The Job's total is capped by `max_cost` when set.
 3. **Attempts the channel never billed** cost nothing, so most failed and cancelled Jobs are free. Yir also absorbs its own failures: a result Yir could not deliver (`YIR_RESULT_DELIVERY_FAILED`) and an attempt whose outcome the channel never confirmed (`YIR_OUTCOME_TIMEOUT`). A failed attempt is charged only from a confirmed channel bill; if the bill never arrives, Yir absorbs it.
+5. **Exceptions.** If the bill for a delivered result is missing or conflicting, or the discounted actual cost is more than three times that attempt's estimate and at least US$0.02 above it, Yir charges the estimate frozen when the attempt was submitted and reconciles the difference itself.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
 
 If your balance cannot cover a charge at settlement, the balance becomes negative. A negative balance blocks new Jobs until a top-up repays it; Jobs already admitted continue. Yir never charges your payment method automatically.
 
 ## Pay the actual cost
 
-For supported channels, put `"billing_mode": "actual"` on both your quote and generation requests. This explicitly authorizes the complete cost of the successful delivered result, including charges known only after generation. Do not send `max_cost` with this mode: there is no customer spending cap.
+For supported channels, put `"billing_mode": "actual"` on both your quote and generation requests. This explicitly authorizes the actual cost of every channel-billed attempt, including charges known only after generation. Do not send `max_cost` with this mode: there is no customer spending cap, and an unpaid amount becomes Job debt.
 
-The initial supported combinations are Kling 2.6 or 3.0 Motion Control with `routing.only` selecting KIE and/or APIMart, and FLUX 2 Pro image editing with `routing.only: ["fal"]`. You must specify the channels explicitly. Other models or channels reject this mode; normal input and file requirements still apply.
+The initial supported combinations are Kling 2.6 or 3.0 Motion Control with `routing.only` set to `["kie"]`, `["apimart"]`, or `["kie", "apimart"]`, and FLUX 2 Pro image editing with `routing.only: ["fal"]`. You must specify the channels explicitly. Other models or channels reject this mode; normal input and file requirements still apply.
 
 Yir requires a positive available wallet balance and no outstanding debt before admitting a new Job. Each channel-billed attempt is charged from its authoritative bill and the discount frozen for that attempt, and the Job settles once when it ends. If your wallet cannot cover it, the unpaid amount becomes Job debt. A future manual recharge repays the oldest debt first; repayment does not charge the same Job again. Outstanding debt blocks new Jobs, while already admitted Jobs continue under their saved authorization.
 
@@ -100,7 +101,7 @@ Billing is final when the Job reaches a terminal state. Read the terminal Job's 
 ## Account and key limits
 
 - **Balance.** A Job is rejected with `402 YIR_INSUFFICIENT_BALANCE` when your available balance does not cover the first channel's estimate, or while your balance is negative. Top up in Console. You can set a low-balance email alert on the Billing page.
-- **Monthly spend limit per API key.** Optional, set in [Console → API Keys](/docs/console/api-keys). Admission adds the new Job's estimate to the key's settled charges for the current UTC month. If the total would exceed the limit, the request fails with `403 YIR_SPEND_LIMIT_EXCEEDED` and no Job is created. Jobs still running are not counted, so concurrent Jobs can take a key slightly past its limit. Running Jobs are never interrupted.
+- **Monthly spend limit per API Key.** Optional, set in [Console → API Keys](/docs/console/api-keys). Admission adds the new Job's estimate to the key's settled charges for the current UTC month. If the total would exceed the limit, the request fails with `403 YIR_SPEND_LIMIT_EXCEEDED` and no Job is created. Jobs still running are not counted, so concurrent Jobs can take a key slightly past its limit. Running Jobs are never interrupted.
 
 ## Pricing your own product
 

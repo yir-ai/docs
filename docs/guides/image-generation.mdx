@@ -34,7 +34,7 @@ Each request produces one output (`n` is always `1`). To generate several images
 
 ## Image to image
 
-Set `input.type` to `image` and list references in order. Upload each image through the [Files API](/docs/guides/input-files) and wait for analysis to reach `ready`. Every reference uses the `reference_image` role and a `file_id`. Generation requests reject external URLs.
+Set `input.type` to `image` and list references in order. Every reference uses the `reference_image` role with either a `file_id` (upload through the [Files API](/docs/guides/input-files) and wait for `ready`) or a public HTTPS `url` that Yir downloads at submission. See [input files](/docs/guides/input-files#public-urls) for URL limits.
 
 ```json
 {

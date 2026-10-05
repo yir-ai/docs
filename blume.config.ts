@@ -3,7 +3,7 @@ import { openapi } from "blume/reference";
 import { filesystem } from "blume/sources";
 
 export default defineConfig({
-  title: "Yir Developer Documentation",
+  title: "Yir Docs",
   description:
     "Build reliable asynchronous image and video generation workflows with Yir.",
   logo: { image: "/logo.svg", text: "Docs", href: "/docs" },

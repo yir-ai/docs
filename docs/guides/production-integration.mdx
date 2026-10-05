@@ -9,7 +9,7 @@ Use this page before going live. Each section links to the page that explains th
 
 ## Checklist
 
-- The API key lives only on your server, with a separate key per environment.
+- The API Key lives only on your server, with a separate key per environment.
 - Every submission has a persisted idempotency key, reused for retries of the same request.
 - The request, key, and Job ID are stored together before and after submission.
 - Polling is bounded, backs off, and stops only locally.
@@ -43,13 +43,13 @@ Store these together for each generation:
 | Last observed status | Lets you resume polling after a restart. |
 | Whether the terminal result was applied | Prevents double-charging or double-crediting. |
 
-Never store the API key next to Job records.
+Never store the API Key next to Job records.
 
 ## Waiting for results
 
 Choose one or combine both:
 
-- **Polling:** query `GET /v1/jobs/{id}/status` with back-off (5 s, then 10 s, then 20 s), then read `GET /v1/jobs/{id}` once the status is terminal.
+- **Polling:** long-poll `GET /v1/jobs/{id}/status?wait=20` (or back off at 5 s, 10 s, then 20 s without `wait`), then read `GET /v1/jobs/{id}` once the status is terminal. See [long polling](/docs/concepts/task-lifecycle#long-polling).
 - **Webhooks:** set `webhook_url` and handle the terminal Job. See [Webhooks](/docs/guides/webhooks).
 
 A common robust setup uses Webhooks as the primary signal and slow polling as a fallback for lost callbacks. Either way, apply the terminal Job **once per Job ID**.
@@ -63,8 +63,8 @@ A common robust setup uses Webhooks as the primary signal and slow polling as a 
 | Status is `queued`, `running`, or `delivering` | Wait and query again. Slow is not failed. |
 | Local wait deadline reached | Stop waiting, keep the Job ID, resume later. Do not resubmit. |
 | Status is `succeeded` | Read the full Job, copy `result.files`, record `billing.total_charged_by_yir`. |
-| Status is `failed` | Read the full Job and handle `error.code`. No charge applies, except `YIR_CONTENT_REJECTED` on output the provider already billed. |
-| Status is `cancelled` | Read the full Job. `error` may be `null`. No charge applies. |
+| Status is `failed` | Read the full Job, handle `error.code`, and record `billing.total_charged_by_yir`: attempts the channel billed (such as billed output rejected as `YIR_CONTENT_REJECTED`) are charged at actual cost; most failures cost nothing. |
+| Status is `cancelled` | Read the full Job. `error` may be `null`. Usually no charge, unless the channel billed an attempt before the stop; record `billing.total_charged_by_yir`. |
 | Full Job query fails | Retry that query. Do not settle from the status summary alone. |
 | `401`, `403`, or `404` | Fix the key, limit, or Job ID. Do not retry blindly. |
 | `429 YIR_RATE_LIMITED` or `503` | Retry later with back-off. |
@@ -74,13 +74,13 @@ See [error codes](/docs/support/error-codes) for every code and its recommended 
 ## Controlling cost
 
 - Quote the request to see an estimate. The final charge follows the actual cost; set the optional `max_cost` when you need a hard cap per Job. See [quotes and billing](/docs/concepts/billing).
-- Set a monthly spend limit on each API key and a low-balance email alert in Console.
+- Set a monthly spend limit on each API Key and a low-balance email alert in Console.
 - Use `routing.fallback: false` if you prefer a single attempt over automatic recovery.
 
 ## Testing safely
 
-Use a single-entry `routing.only` to test one channel, a separate API key with a small monthly limit, and inexpensive parameters. Generation requests always create real Jobs and real charges.
+Use a single-entry `routing.only` to test one channel, a separate API Key with a small monthly limit, and inexpensive parameters. Generation requests always create real Jobs and real charges.
 
 ## Support requests
 
-When contacting support, include the Job ID, endpoint, approximate UTC time, HTTP status, `error.code`, and the `request_id` from the error response. Never send your full API key, prompts, source media, or signing secret.
+Email [support@yir.ai](mailto:support@yir.ai) or use the support button in Console. Include the Job ID, endpoint, approximate UTC time, HTTP status, `error.code`, and the `request_id` from the error response. Never send your full API Key, prompts, source media, or signing secret.
