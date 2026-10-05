@@ -50,7 +50,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 
 ## Job errors
 
-Appear on a Job whose status is `failed`. A failed Job is charged only what the channel actually billed for its attempts (for example a `YIR_CONTENT_REJECTED` output the provider generated and billed, or an attempt that failed after the channel billed it); attempts the channel never billed cost nothing, and Yir never charges the attempt behind `YIR_RESULT_DELIVERY_FAILED` or `YIR_OUTCOME_TIMEOUT`.
+Appear on a Job whose status is `failed`. A failed Job is charged only what the channel actually billed for its attempts (for example a `YIR_CONTENT_REJECTED` output the provider generated and billed, or an attempt that failed after the channel billed it); attempts the channel never billed cost nothing, and Yir never charges the attempt behind `YIR_RESULT_DELIVERY_FAILED`, `YIR_OUTCOME_TIMEOUT` or `YIR_JOB_TIMEOUT`.
 
 | Code | Meaning | What to do |
 | --- | --- | --- |
@@ -62,6 +62,7 @@ Appear on a Job whose status is `failed`. A failed Job is charged only what the 
 | `YIR_INSUFFICIENT_BALANCE` | Balance ran out before the Job could continue, or a low balance kept the Job in `queued` for 30 minutes (see [billing](/docs/concepts/billing#how-a-job-is-charged)). | Add funds and submit again. |
 | `YIR_RATE_LIMITED` | The Job was rate limited. | Submit again later. |
 | `YIR_OUTCOME_TIMEOUT` | A provider never confirmed the outcome, so Yir closed the Job. That attempt and any late result are not charged; earlier attempts the channel billed still are. | Not retryable (`action: contact_support`). Contact support with the Job ID. If you still need the output, that is a new request: submit it with a new idempotency key. |
+| `YIR_JOB_TIMEOUT` | The Job did not finish within its maximum run time (30 minutes for images, 90 minutes for videos), so Yir closed it. The attempt still in progress and any late result are not charged; earlier attempts the channel billed still are. | Submit a new request with a new idempotency key. |
 | `YIR_RESULT_DELIVERY_FAILED` | A result was generated but could not be copied to Yir storage. | Submit again later. |
 
 `retryable: true` on a Job error means a **new** request may succeed. It never means the same Job will be retried; resubmitting under the original idempotency key returns the same failed Job, so use a new key for the new attempt.

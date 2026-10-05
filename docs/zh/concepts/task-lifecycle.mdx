@@ -14,7 +14,7 @@ description: Yir Job 的六个公开状态、长轮询与轮询节奏、取消�
 | `delivering` | 渠道已返回结果，Yir 正在复制到自有存储。 | 否 |
 | `succeeded` | 结果已交付，可在 `result` 中获取。 | 是 |
 | `failed` | 没有任何尝试产出可交付结果，见 `error.code`。 | 是 |
-| `cancelled` | 在向任何渠道提交之前被取消。 | 是 |
+| `cancelled` | 在向任何渠道提交之前，或 Yir 核对未知结果期间被取消。 | 是 |
 
 ```mermaid
 stateDiagram-v2
@@ -24,6 +24,7 @@ stateDiagram-v2
   queued --> failed
   running --> delivering
   running --> failed
+  running --> cancelled
   delivering --> succeeded
   delivering --> failed
 ```
@@ -58,6 +59,7 @@ Job 慢、请求超时或渠道暂未答复，都**不代表**失败。继续查
 调用 `POST /v1/jobs/{id}/cancel` 请求取消，效果取决于 Job 的进展：
 
 - **尚未向任何渠道提交**：Job 立即变为 `cancelled`，不收取任何费用。
+- **Yir 正在核对未知结果**：Job 立即变为 `cancelled`，该次尝试不收费；此前渠道已计费的尝试仍照实收费。
 - **已向渠道提交**：响应带有 `cancellation.status: "stop_requested"`。Yir 不再发起后续切换尝试，但当前尝试会继续。若成功，结果照常交付并收费；若失败，Job 以 `failed` 结束，只按渠道对该次尝试的实际计费收费。
 
 第二种情况请在界面显示「已请求停止」并继续轮询。对已 `succeeded` 或 `failed` 的 Job 取消会返回 `409 YIR_JOB_NOT_CANCELLABLE`。重复发送取消请求是安全的。如果取消请求失败或超时，取消可能已经生效：请查询 Job 的 `status` 与 `cancellation` 确认当前状态。
@@ -65,6 +67,8 @@ Job 慢、请求超时或渠道暂未答复，都**不代表**失败。继续查
 ## 结果未知
 
 少数情况下渠道不会确认尝试是否成功。Yir 在核对期间保持 Job 为活动状态；如果长时间仍无法确认，Yir 以 `YIR_OUTCOME_TIMEOUT` 将 Job 关闭为 `failed`，不对该次尝试收费；此前渠道已计费的尝试仍照实收费。之后才到达的结果不会重新打开该 Job，也不会收费。
+
+每个 Job 还有最长运行时限：图片 30 分钟、视频 90 分钟，从创建时算起。到时仍未完成的 Job 以 `YIR_JOB_TIMEOUT` 关闭为 `failed`，只按已确认渠道账单的尝试收费。
 
 ## 结果与保留期
 

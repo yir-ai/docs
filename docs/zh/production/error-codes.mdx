@@ -50,7 +50,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 
 ## Job 错误
 
-出现在状态为 `failed` 的 Job 上。失败的 Job 只按渠道实际计费的尝试收费（例如渠道已生成并计费的结果被判为 `YIR_CONTENT_REJECTED`，或渠道计费后才失败的尝试）；渠道没计费的尝试不收费，导致 `YIR_RESULT_DELIVERY_FAILED` 或 `YIR_OUTCOME_TIMEOUT` 的那次尝试永不收费。
+出现在状态为 `failed` 的 Job 上。失败的 Job 只按渠道实际计费的尝试收费（例如渠道已生成并计费的结果被判为 `YIR_CONTENT_REJECTED`，或渠道计费后才失败的尝试）；渠道没计费的尝试不收费，导致 `YIR_RESULT_DELIVERY_FAILED`、`YIR_OUTCOME_TIMEOUT` 或 `YIR_JOB_TIMEOUT` 的那次尝试永不收费。
 
 | 错误码 | 含义 | 处理方式 |
 | --- | --- | --- |
@@ -62,6 +62,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | `YIR_INSUFFICIENT_BALANCE` | 余额在 Job 继续前耗尽，或低余额使 Job 在 `queued` 停留满 30 分钟（见[计费](/zh/docs/concepts/billing#job-如何计费)）。 | 充值后重新提交。 |
 | `YIR_RATE_LIMITED` | Job 被限流。 | 稍后重新提交。 |
 | `YIR_OUTCOME_TIMEOUT` | 渠道始终未确认结果，Yir 已关闭该 Job。该次尝试和迟到的结果都不收费；此前渠道已计费的尝试仍照实收费。 | 不可重试（`action: contact_support`），请提供 Job ID 联系支持。如仍需要结果，属于新请求，请用新的幂等键提交。 |
+| `YIR_JOB_TIMEOUT` | Job 未在最长运行时限内完成（图片 30 分钟、视频 90 分钟），Yir 已将其关闭。仍在进行的尝试和迟到的结果都不收费；此前渠道已计费的尝试仍照实收费。 | 用新的幂等键提交新请求。 |
 | `YIR_RESULT_DELIVERY_FAILED` | 结果已生成，但未能复制到 Yir 存储。 | 稍后重新提交。 |
 
 Job 错误上的 `retryable: true` 表示**新的**请求可能成功，绝不表示同一个 Job 会被重试。用原幂等键重新提交只会返回同一个失败的 Job，因此新尝试请使用新键。

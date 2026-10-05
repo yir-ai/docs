@@ -14,7 +14,7 @@ Every generation request creates one **Job**. The Job keeps the same ID from sub
 | `delivering` | The provider returned a result; Yir is copying it to its own storage. | No |
 | `succeeded` | The result is delivered and available under `result`. | Yes |
 | `failed` | No attempt produced a deliverable result. See `error.code`. | Yes |
-| `cancelled` | Cancelled before any provider submission started. | Yes |
+| `cancelled` | Cancelled before any provider submission started, or while Yir was confirming an unknown attempt outcome. | Yes |
 
 ```mermaid
 stateDiagram-v2
@@ -24,6 +24,7 @@ stateDiagram-v2
   queued --> failed
   running --> delivering
   running --> failed
+  running --> cancelled
   delivering --> succeeded
   delivering --> failed
 ```
@@ -58,6 +59,7 @@ To avoid polling entirely, set `webhook_url` and receive the terminal Job by [We
 Request cancellation with `POST /v1/jobs/{id}/cancel`. The effect depends on how far the Job has progressed:
 
 - **Before any provider submission**, the Job becomes `cancelled` immediately and nothing is charged.
+- **While Yir is confirming an unknown attempt outcome**, the Job becomes `cancelled` immediately. That attempt is not charged; earlier attempts the channel billed still are.
 - **After a provider submission**, the response carries `cancellation.status: "stop_requested"`. Yir starts no further fallback attempts, but the current attempt keeps running. If it succeeds, the result is delivered and charged; if it fails, the Job ends as `failed` and is charged only what the channel billed for that attempt.
 
 Show "Stop requested" in your UI in the second case and keep polling. Cancelling a Job that is already `succeeded` or `failed` returns `409 YIR_JOB_NOT_CANCELLABLE`. Repeating a cancel request is safe. If a cancel request fails or times out, the cancellation may already have taken effect: query the Job to see its current `status` and `cancellation`.
@@ -65,6 +67,8 @@ Show "Stop requested" in your UI in the second case and keep polling. Cancelling
 ## Unknown outcomes
 
 Occasionally a provider does not confirm whether an attempt succeeded. Yir keeps the Job active while it reconciles. If the outcome stays unknown for too long, Yir closes the Job as `failed` with `YIR_OUTCOME_TIMEOUT` and does not charge that attempt; earlier attempts the channel billed are still charged. A result that arrives later does not reopen or charge the Job.
+
+Every Job also has a maximum run time: 30 minutes for images and 90 minutes for videos, counted from creation. A Job still unfinished then closes as `failed` with `YIR_JOB_TIMEOUT`, charged only for attempts with a confirmed channel bill.
 
 ## Results and retention
 

@@ -802,7 +802,7 @@
       "post": {
         "operationId": "cancelJob",
         "summary": "取消 Job",
-        "description": "在提交到任何渠道之前取消，Job 变为 cancelled，不收费。提交之后取消，Yir 不再发起新的切换渠道尝试，当前尝试继续运行；上游已计费的每次尝试仍会收费。",
+        "description": "在提交到任何渠道之前取消，Job 变为 cancelled，不收费。提交之后取消，Yir 不再发起新的切换渠道尝试，当前尝试继续运行；上游已计费的每次尝试仍会收费。正在核对未知结果的 Job 取消后立即变为 cancelled，只对已确认上游计费的尝试收费。",
         "tags": [
           "Jobs"
         ],
@@ -2054,7 +2054,8 @@
               "YIR_EXECUTION_FAILED",
               "YIR_CONTENT_REJECTED",
               "YIR_OUTCOME_TIMEOUT",
-              "YIR_RESULT_DELIVERY_FAILED"
+              "YIR_RESULT_DELIVERY_FAILED",
+              "YIR_JOB_TIMEOUT"
             ]
           },
           "message": {
