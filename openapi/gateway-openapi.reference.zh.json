@@ -1738,11 +1738,6 @@
               "available": {
                 "type": "boolean"
               },
-              "requires_max_cost": {
-                "type": "boolean",
-                "deprecated": true,
-                "description": "已废弃，始终为 false。不属于合同；为 TypeScript 0.9、Go 0.10 之前的 SDK 暂时保留输出，之后会删除。"
-              },
               "issues": {
                 "type": "array",
                 "items": {
@@ -1753,7 +1748,7 @@
                 }
               }
             },
-            "description": "当前是否有路由能执行此请求。有可用渠道时 issues 为空数组；requires_max_cost 始终为 false。没有匹配渠道时返回 available=false 与 no_matching_supply，primary/max 为 unavailable。认证失败、无效请求和基础设施故障仍以错误返回。"
+            "description": "当前是否有路由能执行此请求。有可用渠道时 issues 为空数组。没有匹配渠道时返回 available=false 与 no_matching_supply，primary 为 unavailable。认证失败、无效请求和基础设施故障仍以错误返回。"
           },
           "object": {
             "type": "string",
@@ -1761,7 +1756,8 @@
           },
           "model": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "规范模型 ID；请求使用别名时也返回规范 ID。"
           },
           "operation": {
             "type": "string",
@@ -1785,23 +1781,6 @@
             "type": "string",
             "const": "USD"
           },
-          "single_attempt_upper_bound": {
-            "deprecated": true,
-            "description": "已废弃，始终为 null。不属于合同；为 TypeScript 0.9、Go 0.10 之前的 SDK 暂时保留输出，之后会删除。用 max_cost 限制 Job 总费用。",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Decimal"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "has_verifiable_upper_bound": {
-            "type": "boolean",
-            "deprecated": true,
-            "description": "已废弃，始终为 false。不属于合同；为旧版 SDK 暂时保留输出，之后会删除。"
-          },
           "expires_at": {
             "type": "integer",
             "format": "int64",
@@ -1809,52 +1788,6 @@
           },
           "primary": {
             "description": "当前首选路由的估价：固定价路由为目录参考价，按用量计费的路由为仅含输出的估价；否则为 unavailable。Job 按各次计费尝试的上游权威金额乘以托管折扣收费，可能与此估价不同。仅含输出的估价不含输入费用；两者都不是收费上限，提交时会重新核对当前数据。独立的官方参考价见 official。",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/OutputQuoteEstimate"
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "kind",
-                  "amount"
-                ],
-                "properties": {
-                  "kind": {
-                    "const": "fixed"
-                  },
-                  "amount": {
-                    "$ref": "#/components/schemas/Decimal"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "kind",
-                  "amount",
-                  "reason"
-                ],
-                "properties": {
-                  "kind": {
-                    "const": "unavailable"
-                  },
-                  "amount": {
-                    "type": "null"
-                  },
-                  "reason": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                }
-              }
-            ]
-          },
-          "max": {
-            "deprecated": true,
-            "description": "已废弃，重复 primary。不属于合同；为 TypeScript 0.9、Go 0.10 之前的 SDK 暂时保留输出，之后会删除。它不是收费上限，限制费用请设置 max_cost。",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OutputQuoteEstimate"
