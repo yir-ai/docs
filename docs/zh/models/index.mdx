@@ -41,7 +41,7 @@ curl "https://gateway.yir.ai/v1/models/bytedance/seedance-2.0?view=contract" \
 
 ## 合同不能说明的事
 
-参数合法，并不代表每个渠道此刻都能执行，也不代表存在对应价格。请始终对完整请求报价。Gateway 是最终裁决者：违反合同的请求返回 `400 YIR_INVALID_REQUEST`，未知模型返回 `404 YIR_MODEL_NOT_FOUND`。
+参数合法，并不代表每个渠道此刻都能执行，也不代表存在对应价格。请始终对完整请求报价。Gateway 是最终裁决者：违反合同的请求返回 `400 YIR_INVALID_REQUEST`，对未知模型报价或生成也返回该错误；读取未知模型的详情返回 `404 YIR_MODEL_NOT_FOUND`。
 
 ## 在应用中校验
 

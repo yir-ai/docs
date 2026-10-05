@@ -41,7 +41,7 @@ Canonical IDs use `creator/model`, for example `openai/gpt-image-2` or `google/n
 
 ## What a contract does not tell you
 
-A parameter being valid does not mean every channel can run it right now, or that a price exists for it. Always quote the complete request. The Gateway remains the final authority: requests that break the contract fail with `400 YIR_INVALID_REQUEST`, and unknown models with `404 YIR_MODEL_NOT_FOUND`.
+A parameter being valid does not mean every channel can run it right now, or that a price exists for it. Always quote the complete request. The Gateway remains the final authority: requests that break the contract fail with `400 YIR_INVALID_REQUEST`, and so do quotes and generation requests for an unknown model; reading an unknown model's detail returns `404 YIR_MODEL_NOT_FOUND`.
 
 ## Validating in your app
 
