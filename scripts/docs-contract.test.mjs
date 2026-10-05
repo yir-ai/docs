@@ -273,6 +273,10 @@ test(
     )
     assert.match(chineseReferenceOperation, /<html[^>]* lang="zh"/)
     assert.match(chineseReferenceOperation, /获取 Job/)
+    // Reference chrome labels come from patches/blume@*.patch.
+    assert.match(chineseReferenceOperation, />响应</)
+    assert.match(chineseReferenceOperation, />必填</)
+    assert.doesNotMatch(chineseReferenceOperation, />Responses</)
     assert.ok(
       searchIndex.some(
         (page) => page.route === '/docs/production/checklist',

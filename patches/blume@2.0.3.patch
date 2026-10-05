@@ -1,0 +1,546 @@
+diff --git a/src/components/openapi/ApiOverview.astro b/src/components/openapi/ApiOverview.astro
+index eaa0f4051f29ae490090ca54365bfdd48e1cc3e2..9de283f24d32d80496b817d62d64d8ba40e816c3 100644
+--- a/src/components/openapi/ApiOverview.astro
++++ b/src/components/openapi/ApiOverview.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import specs from "blume:openapi";
+ 
+ import { specAddresses, specOf } from "../../openapi/model.ts";
+@@ -17,6 +18,7 @@ const spec = specOf(specs, source);
+ const { addresses, label: addressLabel } = spec
+   ? specAddresses(spec)
+   : { addresses: [], label: "" };
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ {
+@@ -24,7 +26,7 @@ const { addresses, label: addressLabel } = spec
+     <div>
+       {spec.version && (
+         <div class="not-prose mb-4 text-muted-foreground text-sm">
+-          Version {spec.version}
++          {s.version} {spec.version}
+         </div>
+       )}
+       {addresses.length > 0 && (
+diff --git a/src/components/openapi/Authorization.astro b/src/components/openapi/Authorization.astro
+index a7ad9f6e43f32fbd7f671a44f67e5ecbcde3d982..d2d73d91249b9eb61ea0d797749bb11d8184581b 100644
+--- a/src/components/openapi/Authorization.astro
++++ b/src/components/openapi/Authorization.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import Description from "./Description.astro";
+ import {
+   type OperationSecurity,
+@@ -11,6 +12,7 @@ interface Props {
+ }
+ 
+ const { security } = Astro.props;
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ {
+@@ -21,18 +23,18 @@ const { security } = Astro.props;
+         class="mb-2 font-semibold text-foreground text-sm"
+         role="heading"
+       >
+-        Authorization
++        {s.authorization}
+       </div>
+       {security.optional && (
+         <p class="mb-2 text-muted-foreground text-sm">
+-          Optional — this operation also accepts unauthenticated requests.
++          {s.authOptional}
+         </p>
+       )}
+       {security.alternatives.map((alternative, index) => (
+         <>
+           {index > 0 && (
+             <div class="my-2 font-medium text-[0.625rem] text-muted-foreground uppercase tracking-wide">
+-              or
++              {s.or}
+             </div>
+           )}
+           <div class="not-prose rounded-blume border border-border px-4">
+@@ -50,7 +52,7 @@ const { security } = Astro.props;
+                     </span>
+                     {!security.optional && (
+                       <span class="font-medium text-[0.625rem] text-red-600 uppercase tracking-wide dark:text-red-400">
+-                        required
++                        {s.required}
+                       </span>
+                     )}
+                   </div>
+@@ -59,7 +61,7 @@ const { security } = Astro.props;
+                   )}
+                   {resolved.scopes.length > 0 && (
+                     <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+-                      <span class="text-muted-foreground">Scopes:</span>
++                      <span class="text-muted-foreground">{s.scopes}</span>
+                       {resolved.scopes.map((scope) => (
+                         <code class="rounded bg-muted px-1 py-0.5 text-foreground">
+                           {scope}
+diff --git a/src/components/openapi/Operation.astro b/src/components/openapi/Operation.astro
+index fc9a6ad5291cc0575d3b912cedb5d7079974d414..2090c50787f2fba09426b7c994752672ca1e3573 100644
+--- a/src/components/openapi/Operation.astro
++++ b/src/components/openapi/Operation.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import specs from "blume:openapi";
+ import { operationOf, specOf } from "../../openapi/model.ts";
+ import {
+@@ -145,6 +146,7 @@ const model =
+     : null;
+ const sample = model ? buildRequest(model, defaultValues(model)) : null;
+ const languages = sampleLanguages(spec?.codeSamples ?? []);
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ {
+   isAsyncApi ? (
+@@ -152,7 +154,7 @@ const languages = sampleLanguages(spec?.codeSamples ?? []);
+   ) : isGraphql ? (
+     <GraphqlOperation id={id} source={source} />
+   ) : !(spec && ref && operation) ? (
+-    <div class="text-muted-foreground">This API operation could not be found.</div>
++    <div class="text-muted-foreground">{s.notFound}</div>
+   ) : (
+     <div class="not-prose">
+       <div class="mb-6 flex flex-wrap items-center gap-3">
+@@ -162,7 +164,7 @@ const languages = sampleLanguages(spec?.codeSamples ?? []);
+         </code>
+         {operation.deprecated && (
+           <span class={DEPRECATED_LABEL_CLASS}>
+-            deprecated
++            {s.deprecated}
+           </span>
+         )}
+       </div>
+diff --git a/src/components/openapi/PanelTabs.astro b/src/components/openapi/PanelTabs.astro
+index 8ef99faa9fb9f0a06cdb2c34a697340f36f2858b..747569fd43751a28eacee13ad547ca601d980c33 100644
+--- a/src/components/openapi/PanelTabs.astro
++++ b/src/components/openapi/PanelTabs.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ /**
+  * The tabbed code-panel chrome shared by the request/response rail (OpenAPI)
+  * and the sample/message rail (AsyncAPI): a heading, a tab per panel, an
+@@ -48,6 +49,7 @@ const idFor = (kind: "tab" | "panel", key: string): string =>
+ const CODE_WRAP = "prose max-w-none text-xs";
+ const TAB_CLASS =
+   "-mb-px cursor-pointer border-transparent border-b-2 bg-transparent py-2 font-medium text-muted-foreground text-xs transition-colors hover:text-foreground aria-[selected=true]:border-accent aria-[selected=true]:text-foreground";
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ {
+@@ -82,13 +84,13 @@ const TAB_CLASS =
+           </div>
+           {copy && (
+             <button
+-              aria-label={`Copy ${heading.toLowerCase()}`}
++              aria-label={`${s.copy} ${heading.toLowerCase()}`}
+               class="group shrink-0 cursor-pointer rounded px-1.5 py-1 text-muted-foreground text-xs hover:text-foreground"
+               data-panel-copy
+               type="button"
+             >
+-              <span class="group-data-[copied]:hidden">Copy</span>
+-              <span class="hidden group-data-[copied]:inline">Copied</span>
++              <span class="group-data-[copied]:hidden">{s.copy}</span>
++              <span class="hidden group-data-[copied]:inline">{s.copied}</span>
+             </button>
+           )}
+         </div>
+diff --git a/src/components/openapi/ParametersTable.astro b/src/components/openapi/ParametersTable.astro
+index c62d8db3274dda79f3dfa15931b8c5fce249c128..44613e298e02a8b2a9a6e86f3bcc2dc4d70643b6 100644
+--- a/src/components/openapi/ParametersTable.astro
++++ b/src/components/openapi/ParametersTable.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import Description from "./Description.astro";
+ import {
+   constraints,
+@@ -22,14 +23,15 @@ interface Props {
+ }
+ 
+ const { parameters, schemas } = Astro.props;
++const s = referenceStrings(Astro.currentLocale);
+ 
+ const SECTIONS: { in: string; title: string }[] = [
+-  { in: "path", title: "Path parameters" },
+-  { in: "query", title: "Query parameters" },
+-  { in: "header", title: "Header parameters" },
+-  { in: "cookie", title: "Cookie parameters" },
++  { in: "path", title: s.paramsPath },
++  { in: "query", title: s.paramsQuery },
++  { in: "header", title: s.paramsHeader },
++  { in: "cookie", title: s.paramsCookie },
+   // AsyncAPI channel address parameters.
+-  { in: "channel", title: "Channel parameters" },
++  { in: "channel", title: s.paramsChannel },
+ ];
+ 
+ const groups = SECTIONS.map((section) => ({
+@@ -52,7 +54,7 @@ const groups = SECTIONS.map((section) => ({
+         {group.items.map((param) => {
+           const resolved = resolveSchema(schemas, param.schema ?? {});
+           const type = param.schema ? typeLabel(param.schema) : "string";
+-          const limits = constraints(resolved);
++          const limits = constraints(resolved, s);
+           const enumValues = Array.isArray(resolved.enum) ? resolved.enum : null;
+           return (
+             <div class="border-border border-t py-4 first:border-t-0">
+@@ -61,12 +63,12 @@ const groups = SECTIONS.map((section) => ({
+                 <span class="text-muted-foreground text-xs">{type}</span>
+                 {param.required && (
+                   <span class="font-medium text-[0.625rem] text-red-600 uppercase tracking-wide dark:text-red-400">
+-                    required
++                    {s.required}
+                   </span>
+                 )}
+                 {param.deprecated && (
+                   <span class="font-medium text-[0.625rem] text-muted-foreground uppercase tracking-wide line-through">
+-                    deprecated
++                    {s.deprecated}
+                   </span>
+                 )}
+               </div>
+@@ -80,7 +82,7 @@ const groups = SECTIONS.map((section) => ({
+               )}
+               {enumValues && (
+                 <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+-                  <span class="text-muted-foreground">Allowed:</span>
++                  <span class="text-muted-foreground">{s.allowed}</span>
+                   {enumValues.map((value) => (
+                     <code class="rounded bg-muted px-1 py-0.5 text-foreground">
+                       {String(value)}
+diff --git a/src/components/openapi/RequestBody.astro b/src/components/openapi/RequestBody.astro
+index ab0104a339887054a527c758dc4c220c4482b2ab..f70397474dba97ea21c7999398cfdd087ae4ae2f 100644
+--- a/src/components/openapi/RequestBody.astro
++++ b/src/components/openapi/RequestBody.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import Description from "./Description.astro";
+ import type { SchemaLike } from "./helpers.ts";
+ import SchemaTable from "./SchemaTable.astro";
+@@ -25,6 +26,7 @@ const entries = Object.entries(requestBody.content ?? {});
+ const chosen = entries.find(([type]) => type.includes("json")) ?? entries[0];
+ const contentType = chosen?.[0] ?? "application/json";
+ const schema = chosen?.[1]?.schema ?? {};
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ <section class="mt-8">
+@@ -34,12 +36,12 @@ const schema = chosen?.[1]?.schema ?? {};
+       class="font-semibold text-foreground text-lg"
+       role="heading"
+     >
+-      Request body
++      {s.requestBody}
+     </div>
+     {
+       requestBody.required && (
+         <span class="font-medium text-[0.625rem] text-red-600 uppercase tracking-wide dark:text-red-400">
+-          required
++          {s.required}
+         </span>
+       )
+     }
+diff --git a/src/components/openapi/RequestPanel.astro b/src/components/openapi/RequestPanel.astro
+index 288ca2c5065880ea84edffe31eb0489c753d00f8..d970d245f739e7d3c840153aec7d033cc9557f8b 100644
+--- a/src/components/openapi/RequestPanel.astro
++++ b/src/components/openapi/RequestPanel.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import data from "blume:data";
+ 
+ import { highlightCode } from "../../markdown/index.ts";
+@@ -63,9 +64,10 @@ const responsePanels = await Promise.all(
+     };
+   })
+ );
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ <div class="not-prose flex flex-col gap-6">
+-  <PanelTabs copy heading="Request" panels={requestPanels} />
+-  <PanelTabs heading="Response" mono panels={responsePanels} />
++  <PanelTabs copy heading={s.request} panels={requestPanels} />
++  <PanelTabs heading={s.response} mono panels={responsePanels} />
+ </div>
+diff --git a/src/components/openapi/Responses.astro b/src/components/openapi/Responses.astro
+index e16cd3ab7a22f4ccf19ea8375bce6e36e7241e48..b3f664fb03709ad33a78a5020ce7cb3d6de5bef5 100644
+--- a/src/components/openapi/Responses.astro
++++ b/src/components/openapi/Responses.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import { statusColor } from "../colors.ts";
+ import Description from "./Description.astro";
+ import type { SchemaLike } from "./helpers.ts";
+@@ -22,6 +23,7 @@ interface Props {
+ const { responses, schemas, expandAll = false } = Astro.props;
+ 
+ const items = Object.entries(responses);
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ {
+@@ -32,7 +34,7 @@ const items = Object.entries(responses);
+         class="mb-3 font-semibold text-foreground text-lg"
+         role="heading"
+       >
+-        Responses
++        {s.responses}
+       </div>
+       <div class="flex flex-col gap-4">
+         {items.map(([status, response]) => {
+diff --git a/src/components/openapi/SchemaProperty.astro b/src/components/openapi/SchemaProperty.astro
+index 52535005e6a4ccfa199ced88f400bb8ea2266d83..67c2984eebf07e6b28b839b46410589ab21f974e 100644
+--- a/src/components/openapi/SchemaProperty.astro
++++ b/src/components/openapi/SchemaProperty.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import Description from "./Description.astro";
+ import {
+   constraints,
+@@ -27,7 +28,8 @@ const description = resolved.description ?? schema.description ?? "";
+ const deprecated = resolved.deprecated === true;
+ const nullable = isNullable(resolved);
+ const enumValues = Array.isArray(resolved.enum) ? resolved.enum : null;
+-const limits = constraints(resolved);
++const s = referenceStrings(Astro.currentLocale);
++const limits = constraints(resolved, s);
+ 
+ // Circles and schemas expanded elsewhere in the tree have no disclosure; the
+ // type label names them.
+@@ -47,14 +49,14 @@ const children = rowExpands(row) ? row.children : undefined;
+     {
+       required && (
+         <span class="font-medium text-[0.625rem] text-red-600 uppercase tracking-wide dark:text-red-400">
+-          required
++          {s.required}
+         </span>
+       )
+     }
+     {
+       deprecated && (
+         <span class="font-medium text-[0.625rem] text-muted-foreground uppercase tracking-wide line-through">
+-          deprecated
++          {s.deprecated}
+         </span>
+       )
+     }
+@@ -72,7 +74,7 @@ const children = rowExpands(row) ? row.children : undefined;
+   {
+     enumValues && (
+       <div class="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+-        <span class="text-muted-foreground">Allowed:</span>
++        <span class="text-muted-foreground">{s.allowed}</span>
+         {enumValues.map((value) => (
+           <code class="rounded bg-muted px-1 py-0.5 text-foreground">
+             {String(value)}
+@@ -85,8 +87,8 @@ const children = rowExpands(row) ? row.children : undefined;
+     children && (
+       <details class="mt-3" open={expandAll}>
+         <summary class="cursor-pointer select-none text-accent text-xs hover:underline">
+-          <span class="[details[open]>summary_&]:hidden">Show properties</span>
+-          <span class="hidden [details[open]>summary_&]:inline">Hide properties</span>
++          <span class="[details[open]>summary_&]:hidden">{s.showProperties}</span>
++          <span class="hidden [details[open]>summary_&]:inline">{s.hideProperties}</span>
+         </summary>
+         <div class="mt-3 border-border border-s ps-4">
+           <SchemaTable
+diff --git a/src/components/openapi/SchemaTable.astro b/src/components/openapi/SchemaTable.astro
+index 14e713f72561345a9d96c795c3bfb656892cb487..ce81663818e44ef83a9fafaa5e0fa3bb60de0afb 100644
+--- a/src/components/openapi/SchemaTable.astro
++++ b/src/components/openapi/SchemaTable.astro
+@@ -1,4 +1,5 @@
+ ---
++import { referenceStrings } from "./strings.ts";
+ import type { SchemaLike } from "./helpers.ts";
+ import { type SchemaNode, schemaTree } from "./schema-tree.ts";
+ import SchemaProperty from "./SchemaProperty.astro";
+@@ -17,17 +18,18 @@ const { schema = {}, node: planned, schemas, expandAll = false } = Astro.props;
+ // The whole tree is planned once, at the top-level table, so that which named
+ // schemas expand is decided for the tree as a whole (see `schema-tree.ts`).
+ const node = planned ?? schemaTree(schema, schemas);
++const s = referenceStrings(Astro.currentLocale);
+ ---
+ 
+ {
+   node.kind === "circular" ? (
+     <div class="text-muted-foreground text-sm">
+-      Circular reference to <code class="text-foreground">{node.name}</code>.
++      {s.circularReference} <code class="text-foreground">{node.name}</code>.
+     </div>
+   ) : node.kind === "array" ? (
+     <div>
+       <div class="mb-2 text-muted-foreground text-xs">
+-        Array of <code class="text-foreground">{node.itemsLabel}</code>
++        {s.arrayOf} <code class="text-foreground">{node.itemsLabel}</code>
+       </div>
+       {node.items && (
+         <Astro.self node={node.items.node} schemas={schemas} expandAll={expandAll} />
+@@ -42,7 +44,7 @@ const node = planned ?? schemaTree(schema, schemas);
+           ))}
+         </div>
+       )}
+-      <div class="text-muted-foreground text-xs">{node.label}:</div>
++      <div class="text-muted-foreground text-xs">{node.label === "One of" ? s.oneOf : s.anyOf}:</div>
+       {node.branches.map((branch) => (
+         <div class="rounded-blume border border-border p-3">
+           <div class="mb-2 font-medium text-foreground text-xs">
+diff --git a/src/components/openapi/helpers.ts b/src/components/openapi/helpers.ts
+index a3ee2ef5282ca1717c1e5841fa4c45da94750044..ac27dd893df94ac48145d5fdf4f8c39c9d200392 100644
+--- a/src/components/openapi/helpers.ts
++++ b/src/components/openapi/helpers.ts
+@@ -1,5 +1,8 @@
+ import { sample } from "openapi-sampler";
+ 
++import { referenceStrings } from "./strings.ts";
++import type { ReferenceStrings } from "./strings.ts";
++
+ /**
+  * Runtime helpers for the OpenAPI components. These operate on the parsed spec
+  * behind the `blume:openapi` alias — resolving `$ref`s (kept intact at parse
+@@ -222,15 +225,18 @@ export const isNullable = (schema: SchemaLike): boolean =>
+   [...(schema.oneOf ?? []), ...(schema.anyOf ?? [])].some(isNullType);
+ 
+ /** Human-readable validation constraints for a schema, in display order. */
+-export const constraints = (schema: SchemaLike): string[] => {
++export const constraints = (
++  schema: SchemaLike,
++  labels: ReferenceStrings = referenceStrings()
++): string[] => {
+   const out: string[] = [];
+   const numeric: [keyof SchemaLike, string][] = [
+-    ["minimum", "min"],
+-    ["maximum", "max"],
+-    ["minLength", "min length"],
+-    ["maxLength", "max length"],
+-    ["minItems", "min items"],
+-    ["maxItems", "max items"],
++    ["minimum", labels.min],
++    ["maximum", labels.max],
++    ["minLength", labels.minLength],
++    ["maxLength", labels.maxLength],
++    ["minItems", labels.minItems],
++    ["maxItems", labels.maxItems],
+   ];
+   for (const [key, label] of numeric) {
+     const value = schema[key];
+@@ -239,10 +245,10 @@ export const constraints = (schema: SchemaLike): string[] => {
+     }
+   }
+   if (isString(schema.pattern)) {
+-    out.push(`matches ${schema.pattern}`);
++    out.push(`${labels.matches} ${schema.pattern}`);
+   }
+   if (schema.default !== undefined) {
+-    out.push(`default: ${JSON.stringify(schema.default)}`);
++    out.push(`${labels.default} ${JSON.stringify(schema.default)}`);
+   }
+   return out;
+ };
+diff --git a/src/components/openapi/strings.ts b/src/components/openapi/strings.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..c2ccf16ea0883387e33ea73ea1735f9e91881382
+--- /dev/null
++++ b/src/components/openapi/strings.ts
+@@ -0,0 +1,88 @@
++/**
++ * Labels of the API reference chrome, per page locale. The English set is the
++ * baseline; a locale pack overrides any subset and falls back per key.
++ */
++const en = {
++  allowed: "Allowed:",
++  anyOf: "Any of",
++  arrayOf: "Array of",
++  authOptional: "Optional — this operation also accepts unauthenticated requests.",
++  authorization: "Authorization",
++  circularReference: "Circular reference to",
++  copied: "Copied",
++  copy: "Copy",
++  default: "default:",
++  deprecated: "deprecated",
++  hideProperties: "Hide properties",
++  matches: "matches",
++  max: "max",
++  maxItems: "max items",
++  maxLength: "max length",
++  min: "min",
++  minItems: "min items",
++  minLength: "min length",
++  notFound: "This API operation could not be found.",
++  oneOf: "One of",
++  or: "or",
++  paramsChannel: "Channel parameters",
++  paramsCookie: "Cookie parameters",
++  paramsHeader: "Header parameters",
++  paramsPath: "Path parameters",
++  paramsQuery: "Query parameters",
++  request: "Request",
++  requestBody: "Request body",
++  required: "required",
++  response: "Response",
++  responses: "Responses",
++  scopes: "Scopes:",
++  showProperties: "Show properties",
++  version: "Version",
++};
++
++export type ReferenceStrings = typeof en;
++
++const packs: Record<string, Partial<ReferenceStrings>> = {
++  zh: {
++    allowed: "可选值：",
++    anyOf: "以下任意一种",
++    arrayOf: "数组，元素为",
++    authOptional: "可选：此接口也接受未认证的请求。",
++    authorization: "认证",
++    circularReference: "循环引用",
++    copied: "已复制",
++    copy: "复制",
++    default: "默认值：",
++    deprecated: "已弃用",
++    hideProperties: "收起属性",
++    matches: "匹配",
++    max: "最大值",
++    maxItems: "最多项数",
++    maxLength: "最大长度",
++    min: "最小值",
++    minItems: "最少项数",
++    minLength: "最小长度",
++    notFound: "找不到此 API 操作。",
++    oneOf: "以下之一",
++    or: "或",
++    paramsChannel: "频道参数",
++    paramsCookie: "Cookie 参数",
++    paramsHeader: "请求头参数",
++    paramsPath: "路径参数",
++    paramsQuery: "查询参数",
++    request: "请求",
++    requestBody: "请求体",
++    required: "必填",
++    response: "响应",
++    responses: "响应",
++    scopes: "权限范围：",
++    showProperties: "展开属性",
++    version: "版本",
++  },
++};
++
++/** The labels for `locale` (e.g. `Astro.currentLocale`), English when unknown. */
++export const referenceStrings = (locale?: string): ReferenceStrings => {
++  const code = locale?.toLowerCase() ?? "";
++  const pack = packs[code] ?? packs[code.split("-")[0] ?? ""] ?? {};
++  return { ...en, ...pack };
++};
