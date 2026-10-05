@@ -63,7 +63,7 @@ Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and do
 
 ## Known limitations
 
-- Result links are valid for 15 minutes; download them right away, or use `b64_json` to keep the bytes.
+- Result links stay valid until the result expires, 7 days after the Job was created; use `b64_json` or copy the file if you need it longer.
 - An image that takes longer than the 10-minute wait returns a timeout error, but the Job continues and is charged if it succeeds. The same applies when the end client disconnects. Reconcile with the `X-Yir-Job-Id` response header.
 - new-api's non-streaming relay sends nothing to the end client until the image is ready. For slow models, set the client timeout above 10 minutes, or use `stream: true` (the v1.0 RC relays it as a stream).
 - `n > 1`, `mask`, and JSON image edits are not supported.
