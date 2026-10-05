@@ -43,7 +43,7 @@ sequenceDiagram
 ```
 
 - **一个请求对应一个 Job。** 渠道切换在 Job 内部完成，渠道失败时无需重新提交。
-- **只为交付的结果付费。** 失败或已取消的 Job 不收费，渠道已计费后被内容拦截的输出除外。见[报价与计费](/zh/docs/concepts/billing)。
+- **按渠道实际账单付费。** 渠道计了费的每次尝试都按折扣后金额收取，失败的也一样；渠道没计费的尝试不收费，Yir 自身的交付失败与超时由 Yir 承担。见[报价与计费](/zh/docs/concepts/billing)。
 - **无需上游凭据。** 只使用 Yir API Key 认证。见[身份认证](/zh/docs/getting-started/authentication)。
 
 ## 按需查阅

@@ -58,7 +58,7 @@ To avoid polling entirely, set `webhook_url` and receive the terminal Job by [We
 Request cancellation with `POST /v1/jobs/{id}/cancel`. The effect depends on how far the Job has progressed:
 
 - **Before any provider submission**, the Job becomes `cancelled` immediately and nothing is charged.
-- **After a provider submission**, the response carries `cancellation.status: "stop_requested"`. Yir starts no further fallback attempts, but the current attempt keeps running. If it succeeds, the result is delivered and charged; if it fails, the Job ends as `failed` with no charge.
+- **After a provider submission**, the response carries `cancellation.status: "stop_requested"`. Yir starts no further fallback attempts, but the current attempt keeps running. If it succeeds, the result is delivered and charged; if it fails, the Job ends as `failed` and is charged only what the channel billed for that attempt.
 
 Show "Stop requested" in your UI in the second case and keep polling. Cancelling a Job that is already `succeeded` or `failed` returns `409 YIR_JOB_NOT_CANCELLABLE`. Repeating a cancel request is safe. If a cancel request fails or times out, the cancellation may already have taken effect: query the Job to see its current `status` and `cancellation`.
 

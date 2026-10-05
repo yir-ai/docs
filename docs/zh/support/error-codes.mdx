@@ -49,7 +49,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 
 ## Job 错误
 
-出现在状态为 `failed` 的 Job 上。失败的 Job 不收费，只有一个例外：渠道已生成并计费的结果被判为 `YIR_CONTENT_REJECTED`（见下表）。
+出现在状态为 `failed` 的 Job 上。失败的 Job 只按渠道实际计费的尝试收费（例如渠道已生成并计费的结果被判为 `YIR_CONTENT_REJECTED`，或渠道计费后才失败的尝试）；渠道没计费的尝试不收费，`YIR_RESULT_DELIVERY_FAILED` 与 `YIR_OUTCOME_TIMEOUT` 永不收费。
 
 | 错误码 | 含义 | 处理方式 |
 | --- | --- | --- |

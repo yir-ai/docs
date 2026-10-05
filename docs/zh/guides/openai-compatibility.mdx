@@ -57,7 +57,7 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 
 ## 计费
 
-- 与 Standard API 相同，只对成功交付的结果收费，失败不收费，见[计费](/zh/docs/concepts/billing)。
+- 与 Standard API 相同，按渠道实际计费 × 折扣收费，渠道未计费的尝试不收费，见[计费](/zh/docs/concepts/billing)。
 - 在 new-api 侧按自己的售价配置：图片按次，视频按秒，可参考 Yir 模型页同规格价格。
 - 建议在 Console 给这个 Key 设置月度支出上限，防止配置错误造成意外消耗。
 
@@ -78,6 +78,6 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 | 402 `insufficient_quota` | 余额不足，new-api 会自动禁用渠道；充值后重新启用 |
 | 403 | Key 月度上限已到 |
 | 503 | 暂无可用供应，new-api 会换渠道重试 |
-| 200 且带 `error` | 任务已执行但失败（如内容审核拦截），不收费 |
+| 200 且带 `error` | 任务已执行但失败（如内容审核拦截），只按渠道实际计费收费，通常为零 |
 
 反馈问题时请附上响应头 `X-Yir-Job-Id`。

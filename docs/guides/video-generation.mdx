@@ -107,7 +107,7 @@ Replace the example file IDs with your own ready files.
 
 Video prices depend on duration, resolution, audio, and references, so quote the exact request with `POST /v1/videos/quotes` first. A quote that includes video or audio references uses their measured durations. Check `supply.available`. The quoted price is an estimate and the final charge follows the actual cost; add `max_cost` on submission if you need a cap.
 
-Supported Kling Motion Control channels also accept explicit `billing_mode: "actual"` with `routing.only`, without `max_cost`. This accepts the delivered winner's actual fee, including wallet debt; a quote provides no guaranteed spending ceiling. See [actual-cost billing](/docs/concepts/billing).
+Supported Kling Motion Control channels also accept explicit `billing_mode: "actual"` with `routing.only`, without `max_cost`. This accepts the actual fee of every channel-billed attempt, including wallet debt; a quote provides no guaranteed spending ceiling. See [actual-cost billing](/docs/concepts/billing).
 
 ## Results
 

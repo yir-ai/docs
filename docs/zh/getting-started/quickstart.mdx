@@ -96,7 +96,7 @@ curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 
 结果地址是短期签名链接，不要向它发送 API Key。请把文件复制到自己的存储。结果自 Job 创建起保留 7 天，见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
 
-如果 Job 为 `failed`，读取 `error.code` 与 `error.action`，并在[错误码](/zh/docs/support/error-codes)中查阅。失败的 Job 不收费（渠道已计费的输出被内容拦截除外）。
+如果 Job 为 `failed`，读取 `error.code` 与 `error.action`，并在[错误码](/zh/docs/support/error-codes)中查阅。失败的 Job 只按渠道实际计费的尝试收费，多数失败不产生费用。
 
 ## 下一步
 

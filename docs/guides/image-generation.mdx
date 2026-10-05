@@ -13,7 +13,7 @@ Submit image Jobs to `POST /v1/images/generations`. The request shape is the sam
 | `input` | Yes | `{ "type": "text", "prompt": ... }` or `{ "type": "image", "prompt": ..., "references": [...] }`. Prompts are 1–20,000 characters. |
 | `parameters` | Yes | Model parameters, for example `resolution`, `aspect_ratio`, `quality`, and `n`. |
 | `max_cost` | No | Optional cap on the whole Job's charge in USD; channels whose estimate exceeds it are skipped. See [billing](/docs/concepts/billing#set-a-spending-limit). |
-| `billing_mode` | No | Explicit `actual` consent for supported channels: the delivered winner's actual fee can create wallet debt. Requires `routing.only` and excludes `max_cost`. See [billing](/docs/concepts/billing). |
+| `billing_mode` | No | Explicit `actual` consent for supported channels: the actual fee of every channel-billed attempt can create wallet debt. Requires `routing.only` and excludes `max_cost`. See [billing](/docs/concepts/billing). |
 | `routing` | No | Channel preference, allowlist, variants, and fallback. See [routing](/docs/concepts/routing). |
 | `webhook_url` | No | HTTPS URL that receives the terminal Job. See [Webhooks](/docs/guides/webhooks). |
 

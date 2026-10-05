@@ -13,7 +13,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片。
 | `input` | 是 | `{ "type": "text", "prompt": ... }` 或 `{ "type": "image", "prompt": ..., "references": [...] }`。提示词 1–20,000 个字符。 |
 | `parameters` | 是 | 模型参数，例如 `resolution`、`aspect_ratio`、`quality` 和 `n`。 |
 | `max_cost` | 否 | 可选，整个 Job 的美元费用上限；估价超过它的渠道会被跳过，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
-| `billing_mode` | 否 | 对支持的渠道显式选择 `actual`，成功交付的 winner 实际费用可形成钱包欠款。必须指定 `routing.only`，不能携带 `max_cost`，见[计费](/zh/docs/concepts/billing)。 |
+| `billing_mode` | 否 | 对支持的渠道显式选择 `actual`，渠道计费尝试的实际费用可形成钱包欠款。必须指定 `routing.only`，不能携带 `max_cost`，见[计费](/zh/docs/concepts/billing)。 |
 | `routing` | 否 | 渠道偏好、白名单、版本与切换，见[路由](/zh/docs/concepts/routing)。 |
 | `webhook_url` | 否 | 接收终态 Job 的 HTTPS 地址，见 [Webhook](/zh/docs/guides/webhooks)。 |
 

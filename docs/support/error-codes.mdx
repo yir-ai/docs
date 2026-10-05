@@ -49,7 +49,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 
 ## Job errors
 
-Appear on a Job whose status is `failed`. Failed Jobs are not charged, with one exception: a `YIR_CONTENT_REJECTED` output the provider already generated and billed (see below).
+Appear on a Job whose status is `failed`. A failed Job is charged only what the channel actually billed for its attempts (for example a `YIR_CONTENT_REJECTED` output the provider generated and billed, or an attempt that failed after the channel billed it); attempts the channel never billed cost nothing, and `YIR_RESULT_DELIVERY_FAILED` and `YIR_OUTCOME_TIMEOUT` are never charged.
 
 | Code | Meaning | What to do |
 | --- | --- | --- |

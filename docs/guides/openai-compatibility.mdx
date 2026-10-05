@@ -78,6 +78,6 @@ Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and do
 | 402 `insufficient_quota` | Insufficient balance; new-api disables the channel. Re-enable it after topping up |
 | 403 | The key's monthly limit is reached |
 | 503 | No supply is available; new-api retries on another channel |
-| 200 with `error` | The Job ran but failed (for example, blocked by content moderation) and is not charged |
+| 200 with `error` | The Job ran but failed (for example, blocked by content moderation); it is charged only what the channel billed, usually nothing |
 
 Include the `X-Yir-Job-Id` response header when reporting a problem.
