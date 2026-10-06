@@ -37,7 +37,7 @@ The values above are illustrative. Amounts are USD decimal strings; use decimal 
 | --- | --- |
 | `primary` | Estimated price on the channel Yir would try first. It is a reference price, not a charge or a ceiling. |
 | `official` | The model maker's own reference price, for comparison. It does not mean the official channel will run. |
-| `price_difference_percent` | Optional comparison with `official`. Negative means Yir is cheaper. |
+| `price_difference_percent` | Optional comparison with `official`. Negative means this channel is below the official price. |
 | `supply.available` | `false` with `issues: ["no_matching_supply"]` when no channel can run this request right now. |
 
 `max`, `single_attempt_upper_bound`, `has_verifiable_upper_bound`, and `supply.requires_max_cost` are deprecated and kept only for compatibility with earlier clients: `max` repeats `primary`, and the others are always `null`, `false`, and `false`. Do not base decisions on them.
@@ -64,7 +64,7 @@ Submission checks prices again. A quote you obtained earlier does not guarantee 
 
 1. **Admission** checks your live available balance against the first channel's estimate. Nothing is reserved. Before each later attempt, the balance is checked again against that channel's estimate. While your available balance is below US$5 and another of your Jobs is running, a new Job waits in `queued` and rechecks every 10 seconds; if it still cannot start after 30 minutes, it fails with `YIR_INSUFFICIENT_BALANCE`.
 2. **Each attempt the channel billed** is charged when it ends: the channel's actual upstream cost × your discount, rounded up to US$0.000001. This includes the delivered attempt, an attempt that failed before a fallback, and `YIR_CONTENT_REJECTED` output the provider generated and billed but Yir did not deliver. The Job's total is capped by `max_cost` when set.
-3. **Attempts the channel never billed** cost nothing, so most failed and cancelled Jobs are free. Yir also absorbs its own failures: a result Yir could not deliver (`YIR_RESULT_DELIVERY_FAILED`), an attempt whose outcome the channel never confirmed (`YIR_OUTCOME_TIMEOUT`), and an attempt still running when the Job reaches its maximum run time (`YIR_JOB_TIMEOUT`). A failed attempt is charged only from a confirmed channel bill; if the bill never arrives, Yir absorbs it.
+3. **Attempts the channel never billed** cost nothing. Yir also absorbs its own failures: a result Yir could not deliver (`YIR_RESULT_DELIVERY_FAILED`), an attempt whose outcome the channel never confirmed (`YIR_OUTCOME_TIMEOUT`), and an attempt still running when the Job reaches its maximum run time (`YIR_JOB_TIMEOUT`). A failed attempt is charged only from a confirmed channel bill; if the bill never arrives, Yir absorbs it.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
 5. **Exceptions.** If the bill for a delivered result is missing or conflicting, or the discounted actual cost is more than three times that attempt's estimate and at least US$0.02 above it, Yir charges the estimate frozen when the attempt was submitted and absorbs the difference.
 

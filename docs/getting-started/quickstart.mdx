@@ -96,7 +96,7 @@ curl --location --output image.png "$(jq -r '.result.files[0].url' job.json)"
 
 The result URL is a short-lived signed link: do not send your API Key to it. Copy the file to your own storage. Results are kept for 7 days after the Job is created (see [results and retention](/docs/concepts/task-lifecycle#results-and-retention)).
 
-If the Job `failed`, read `error.code` and `error.action` and look it up in [error codes](/docs/production/error-codes). A failed Job is charged only what the channel actually billed for its attempts; most failures bill nothing.
+If the Job `failed`, read `error.code` and `error.action` and look it up in [error codes](/docs/production/error-codes). A failed Job is charged only what the channel actually billed for its attempts.
 
 ## Next steps
 
