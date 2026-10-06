@@ -3,12 +3,12 @@
   "info": {
     "title": "Yir Standard 异步 AIGC API",
     "version": "1.0.0-preview",
-    "description": "Yir 统一异步 AI 网关的公开 REST API：报价并提交图片和视频生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
+    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片和视频生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
   },
   "servers": [
     {
       "url": "https://gateway.yir.ai",
-      "description": "Yir 统一异步 AI 网关（Bearer API Key 认证）"
+      "description": "Yir AI 图片与视频 API 路由（Bearer API Key 认证）"
     }
   ],
   "security": [
