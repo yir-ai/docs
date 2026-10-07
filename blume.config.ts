@@ -100,7 +100,7 @@ export default defineConfig({
   title: "Yir Docs",
   description:
     "Build reliable asynchronous image and video generation workflows with Yir.",
-  logo: { image: "/logo.svg", text: "Docs", href: "/docs" },
+  logo: { image: "/logo.svg", href: "/docs" },
   content: {
     sources: [filesystem({ root: "docs", prefix: "docs" })],
   },
