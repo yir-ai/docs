@@ -16,7 +16,13 @@ In Claude Code, install it as a plugin; updates arrive with `/plugin marketplace
 /plugin install yir@yir-ai
 ```
 
-Or copy `skills/yir` into your agent's skills directory. The script examples below use this copied location.
+To install into Claude Code and Codex at once, use the [skills](https://github.com/vercel-labs/skills) CLI (on Windows add `--copy`):
+
+```sh
+npx skills add yir-ai/skills -a claude-code -a codex
+```
+
+Or copy `skills/yir` into your agent's skills directory. The script examples below use the Claude Code location.
 
 <CodeGroup>
 
@@ -27,12 +33,12 @@ cp -r skills/skills/yir ~/.claude/skills/yir
 
 ```sh Codex
 git clone https://github.com/yir-ai/skills.git
-cp -r skills/skills/yir ~/.codex/skills/yir
+cp -r skills/skills/yir ~/.agents/skills/yir
 ```
 
 </CodeGroup>
 
-For Claude Code you can also use `.claude/skills/` inside a project. Other agents that support `SKILL.md` skills can point at the same folder.
+Inside a project, Claude Code also reads `.claude/skills/` and Codex reads `.agents/skills/`. Other agents that support `SKILL.md` skills can point at the same folder.
 
 ## Set your API Key
 

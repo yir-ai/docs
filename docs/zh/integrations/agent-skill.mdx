@@ -16,7 +16,13 @@ Claude Code 可以作为插件安装，之后用 `/plugin marketplace update yir
 /plugin install yir@yir-ai
 ```
 
-也可以把 `skills/yir` 复制到 Agent 的 skills 目录。下文直接运行脚本的示例按复制安装的路径书写。
+要一次装到 Claude Code 和 Codex，可以用 [skills](https://github.com/vercel-labs/skills) 命令行（Windows 上加 `--copy`）：
+
+```sh
+npx skills add yir-ai/skills -a claude-code -a codex
+```
+
+也可以把 `skills/yir` 复制到 Agent 的 skills 目录。下文直接运行脚本的示例按 Claude Code 的安装路径书写。
 
 <CodeGroup>
 
@@ -27,12 +33,12 @@ cp -r skills/skills/yir ~/.claude/skills/yir
 
 ```sh Codex
 git clone https://github.com/yir-ai/skills.git
-cp -r skills/skills/yir ~/.codex/skills/yir
+cp -r skills/skills/yir ~/.agents/skills/yir
 ```
 
 </CodeGroup>
 
-Claude Code 也可以放在项目内的 `.claude/skills/`。其他支持 `SKILL.md` 的 Agent 指向同一目录即可。
+项目内也可以放：Claude Code 读 `.claude/skills/`，Codex 读 `.agents/skills/`。其他支持 `SKILL.md` 的 Agent 指向同一目录即可。
 
 ## 设置 API Key
 
