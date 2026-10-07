@@ -70,6 +70,8 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | `google/nano-banana-2` | `aspect_ratio` | 省略时由模型跟随输入。Vertex AI 另有 `9:21`。 | `auto`（默认）等同于省略。没有 `9:21`。 |
 | `google/nano-banana-2` | 图片搜索 | 可单独使用。 | `image_search` 需要同时设置 `web_search: true`。 |
 | `google/nano-banana-2` | `thinking_level`、视频输入 | 支持。 | 不可用。 |
+| `google/nano-banana-2.1` | `aspect_ratio` | 省略时由模型跟随输入。 | `auto`（默认）等同于省略。 |
+| `google/nano-banana-2.1` | 网页与图片搜索、`thinking_level`、视频输入 | 支持。 | 不可用。 |
 | `google/nano-banana-pro` | Google 搜索 Grounding | 支持。 | 不可用（该模型不提供 `web_search`）。 |
 | `google/nano-banana-pro` | `aspect_ratio` | Vertex AI 另列出 `1:4`、`4:1`、`1:8`、`8:1`、`9:21`。 | 10 种标准比例加 `auto`。 |
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 尾帧、参考图、视频延长 | 支持。 | 不可用；`image` 模式只接受 `first_frame`。 |

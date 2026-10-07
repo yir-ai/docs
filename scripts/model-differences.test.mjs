@@ -39,6 +39,8 @@ const nb2 = 'google/nano-banana-2'
 check('nano-banana-2 has 0.5K', vals(nb2, 'resolution').includes('0.5K'), vals(nb2, 'resolution'))
 check('nano-banana-2 aspect default auto, no 9:21', def(nb2, 'aspect_ratio') === 'auto' && !vals(nb2, 'aspect_ratio').includes('9:21'), vals(nb2, 'aspect_ratio'))
 check('nano-banana-2 has image_search', !!P(nb2, 'image_search'), !!P(nb2, 'image_search'))
+const nb21 = 'google/nano-banana-2.1'
+check('nano-banana-2.1 aspect default auto, no search', def(nb21, 'aspect_ratio') === 'auto' && !P(nb21, 'web_search') && !P(nb21, 'image_search'), vals(nb21, 'aspect_ratio'))
 const nbp = 'google/nano-banana-pro'
 check('nano-banana-pro no web_search', !P(nbp, 'web_search'), !!P(nbp, 'web_search'))
 check('nano-banana-pro 10 ratios + auto', vals(nbp, 'aspect_ratio').length === 11 && vals(nbp, 'aspect_ratio').includes('auto'), vals(nbp, 'aspect_ratio'))

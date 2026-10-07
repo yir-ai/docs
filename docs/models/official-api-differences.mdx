@@ -70,6 +70,8 @@ Migrating: set `duration` explicitly to one of the supported lengths; other valu
 | `google/nano-banana-2` | `aspect_ratio` | Omit to let the model follow the input. Vertex AI also lists `9:21`. | `auto` (the default) does the same as omitting it. No `9:21`. |
 | `google/nano-banana-2` | Image search | Can be used on its own. | `image_search` requires `web_search: true`. |
 | `google/nano-banana-2` | `thinking_level`, video input | Available. | Not available. |
+| `google/nano-banana-2.1` | `aspect_ratio` | Omit to let the model follow the input. | `auto` (the default) does the same as omitting it. |
+| `google/nano-banana-2.1` | Web and image search, `thinking_level`, video input | Available. | Not available. |
 | `google/nano-banana-pro` | Google Search grounding | Available. | Not available (`web_search` is not offered for this model). |
 | `google/nano-banana-pro` | `aspect_ratio` | Vertex AI also lists `1:4`, `4:1`, `1:8`, `8:1`, `9:21`. | 10 standard ratios plus `auto`. |
 | `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | Last frame, reference images, video extension | Available. | Not available; `image` mode takes a `first_frame` only. |
