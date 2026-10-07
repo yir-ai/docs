@@ -24,6 +24,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
   "currency": "USD",
   "supply": { "available": true, "issues": [] },
   "primary": { "kind": "fixed", "amount": "0.04" },
+  "expected_amount": "0.04",
   "official": { "kind": "fixed", "amount": "0.053" },
   "expires_at": 1790000300
 }
@@ -36,6 +37,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 | 字段 | 含义 |
 | --- | --- |
 | `primary` | Yir 首选渠道的估价，是参考价，不是收费金额或上限。 |
+| `expected_amount` | 可选。Yir 对首选渠道核对余额、API Key 月度上限和 `max_cost` 时使用的估价。与 `estimate` 类价格不同，它包含参考图等已知输入费用，按用量计费的渠道还参考近期实收。它是参考价，不是上限；切到备选渠道时可能更贵。 |
 | `official` | 模型原厂的参考价格，仅供对比，不代表会使用官方渠道执行。 |
 | `price_difference_percent` | 可选，与 `official` 的对比，负数表示该渠道低于官方价。 |
 | `supply.available` | 当前没有渠道能执行此请求时为 `false`，并带有 `issues: ["no_matching_supply"]`。 |
@@ -110,4 +112,4 @@ Job 进入终态时计费即为最终结果。读取终态 Job 的 `billing`：
 
 ## 为自己的产品定价
 
-如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的收费分开。报价的 `primary` 可作为定价参考，但最终费用以实际成本为准，`estimate` 仅覆盖输出。需要为每个 Job 设定硬上限时，请设置 `max_cost`。每个 Job（包括失败的）核对一次 `total_charged_by_yir`：渠道对某次尝试计了费时，失败的 Job 也可能有费用。
+如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的收费分开。报价的 `expected_amount`（缺省时用 `primary`）可作为定价参考，但最终费用以实际成本为准，`estimate` 类价格仅覆盖输出。需要为每个 Job 设定硬上限时，请设置 `max_cost`。每个 Job（包括失败的）核对一次 `total_charged_by_yir`：渠道对某次尝试计了费时，失败的 Job 也可能有费用。

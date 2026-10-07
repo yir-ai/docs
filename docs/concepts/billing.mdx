@@ -24,6 +24,7 @@ Quotes validate the model, input, and parameters exactly like a submission, but 
   "currency": "USD",
   "supply": { "available": true, "issues": [] },
   "primary": { "kind": "fixed", "amount": "0.04" },
+  "expected_amount": "0.04",
   "official": { "kind": "fixed", "amount": "0.053" },
   "expires_at": 1790000300
 }
@@ -36,6 +37,7 @@ The values above are illustrative. Amounts are USD decimal strings; use decimal 
 | Field | Meaning |
 | --- | --- |
 | `primary` | Estimated price on the channel Yir would try first. It is a reference price, not a charge or a ceiling. |
+| `expected_amount` | Optional. The estimate Yir checks your balance, API Key monthly limit and `max_cost` against for the first channel. Unlike an `estimate` price, it includes known input charges such as reference images and, for usage-billed channels, recent actual charges. It is a reference, not a ceiling; a fallback channel can cost more. |
 | `official` | The model maker's own reference price, for comparison. It does not mean the official channel will run. |
 | `price_difference_percent` | Optional comparison with `official`. Negative means this channel is below the official price. |
 | `supply.available` | `false` with `issues: ["no_matching_supply"]` when no channel can run this request right now. |
@@ -110,4 +112,4 @@ Billing is final when the Job reaches a terminal state. Read the terminal Job's 
 
 ## Pricing your own product
 
-If you resell generation to your users, keep your retail prices and refund rules separate from Yir's charges. A quote's `primary` is a useful pricing input, but the final charge follows the actual cost, and an `estimate` covers output only. Set `max_cost` when you need a hard ceiling per Job. Reconcile `total_charged_by_yir` once per Job, including failed Jobs: a failed Job can carry a non-zero charge when the channel billed an attempt.
+If you resell generation to your users, keep your retail prices and refund rules separate from Yir's charges. A quote's `expected_amount` (or `primary` when it is absent) is a useful pricing input, but the final charge follows the actual cost, and an `estimate` price covers output only. Set `max_cost` when you need a hard ceiling per Job. Reconcile `total_charged_by_yir` once per Job, including failed Jobs: a failed Job can carry a non-zero charge when the channel billed an attempt.
