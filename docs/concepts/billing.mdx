@@ -56,9 +56,17 @@ Both `fixed` and `estimate` predict the final charge, which follows the channel'
 
 - **Omitted:** every channel-billed attempt is charged its actual cost.
 - **Set:** Yir only uses channels, including fallback channels, whose estimate fits within what remains of `max_cost` after earlier attempts' charges. The Job's total charge across all attempts never exceeds `max_cost`; if the actual cost is higher, Yir absorbs the difference.
-- **Too low:** if no eligible channel's estimate fits, the submission is rejected with `400 YIR_INVALID_REQUEST`. If no further attempt fits after a failure, the Job fails with `YIR_BUDGET_EXCEEDED`.
+- **Too low:** if no eligible channel's estimate fits, the submission is rejected with `422 YIR_BUDGET_EXCEEDED`, and the message names the lowest current estimate. If no further attempt fits after a failure, the Job fails with `YIR_BUDGET_EXCEEDED`.
 
 Submission checks prices again. A quote you obtained earlier does not guarantee the same price or availability.
+
+### Prices can change
+
+The price of the same request can go up: a cheaper channel goes offline or cools down after failures, a routing default changes which channels are eligible (for example [`routing.fidelity`](/docs/concepts/routing)), or a catalog price changes. With `max_cost` set, a cap that used to pass can start rejecting requests.
+
+- Use `max_cost` as a guard against runaway charges, not as a price lock. Leave headroom over the quote.
+- On `YIR_BUDGET_EXCEEDED`, quote the request again, then decide: raise `max_cost` on a new request, or choose a cheaper model or specification. Do not raise the cap automatically.
+- If you resell generation with your own price checks, alert on rejections instead of failing silently, so a price change shows up before your users notice.
 
 ## How a Job is charged
 

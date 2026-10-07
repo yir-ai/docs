@@ -13,7 +13,7 @@ description: 排查 Yir 接入中认证、提交与幂等、轮询、结果下�
     `402 YIR_INSUFFICIENT_BALANCE` 表示余额不足以覆盖本次估价或余额为负，请先充值。`403 YIR_SPEND_LIMIT_EXCEEDED` 表示该 Key 已达月度上限，可在 Console → API Key 提高。
   </AccordionItem>
   <AccordionItem title="提交返回 422 YIR_NO_EXECUTABLE_ROUTE">
-    当前没有渠道能执行这个具体请求。先报价并检查 `supply`，然后移除过严的 `routing.only` 或 `variants`、提高 `max_cost`，或尝试其他参数。
+    当前没有渠道能执行这个具体请求。先报价并检查 `supply`，然后移除过严的 `routing.only` 或 `variants`，或尝试其他参数。
   </AccordionItem>
   <AccordionItem title="提交请求超时">
     用相同的幂等键重发完全相同的请求。如果之前已被接受，会返回原来的 Job。换新键可能产生第二个 Job 和第二笔费用。

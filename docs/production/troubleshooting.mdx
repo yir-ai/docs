@@ -13,7 +13,7 @@ Look up specific codes in [error codes](/docs/production/error-codes). For the p
     `402 YIR_INSUFFICIENT_BALANCE` means the balance does not cover the request's estimate or is negative; top up first. `403 YIR_SPEND_LIMIT_EXCEEDED` means this key reached its monthly limit; raise it in Console → API Keys.
   </AccordionItem>
   <AccordionItem title="Submission returns 422 YIR_NO_EXECUTABLE_ROUTE">
-    No channel can run this exact request right now. Quote it and check `supply`. Remove a restrictive `routing.only` or `variants`, raise `max_cost`, or try other parameters.
+    No channel can run this exact request right now. Quote it and check `supply`. Remove a restrictive `routing.only` or `variants`, or try other parameters.
   </AccordionItem>
   <AccordionItem title="The submit request timed out">
     Resend the identical request with the same idempotency key. You will get the original Job if it was accepted. A new key could create a second Job and a second charge.
