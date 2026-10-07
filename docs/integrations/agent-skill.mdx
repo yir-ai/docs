@@ -54,4 +54,18 @@ node ~/.claude/skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "
 node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
 ```
 
-Results are saved to `./yir-output` by default. Run `node ~/.claude/skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.
+Results are saved to `./yir-output` by default. Each result gets a `.json` sidecar with its prompt, parameters, channel, Job ID, and charge. Run `node ~/.claude/skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.
+
+## Generate many assets at once
+
+For a landing page, deck, or article, ask the agent for the whole set ("the hero, three feature images and a 5-second demo clip, under $2"). The skill writes a plan file and runs it as one batch:
+
+```sh
+# Check every job and quote the total; submits nothing
+node ~/.claude/skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
+
+# Run with a spending limit
+node ~/.claude/skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets
+```
+
+Before each submit the skill checks what earlier jobs actually charged against `--max-total`. Running the same command again resumes the batch: finished jobs are skipped and submitted jobs are not created twice. The plan format is in the skill's [SKILL.md](https://github.com/yir-ai/skills/blob/main/skills/yir/SKILL.md).

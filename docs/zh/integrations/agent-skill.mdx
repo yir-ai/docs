@@ -54,4 +54,18 @@ node ~/.claude/skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "
 node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
 ```
 
-结果默认保存到 `./yir-output`。运行 `node ~/.claude/skills/yir/scripts/yir.mjs --help` 查看全部命令，包括 `models`、`quote` 和 `job <id> --wait --download`。
+结果默认保存到 `./yir-output`，每个结果旁附一个 `.json` 文件，记录提示词、参数、渠道、Job ID 和费用。运行 `node ~/.claude/skills/yir/scripts/yir.mjs --help` 查看全部命令，包括 `models`、`quote` 和 `job <id> --wait --download`。
+
+## 批量生成素材
+
+做落地页、演示文稿或文章时，可以直接要一整套（“主图、三张功能图和一段 5 秒演示视频，总价不超过 $2”）。Skill 会写出计划文件，作为一个批次运行：
+
+```sh
+# 校验每个任务并汇总报价，不提交
+node ~/.claude/skills/yir/scripts/yir.mjs batch plan.json --dry-run --out ./assets
+
+# 设定花费上限后运行
+node ~/.claude/skills/yir/scripts/yir.mjs batch plan.json --max-total 2.00 --out ./assets
+```
+
+每次提交前，Skill 会用已完成任务的实际扣费核对 `--max-total`。再次运行同一命令会接着跑：已完成的任务跳过，已提交的任务不会重复创建。计划文件格式见 Skill 的 [SKILL.md](https://github.com/yir-ai/skills/blob/main/skills/yir/SKILL.md)。
