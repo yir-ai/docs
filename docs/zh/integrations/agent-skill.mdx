@@ -9,7 +9,14 @@ description: 安装 Yir 官方 Agent Skill，让 Claude Code、Codex 等编程 A
 
 ## 安装
 
-把 `skills/yir` 复制到 Agent 的 skills 目录。
+Claude Code 可以作为插件安装，之后用 `/plugin marketplace update yir-ai` 更新：
+
+```sh
+/plugin marketplace add yir-ai/skills
+/plugin install yir@yir-ai
+```
+
+也可以把 `skills/yir` 复制到 Agent 的 skills 目录。下文直接运行脚本的示例按复制安装的路径书写。
 
 <CodeGroup>
 
