@@ -100,7 +100,7 @@ export default defineConfig({
   title: "Yir Docs",
   description:
     "Build reliable asynchronous image and video generation workflows with Yir.",
-  logo: { image: "/logo.svg", text: "", href: "/docs" },
+  logo: { image: "/logo.svg", text: "", href: "/" },
   content: {
     sources: [filesystem({ root: "docs", prefix: "docs" })],
   },
@@ -123,11 +123,11 @@ export default defineConfig({
   navigation: {
     repo: true,
     sidebar: { display: "flat" },
-    // Docs ship under yir.ai/docs; "/" is the yir.ai home (localized to /zh).
+    // Docs ship under yir.ai/docs; the logo leads to the yir.ai home (localized to /zh).
     tabs: [
-      { label: { en: "Home", zh: "首页" }, path: "/home", href: "/" },
       { label: { en: "Docs", zh: "文档" }, path: "/docs" },
       { label: { en: "API Reference", zh: "API 参考" }, path: "/docs/reference" },
+      { label: { en: "Console", zh: "控制台" }, path: "/console", href: "/console" },
     ],
   },
   github: { owner: "yir-ai", repo: "docs", branch: "main" },
