@@ -1083,6 +1083,15 @@
           },
           "fallback": {
             "type": "boolean"
+          },
+          "fidelity": {
+            "type": "string",
+            "enum": [
+              "original",
+              "genuine",
+              "any"
+            ],
+            "description": "Lowest acceptable fidelity of the delivered file, judged from the vendor's C2PA content signature. original: only routes verified as untouched vendor API output, plus the official channel. genuine (the default): excludes routes known to upscale or otherwise alter the output. any: no restriction, cheapest. Overrides the routing profile default. When every route is excluded the request fails with YIR_FIDELITY_EXCLUDED; quotes report the specification as unavailable."
           }
         }
       },
@@ -2033,7 +2042,8 @@
               "YIR_CONTENT_REJECTED",
               "YIR_OUTCOME_TIMEOUT",
               "YIR_RESULT_DELIVERY_FAILED",
-              "YIR_JOB_TIMEOUT"
+              "YIR_JOB_TIMEOUT",
+              "YIR_FIDELITY_EXCLUDED"
             ]
           },
           "message": {
@@ -2382,6 +2392,34 @@
             "type": "integer",
             "format": "int64",
             "minimum": 1
+          },
+          "fidelity": {
+            "$ref": "#/components/schemas/ResultFileFidelity"
+          }
+        }
+      },
+      "ResultFileFidelity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "grade",
+          "reason"
+        ],
+        "description": "Where this file came from and whether its specification is genuine, judged at delivery from the file's C2PA content signature and Yir's channel audits. `original`: untouched output of the vendor API. `app`: untouched output of the vendor's consumer app (for example ChatGPT), whose size and quality the app decides. `equivalent`: no valid vendor signature, but evidence shows the file is native model output with no post-processing (the signature was removed without re-encoding, or the channel passed Yir's quality audit). `altered`: changed after generation, for example upscaled. `unverified`: no evidence either way. Omitted for historical results.",
+        "properties": {
+          "grade": {
+            "type": "string",
+            "enum": [
+              "original",
+              "app",
+              "equivalent",
+              "altered",
+              "unverified"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Stable reason code, for example vendor_signed, signature_scrubbed, route_audited, hash_mismatch, signature_missing, third_party_signed, unsigned."
           }
         }
       },

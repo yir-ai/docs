@@ -1083,6 +1083,15 @@
           },
           "fallback": {
             "type": "boolean"
+          },
+          "fidelity": {
+            "type": "string",
+            "enum": [
+              "original",
+              "genuine",
+              "any"
+            ],
+            "description": "交付文件可接受的最低真实性等级，依据厂商的 C2PA 内容签名判断。original：只用已验证为厂商 API 原始输出的路由，以及官方渠道。genuine（默认）：排除已知会放大或改动输出的路由。any：不限制，最便宜。覆盖路由配置的默认值。所有路由都被排除时，请求以 YIR_FIDELITY_EXCLUDED 失败；报价将该规格报告为不可用。"
           }
         }
       },
@@ -2033,7 +2042,8 @@
               "YIR_CONTENT_REJECTED",
               "YIR_OUTCOME_TIMEOUT",
               "YIR_RESULT_DELIVERY_FAILED",
-              "YIR_JOB_TIMEOUT"
+              "YIR_JOB_TIMEOUT",
+              "YIR_FIDELITY_EXCLUDED"
             ]
           },
           "message": {
@@ -2382,6 +2392,34 @@
             "type": "integer",
             "format": "int64",
             "minimum": 1
+          },
+          "fidelity": {
+            "$ref": "#/components/schemas/ResultFileFidelity"
+          }
+        }
+      },
+      "ResultFileFidelity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "grade",
+          "reason"
+        ],
+        "description": "文件的来源及其规格是否真实，在交付时依据文件的 C2PA 内容签名和 Yir 的渠道审计判断。`original`：厂商 API 的原始输出。`app`：厂商面向消费者的应用（例如 ChatGPT）的原始输出，尺寸和画质由应用决定。`equivalent`：没有有效的厂商签名，但有证据表明文件是未经后处理的模型原生输出（签名被移除但未重新编码，或渠道通过了 Yir 的画质审计）。`altered`：生成后被改动，例如放大。`unverified`：两方面都没有证据。历史结果省略此字段。",
+        "properties": {
+          "grade": {
+            "type": "string",
+            "enum": [
+              "original",
+              "app",
+              "equivalent",
+              "altered",
+              "unverified"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "稳定原因码，例如 vendor_signed、signature_scrubbed、route_audited、hash_mismatch、signature_missing、third_party_signed、unsigned。"
           }
         }
       },
