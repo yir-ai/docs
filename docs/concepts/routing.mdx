@@ -26,6 +26,7 @@ You influence this with the optional `routing` object on quote and generation re
 | `only` | 1–16 channel IDs | Unordered allowlist. Selection and fallback stay inside it. A single entry pins one channel, which is useful for testing. |
 | `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
 | `fallback` | `true`, `false` | `false` allows only one provider attempt. Defaults to the key's Routing Profile. |
+| `fidelity` | `original`, `genuine`, `any` | Minimum faithfulness of the channel's output to the model's native output. See [Fidelity](#fidelity). Defaults to the key's Routing Profile. |
 
 Custom ordering (`order`) is not supported. Invalid routing values fail with `400 YIR_INVALID_ROUTING_OVERRIDE`.
 
@@ -51,6 +52,36 @@ Variants of the same channel can differ in billing and in the specifications the
 
 - A variant that does not support a request's parameters is excluded from routing and fallback for that request. If `only` and `variants` leave no variant that supports it, the quote reports `no_matching_supply` and the request is rejected.
 - [Model Market](https://yir.ai/models) compares prices per exact specification: a variant is listed only under the specifications it supports, and it is marked when it does not serve the selected quality tier.
+
+## Fidelity
+
+Some channels return output that is not the model's native result, for example a 1K image upscaled to 4K, or an image made in the vendor's consumer app instead of its API. Yir grades each channel route and tier from C2PA Content Credentials and its own tests, and `fidelity` sets the lowest grade a request accepts:
+
+| Value | Channels used |
+| --- | --- |
+| `genuine` | Default. Skips routes known to upscale or otherwise alter output. |
+| `original` | Only routes tested as the vendor's original API output, and the vendor's official channel. |
+| `any` | No filter. Upscaling channels are often cheaper. |
+
+The default comes from `default_fidelity` on the Routing Profile bound to your API Key (`genuine` unless you change it in [Console](/docs/console#routing-profiles)); `routing.fidelity` on a request overrides it. The filter applies after `only` and channel exclusions and before pricing, so a stricter value can raise the price. It is fixed when the Job is admitted.
+
+If no channel meets the floor, generation fails with `422 YIR_FIDELITY_EXCLUDED`, and a quote returns `supply.available: false` with `issues: ["no_matching_supply"]`. Use `genuine` or `any`, or choose another model or specification.
+
+Each delivered file reports what was actually checked, in `result.files[].fidelity`:
+
+```json
+{ "url": "https://...", "media_type": "image/png", "fidelity": { "grade": "original", "reason": "vendor_signed" } }
+```
+
+| `grade` | Meaning |
+| --- | --- |
+| `original` | Vendor's API output: valid vendor signature, content unchanged. |
+| `app` | Vendor's consumer app output (for example ChatGPT): valid vendor signature, content unchanged. |
+| `equivalent` | No valid vendor signature, but evidence that the output was not upscaled or changed. |
+| `altered` | Upscaled, changed after signing, or below the requested size or duration. |
+| `unverified` | No evidence either way. |
+
+`reason` is a short machine-readable code explaining the grade. Results delivered before grading existed have no `fidelity`. Fidelity filters on each route's tested grade, so it lowers the chance of an upscaled result but is not a guarantee; check `grade` on files you present as the model's own output.
 
 ## How fallback works
 

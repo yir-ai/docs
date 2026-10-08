@@ -26,6 +26,7 @@ Yir 上的一个模型可能由多个**渠道**提供：模型厂商的官方 AP
 | `only` | 1–16 个渠道 ID | 无序白名单，选择与切换都限定在其中。只写一个渠道可用于定点测试。 |
 | `variants` | 渠道 ID → 版本 的映射 | 选择渠道的特定版本，见下文。 |
 | `fallback` | `true`、`false` | `false` 表示只允许一次渠道尝试。默认取 Key 的 Routing Profile。 |
+| `fidelity` | `original`、`genuine`、`any` | 渠道输出与模型原生输出一致程度的下限，见[规格真实性](#规格真实性)。默认取 Key 的 Routing Profile。 |
 
 不支持自定义顺序（`order`）。无效的路由参数返回 `400 YIR_INVALID_ROUTING_OVERRIDE`。
 
@@ -51,6 +52,36 @@ Yir 上的一个模型可能由多个**渠道**提供：模型厂商的官方 AP
 
 - 不支持请求参数的版本，不会参与该请求的路由和渠道切换。如果 `only` 与 `variants` 限定后没有支持该请求的版本，报价返回 `no_matching_supply`，请求被拒绝。
 - [模型市场](https://yir.ai/zh/models)按精确规格比价：版本只会出现在它支持的规格下；选择画质档位时，不承接该档位的版本会被标出。
+
+## 规格真实性
+
+有些渠道返回的不是模型的原生结果，例如把 1K 图放大成 4K，或用原厂的消费端应用而不是 API 出图。Yir 依据 C2PA 内容凭证和自己的实测，为每个渠道路线和档位定级；`fidelity` 设定请求能接受的最低等级：
+
+| 取值 | 使用的渠道 |
+| --- | --- |
+| `genuine` | 默认。跳过已知会放大或改动输出的路线。 |
+| `original` | 只用实测为原厂 API 原样输出的路线，以及原厂官方渠道。 |
+| `any` | 不过滤。放大渠道往往更便宜。 |
+
+默认值取 API Key 绑定的 Routing Profile 的 `default_fidelity`（未修改时为 `genuine`，可在 [Console](/zh/docs/console#routing-profiles) 修改）；请求里的 `routing.fidelity` 会覆盖它。过滤在 `only` 和渠道排除之后、定价之前生效，所以更严格的取值可能让价格变高。取值在 Job 准入时固定。
+
+没有渠道满足下限时，生成请求返回 `422 YIR_FIDELITY_EXCLUDED`，报价返回 `supply.available: false` 与 `issues: ["no_matching_supply"]`。可改用 `genuine` 或 `any`，或换模型、换规格。
+
+每个交付文件在 `result.files[].fidelity` 中给出实际检测结果：
+
+```json
+{ "url": "https://...", "media_type": "image/png", "fidelity": { "grade": "original", "reason": "vendor_signed" } }
+```
+
+| `grade` | 含义 |
+| --- | --- |
+| `original` | 原厂 API 输出：原厂签名有效，内容未改动。 |
+| `app` | 原厂消费端应用（如 ChatGPT）输出：原厂签名有效，内容未改动。 |
+| `equivalent` | 没有有效的原厂签名，但有证据表明没有被放大或改动。 |
+| `altered` | 被放大、签名后被改动，或尺寸、时长不足请求规格。 |
+| `unverified` | 没有证据，无法判断。 |
+
+`reason` 是解释等级的简短机读代码。等级功能上线前交付的结果没有 `fidelity`。过滤依据的是各路线的实测等级，只能降低拿到放大结果的概率，不是保证；要把文件当作模型原图展示时，请检查 `grade`。
 
 ## 渠道切换规则
 
