@@ -93,6 +93,9 @@
           "422": {
             "$ref": "#/components/responses/NoExecutableRoute"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
           }
@@ -218,6 +221,9 @@
           "422": {
             "$ref": "#/components/responses/NoExecutableRoute"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
           }
@@ -284,6 +290,9 @@
           },
           "422": {
             "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
@@ -431,6 +440,9 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
           }
@@ -491,6 +503,9 @@
           "410": {
             "$ref": "#/components/responses/Gone"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
           }
@@ -530,6 +545,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
@@ -578,6 +596,9 @@
           },
           "410": {
             "$ref": "#/components/responses/Gone"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
@@ -646,6 +667,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
@@ -716,6 +740,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
           }
@@ -756,6 +783,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
@@ -812,6 +842,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
           }
@@ -855,6 +888,9 @@
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "503": {
             "$ref": "#/components/responses/TemporarilyUnavailable"
@@ -998,7 +1034,23 @@
         "$ref": "#/components/responses/StandardError"
       },
       "RateLimited": {
-        "$ref": "#/components/responses/StandardError"
+        "description": "进行中的 Job 过多，或该 API Key 超出此端点的每分钟请求上限（YIR_RATE_LIMITED）。",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "重试前需等待的秒数。仅在超出每分钟请求上限时返回。"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
       },
       "NotFound": {
         "$ref": "#/components/responses/StandardError"

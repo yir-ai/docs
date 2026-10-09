@@ -47,8 +47,21 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | `YIR_BUDGET_EXCEEDED` | 422 | 请求的 `max_cost` 低于所有可用渠道的当前估价，消息给出最低估价。价格会变，之前能通过的上限现在可能失败。 | 重新报价；接受新价格就在新请求中调高 `max_cost`，否则换更便宜的模型或规格。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | 当前没有渠道能在约束内执行此请求。 | 稍后重试、放宽 `routing` 或调整参数；报价可查看 `supply`。 |
 | `YIR_FIDELITY_EXCLUDED` | 422 | 该规格的所有渠道都低于请求的 `routing.fidelity`。 | 降低 `fidelity`，或换模型、换规格。见[规格真实性](/zh/docs/concepts/routing#规格真实性)。 |
-| `YIR_RATE_LIMITED` | 429 | 该 API Key 超出每分钟请求上限（任意网关端点都可能返回），或账户进行中的 Job 过多。 | 按响应头 `Retry-After` 的秒数等待后重试；进行中的 Job 过多时等待其结束。 |
+| `YIR_RATE_LIMITED` | 429 | 该 API Key 超出每分钟请求上限（任意网关端点都可能返回），或账户进行中的 Job 过多。 | 按响应头 `Retry-After` 的秒数等待后重试，见[请求频率上限](#请求频率上限)；进行中的 Job 过多时等待其结束。 |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | 临时的服务问题。 | 退避重试；提交请求请复用同一个幂等键。 |
+
+### 请求频率上限
+
+每个 API Key 在每个网关端点上都有每分钟请求上限。按端点分别计数，轮询 Job 不会占用创建 Job 的额度。
+
+| 端点 | 每个 Key、每个端点的上限 |
+| --- | --- |
+| 读取：`GET` Job、Job 状态、文件、文件内容、模型、余额 | 每分钟 1,200 次 |
+| 报价：`POST /v1/images/quotes`、`/v1/videos/quotes`、`/v1/quotes` | 每分钟 300 次 |
+| 写入：`POST /v1/images/generations`、`/v1/videos/generations`、`/v1/files`、`/v1/jobs/{id}/cancel` | 每分钟 120 次 |
+| 文件上传完成：`POST /v1/files/{id}/complete` | 每分钟 600 次 |
+
+按固定的一分钟窗口计数。超出上限时返回 `429` 与 `YIR_RATE_LIMITED`（`retryable: true`，`action: retry_later`），并带以秒为单位的 `Retry-After` 响应头；不会创建任何资源，也不收费。进行中 Job 过多导致的 `429` 不带 `Retry-After`。一个 Key 服务大量终端用户时，请把批量上传等突发请求分散开；需要更高上限请联系支持。
 
 ## Job 错误
 
