@@ -52,16 +52,15 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 
 ### Request rate limits
 
-Each API key has a per-minute request limit on every Gateway endpoint. Requests are counted per endpoint, so polling Jobs does not use up the limit for creating them.
+Each API key has a per-minute request limit on every Gateway endpoint. The limits are a safety net against client bugs such as a polling loop without a delay or a retry storm, and sit far above normal use. Requests are counted per endpoint, so polling Jobs does not use up the limit for creating them.
 
 | Endpoints | Limit per key, per endpoint |
 | --- | --- |
-| Reads: `GET` Jobs, Job status, files, file content, models, balance | 1,200 / minute |
-| Quotes: `POST /v1/images/quotes`, `/v1/videos/quotes`, `/v1/quotes` | 300 / minute |
-| Writes: `POST /v1/images/generations`, `/v1/videos/generations`, `/v1/files`, `/v1/jobs/{id}/cancel` | 120 / minute |
-| File upload completion: `POST /v1/files/{id}/complete` | 600 / minute |
+| Reads: `GET` Jobs, Job status, files, file content, models, balance | 6,000 / minute |
+| Quotes: `POST /v1/images/quotes`, `/v1/videos/quotes`, `/v1/quotes` | 1,500 / minute |
+| Writes: `POST /v1/images/generations`, `/v1/videos/generations`, `/v1/files`, `/v1/files/{id}/complete`, `/v1/jobs/{id}/cancel` | 600 / minute |
 
-Counting uses fixed one-minute windows. Over the limit, the request returns `429` with `YIR_RATE_LIMITED` (`retryable: true`, `action: retry_later`) and a `Retry-After` header in seconds; nothing is created or charged. A `429` for too many in-progress Jobs has no `Retry-After`. If one key serves many end users, spread bursts such as batch uploads, and contact support if you need a higher limit.
+Counting uses fixed one-minute windows. Over the limit, the request returns `429` with `YIR_RATE_LIMITED` (`retryable: true`, `action: retry_later`) and a `Retry-After` header in seconds; nothing is created or charged. A `429` for too many in-progress Jobs has no `Retry-After`. If you hit this limit, check your client for a loop first; contact support if your normal traffic needs more.
 
 ## Job errors
 
