@@ -1144,6 +1144,10 @@
               "any"
             ],
             "description": "Lowest acceptable fidelity of the delivered file, judged from the vendor's C2PA content signature. original: only routes verified as untouched vendor API output, plus the official channel. genuine (the default): excludes routes known to upscale or otherwise alter the output. any: no restriction, cheapest. Overrides the routing profile default. When every route is excluded the request fails with YIR_FIDELITY_EXCLUDED; quotes report the specification as unavailable."
+          },
+          "accelerate": {
+            "type": "boolean",
+            "description": "Route acceleration, on by default; overrides the routing profile default. When an image attempt stays unresolved upstream well past that channel's usual completion time (about twice its recent p99, at least 5 minutes) and another eligible route remains within only, max_cost and the three-attempt limit, Yir cuts the attempt off and retries on the next route. The cut-off attempt never supplies the result; if its upstream bills it anyway, that actual cost is charged like any other upstream-billed attempt and counts toward max_cost. Requires fallback. Only image jobs are accelerated; video jobs are not, because a cut-off video attempt can still be billed. Set false to always wait for the first channel."
           }
         }
       },

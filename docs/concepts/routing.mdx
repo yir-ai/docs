@@ -27,6 +27,7 @@ You influence this with the optional `routing` object on quote and generation re
 | `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
 | `fallback` | `true`, `false` | `false` allows only one provider attempt. Defaults to the key's Routing Profile. |
 | `fidelity` | `original`, `genuine`, `any` | Minimum faithfulness of the channel's output to the model's native output. See [Fidelity](#fidelity). Defaults to the key's Routing Profile. |
+| `accelerate` | `true`, `false` | Moves an image attempt that stalls far past its channel's usual completion time to the next route. See [Acceleration](#acceleration). Defaults to the key's Routing Profile. |
 
 Custom ordering (`order`) is not supported. Invalid routing values fail with `400 YIR_INVALID_ROUTING_OVERRIDE`.
 
@@ -85,7 +86,7 @@ Each delivered file reports what was actually checked, in `result.files[].fideli
 
 ## How fallback works
 
-Yir moves to another channel only after the current attempt is **confirmed failed**. Slow or unknown attempts are never abandoned to trigger fallback. By default a Job may try up to three channels, at most two third-party and one official, in `preference` order (the official channel can come first), subject to:
+Yir moves to another channel after the current attempt is **confirmed failed**, or, with [acceleration](#acceleration), when an image attempt stalls far past its channel's usual completion time. Otherwise slow or unknown attempts are not abandoned. By default a Job may try up to three channels, at most two third-party and one official, in `preference` order (the official channel can come first), subject to:
 
 - your `only` and `variants` choices, and any restriction on the key's Routing Profile;
 - the model and parameters each channel supports;
@@ -93,6 +94,17 @@ Yir moves to another channel only after the current attempt is **confirmed faile
 - your `max_cost`, when set: channels whose estimate exceeds what remains of it after earlier attempts' charges are skipped.
 
 Channels skipped before submission do not count as attempts. An official reference price in a quote does not guarantee that the official channel will run.
+
+## Acceleration
+
+Upstream channels occasionally leave a task unresolved for far longer than usual. With `accelerate` on, when an image attempt is still unresolved upstream at about twice that channel's recent p99 completion time (at least 5 minutes; roughly 10 to 15 minutes on today's image channels), Yir cuts it off and retries on the next route.
+
+- **It needs a next route.** Acceleration follows the fallback rules above: `fallback` on, within `only` and `variants`, within what remains of `max_cost` and your balance, and under the three-attempt limit. If no next route remains, Yir keeps waiting for the current attempt.
+- **One attempt at a time.** Yir does not race channels in parallel. The cut-off attempt never supplies the result, even if it finishes later.
+- **Billing.** If the cut-off attempt's upstream bills it anyway, that actual cost is charged like any other upstream-billed attempt and counts toward `max_cost`.
+- **Images only.** Video Jobs are never accelerated: video attempts are expensive, and a cut-off attempt can still be billed.
+
+The default comes from `default_accelerate` on the Routing Profile bound to your API Key (on unless you change it in [Console](/docs/console#routing-profiles)); `routing.accelerate` on a request overrides it. Set `{"accelerate": false}` to always wait for the first channel, for example when you would rather wait on a slow, cheaper channel than risk paying for a second attempt. In Console Logs, a cut-off attempt is shown as **Accelerated to another channel**.
 
 ## Parameters that differ by channel
 
