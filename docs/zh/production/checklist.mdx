@@ -67,7 +67,7 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用可控�
 | 状态为 `cancelled` | 读取完整 Job，`error` 可能为 `null`。通常不收费，除非停止前渠道已对某次尝试计费；记录 `billing.total_charged_by_yir`。 |
 | 完整 Job 查询失败 | 重试该查询，不要仅凭状态摘要结算。 |
 | `401`、`403` 或 `404` | 修正 Key、上限或 Job ID，不要盲目重试。 |
-| `429 YIR_RATE_LIMITED` 或 `503` | 稍后退避重试。 |
+| `429 YIR_RATE_LIMITED` 或 `503` | 稍后退避重试；`429` 至少等待 `Retry-After` 秒。 |
 
 所有错误码及建议处理方式见[错误码](/zh/docs/production/error-codes)。
 

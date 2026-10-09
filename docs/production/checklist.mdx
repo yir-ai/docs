@@ -67,7 +67,7 @@ A common robust setup uses Webhooks as the primary signal and slow polling as a 
 | Status is `cancelled` | Read the full Job. `error` may be `null`. Usually no charge, unless the channel billed an attempt before the stop; record `billing.total_charged_by_yir`. |
 | Full Job query fails | Retry that query. Do not settle from the status summary alone. |
 | `401`, `403`, or `404` | Fix the key, limit, or Job ID. Do not retry blindly. |
-| `429 YIR_RATE_LIMITED` or `503` | Retry later with back-off. |
+| `429 YIR_RATE_LIMITED` or `503` | Retry later with back-off; for `429`, wait at least `Retry-After` seconds. |
 
 See [error codes](/docs/production/error-codes) for every code and its recommended action.
 

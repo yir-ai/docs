@@ -47,7 +47,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_BUDGET_EXCEEDED` | 422 | The request's `max_cost` is below every eligible channel's current estimate. The message names the lowest estimate. Prices can change, so a cap that passed before can fail now. | Quote again. Raise `max_cost` on a new request if you accept the price, or choose a cheaper model or specification. |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
 | `YIR_FIDELITY_EXCLUDED` | 422 | Every channel for this specification is below the requested `routing.fidelity`. | Use a lower `fidelity`, or another model or specification. See [fidelity](/docs/concepts/routing#fidelity). |
-| `YIR_RATE_LIMITED` | 429 | Too many Jobs are in progress for your account. | Wait for Jobs to finish, then retry with back-off. |
+| `YIR_RATE_LIMITED` | 429 | The API key exceeded its per-minute request limit, which any Gateway endpoint can return, or too many Jobs are in progress for your account. | Wait the number of seconds in the `Retry-After` header, then retry. For in-progress Jobs, wait for them to finish. |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |
 
 ## Job errors
