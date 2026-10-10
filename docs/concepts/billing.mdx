@@ -62,6 +62,8 @@ Both `fixed` and `estimate` predict the final charge, which follows the channel'
 
 Submission checks prices again. A quote you obtained earlier does not guarantee the same price or availability.
 
+**Warning: a tight `max_cost` can interrupt delivery during failover.** Even after a Job is accepted, a failed channel may need to be replaced by a more expensive one. If its estimate exceeds the remaining budget after earlier billed attempts, Yir skips it; if no eligible fallback fits, the Job fails with `YIR_BUDGET_EXCEEDED` and may deliver no result. When delivery continuity is more important than a per-Job spending cap, omit this optional field; otherwise leave room for more expensive fallback channels and earlier attempts' charges. Omitting it removes the per-Job cap, so actual charges can exceed the quote; account balance and other limits still apply.
+
 ### Prices can change
 
 The price of the same request can go up: a cheaper channel goes offline or cools down after failures, a routing default changes which channels are eligible (for example [`routing.fidelity`](/docs/concepts/routing)), or a catalog price changes. With `max_cost` set, a cap that used to pass can start rejecting requests.
@@ -69,6 +71,12 @@ The price of the same request can go up: a cheaper channel goes offline or cools
 - Use `max_cost` as a guard against runaway charges, not as a price lock. Leave headroom over the quote.
 - On `YIR_BUDGET_EXCEEDED`, quote the request again, then decide: raise `max_cost` on a new request, or choose a cheaper model or specification. Do not raise the cap automatically.
 - If you resell generation with your own price checks, alert on rejections instead of failing silently, so a price change shows up before your users notice.
+
+### Automatic protection against extreme charge deviations
+
+For standard requests with a frozen estimate, Yir also applies a settlement fuse even when `max_cost` is omitted. Currently, it triggers when the confirmed upstream cost, after the frozen channel settlement factor and your discount, is **more than three times the frozen estimate and at least US$0.02 above it**. For a successful attempt, when triggered before settlement, Yir charges the frozen estimate (or your lower remaining budget), absorbs the excess, and can still deliver a successful result. If the attempt failed, Yir absorbs the anomalous charge instead. The affected channel and specification group is temporarily paused for subsequent attempts.
+
+This protection is for extreme deviations, not a price lock or a guarantee that every price increase is covered. Ordinary price changes can still increase your charge. It does not replace a customer-set `max_cost`, and explicit `billing_mode: "actual"` has no estimate-based fuse. Evidence arriving after settlement does not automatically rewrite an existing charge.
 
 ## How a Job is charged
 

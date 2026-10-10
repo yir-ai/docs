@@ -95,6 +95,8 @@ Yir moves to another channel after the current attempt is **confirmed failed**, 
 
 Channels skipped before submission do not count as attempts. An official reference price in a quote does not guarantee that the official channel will run.
 
+**Warning: a tight `max_cost` can interrupt delivery during failover.** Even after a Job is accepted, a failed channel may need to be replaced by a more expensive one. If its estimate exceeds the remaining budget after earlier billed attempts, Yir skips it; if no eligible fallback fits, the Job fails with `YIR_BUDGET_EXCEEDED` and may deliver no result. When delivery continuity is more important than a per-Job spending cap, omit this optional field; otherwise leave room for more expensive fallback channels and earlier attempts' charges. Omitting it removes the per-Job cap, so actual charges can exceed the quote; account balance and other limits still apply.
+
 ## Acceleration
 
 Upstream channels occasionally leave a task unresolved for far longer than usual. With `accelerate` on, when an image attempt is still unresolved upstream at about twice that channel's recent p99 completion time (at least 5 minutes; roughly 10 to 15 minutes on today's image channels), Yir cuts it off and retries on the next route.
