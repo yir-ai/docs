@@ -5,10 +5,10 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 
 官方 SDK 开源于 [yir-ai/sdk](https://github.com/yir-ai/sdk)，覆盖报价、生成、Job 等待、取消、文件上传和 Webhook 校验。你也可以直接调用 REST API，[快速上手](/zh/docs/getting-started/quickstart)使用的就是 cURL。已按 OpenAI Images、Sora 或 new-api 对接的系统，可通过 [OpenAI 兼容](/zh/docs/integrations/openai-compatibility)无需改代码接入。
 
-| 语言 | 包 | 当前版本 |
+| 语言 | 包 | 发布版本 |
 | --- | --- | --- |
-| TypeScript | `@yir-ai/sdk` | `0.10.1` |
-| Go | `github.com/yir-ai/sdk/go` | `v0.11.1` |
+| TypeScript | `@yir-ai/sdk` | [npm](https://www.npmjs.com/package/@yir-ai/sdk) |
+| Go | `github.com/yir-ai/sdk/go` | [GitHub](https://github.com/yir-ai/sdk/tags) |
 
 两个客户端都从服务端读取 `YIR_API_KEY`，默认地址为 `https://gateway.yir.ai`。请只在服务端使用；TypeScript 包的浏览器入口只包含纯函数和类型。
 
@@ -17,11 +17,11 @@ description: 使用官方 TypeScript 与 Go SDK 报价、提交、等待和获�
 <CodeGroup>
 
 ```sh TypeScript
-pnpm add @yir-ai/sdk@0.10.1
+pnpm add @yir-ai/sdk
 ```
 
 ```sh Go
-go get github.com/yir-ai/sdk/go@v0.11.1
+go get github.com/yir-ai/sdk/go@latest
 ```
 
 </CodeGroup>
