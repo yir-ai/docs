@@ -2101,6 +2101,7 @@
               "YIR_RATE_LIMITED",
               "YIR_TEMPORARILY_UNAVAILABLE",
               "YIR_EXECUTION_FAILED",
+              "YIR_INPUT_REJECTED",
               "YIR_CONTENT_REJECTED",
               "YIR_OUTCOME_TIMEOUT",
               "YIR_RESULT_DELIVERY_FAILED",
@@ -2124,6 +2125,27 @@
               "retry_later",
               "contact_support"
             ]
+          },
+          "provider_error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "message"
+            ],
+            "description": "失败 Job 的最后一次上游拒绝由请求或输入素材引起时出现（例如参考视频不符合规格）。经脱敏的诊断文本：已去除链接和引号内容，措辞不稳定。",
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1,
+                "description": "拒绝该请求的路线的公开渠道代码。"
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
           },
           "details": {
             "type": "array",

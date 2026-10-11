@@ -71,6 +71,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | 错误码 | 含义 | 处理方式 |
 | --- | --- | --- |
 | `YIR_EXECUTION_FAILED` | 所有可用尝试均失败，或 Yir 在发起尝试前未能准备好输入文件（此时 `action` 为 `contact_support`）。 | 检查提示词和输入后提交新请求；持续出现请联系支持。 |
+| `YIR_INPUT_REJECTED` | 渠道拒绝了请求参数或输入素材，例如参考视频低于模型的像素下限。`provider_error` 给出渠道的原因。渠道未计费的被拒尝试不收费。 | 不可重试（`action: modify_input`），按 `provider_error.message` 修正输入或参数后提交新请求。 |
 | `YIR_CONTENT_REJECTED` | Job 被内容安全检测拒绝：Yir 在提交前对参考图的检测、渠道对提示词、参考图或生成结果的审核，或 Yir 对无审核渠道图片结果的检测（见[内容安全](/zh/docs/concepts/task-lifecycle#内容安全)）。Yir 不会再切换到其他渠道。提交前被拦截，或渠道未对该尝试计费时（例如拒绝了提交）不收费；渠道已生成结果并计费时，按该上游实际费用 × 你的折扣收费，且不交付结果。Job 状态仍为 `failed`，Console 将其标为「内容拦截」，不计入成功率和失败率。 | 不可重试（`action: modify_input`），请让终端用户修改提示词或参考图后提交新请求。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 准入后没有渠道能执行，或所有可用渠道均已用尽。 | 稍后重新提交，或放宽 `routing`。 |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 容量或网络问题导致无法执行。 | 稍后重新提交。 |
