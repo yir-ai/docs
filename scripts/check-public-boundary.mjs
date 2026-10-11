@@ -13,7 +13,7 @@ export function assertPublicPath(file) {
   const allowed = rootFiles.has(file) ||
     /^docs\/(?:_?[a-z0-9-]+\/)*(?:_?[a-z0-9-]+\.mdx|meta\.ts)$/.test(file) ||
     /^components\/[A-Za-z0-9-]+\.astro$/.test(file) ||
-    /^openapi\/(?:gateway-openapi(?:\.reference(?:\.zh)?)?|model-contracts|i18n\/zh)\.json$/.test(file) ||
+    /^openapi\/(?:gateway-openapi(?:\.reference(?:\.zh)?)?|account-openapi|model-contracts|i18n\/zh)\.json$/.test(file) ||
     /^patches\/blume@[0-9.]+\.patch$/.test(file) ||
     ['.github/ISSUE_TEMPLATE/documentation.yml', '.github/pull_request_template.md', '.github/workflows/ci.yml'].includes(file) ||
     (file.startsWith('scripts/') && scripts.has(file.slice(8)))

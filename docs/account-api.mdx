@@ -1,0 +1,86 @@
+---
+title: Account API
+description: Let your application or AI assistant read account analytics and change settings.
+---
+
+The **Account API** operates on your own Yir account. The **Gateway API** runs image and video jobs. Yir's internal **Admin API** is a separate system and is not part of either public API.
+
+| API | Base URL | Credential |
+| --- | --- | --- |
+| Gateway API | `https://gateway.yir.ai/v1` | Gateway Key (`yir_sk_…`) |
+| Account API | `https://api.yir.ai/account/v1` | Account Key (`yir_ak_…`) |
+
+Keys are not interchangeable. Existing API Keys remain Gateway Keys with their existing permissions. Both APIs use `Authorization: Bearer <key>`; keep keys on your server, never in browser code.
+
+## Create an Account Key
+
+In **Console → API Keys → Create API Key**, choose **Account Key**, enter a name, select permissions and an optional expiry:
+
+- **Read only** (default): analytics, logs, routing profiles, webhook endpoints and alert settings.
+- **Read and change settings**: adds creating, updating and removing routing profiles and webhook endpoints, and updating alerts.
+
+Account Keys can be renamed, restricted by source IP, expired, rotated and revoked from Console. Their purpose and permission are fixed at creation; create a replacement key to change permissions. Rotating preserves permission and expiry and invalidates the old secret. Account Keys have no generation budget or routing-profile binding.
+
+Creating, revealing, rotating or revoking keys, changing spending limits, payment and identity changes remain Console sign-in operations. An Account Key cannot grant itself more permissions or access internal administration.
+
+## TypeScript
+
+Use the Account API entry point in `@yir-ai/sdk/server`:
+
+```ts
+import { createAccountClient } from '@yir-ai/sdk/server';
+
+// Reads YIR_ACCOUNT_API_KEY; never falls back to the Gateway Key.
+const account = createAccountClient();
+const analytics = await account.analytics.get({
+  from: '2026-10-01T00:00:00Z',
+  to: '2026-10-08T00:00:00Z',
+  timezone: 'UTC',
+  group_by: 'model',
+});
+const profiles = await account.routingProfiles.list();
+// Requires settings permission; choose the intended profile explicitly.
+async function preferSpeed(profileId: string) {
+  return account.routingProfiles.update(profileId, { default_preference: 'speed' });
+}
+```
+
+## Go
+
+```go
+account, err := yir.NewAccountClient(os.Getenv("YIR_ACCOUNT_API_KEY"), yir.ClientOptions{})
+if err != nil { return err }
+report, err := account.Analytics(ctx, url.Values{
+    "from": {"2026-10-01T00:00:00Z"},
+    "to": {"2026-10-08T00:00:00Z"},
+    "group_by": {"model"},
+})
+```
+
+## Endpoints
+
+Paths below are relative to the Account API base URL. All records belong to the Account Key's owner; supplying someone else's resource ID does not grant access.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/analytics` | Counts, success rate, latency, charges, time series and grouping |
+| GET | `/logs` | Filter and paginate jobs |
+| GET | `/logs/{id}` | Job details and diagnostics |
+| GET / POST | `/routing-profiles` | List / create profiles |
+| PATCH / DELETE | `/routing-profiles/{id}` | Update / archive a profile |
+| GET / POST | `/webhook-endpoints` | List / create endpoints |
+| GET / PATCH / DELETE | `/webhook-endpoints/{id}` | Read / update / delete an endpoint |
+| GET | `/webhook-endpoints/{id}/deliveries` | Delivery history |
+| GET / PUT | `/alerts/settings` | Read / replace email alert settings |
+| GET / PUT | `/wallet/low-balance-alert` | Read / replace the low-balance alert policy |
+
+Analytics accepts `from`, `to`, `timezone`, `core_model`, `attempt_provider` and `group_by` (`model`, `provider`, `api_key`, `status`). Inspect the returned `coverage` and sample counts; a missing metric is not zero. Logs accept `page_offset`, `page_limit`, time and status filters. Use `exclude_error_code=YIR_CONTENT_REJECTED` to exclude content rejection from a failed-job query.
+
+```sh
+curl 'https://api.yir.ai/account/v1/analytics?group_by=model' \
+  -H "Authorization: Bearer $YIR_ACCOUNT_API_KEY"
+```
+
+Successful REST responses use `{"code":200,"message":"success","data":...}`; SDK clients unwrap `data`. Errors use a non-success HTTP status and `code`/`message`. A wrong, expired or revoked key returns 401; a read-only key attempting a settings write returns 403. Responses are private and not cacheable. SDK clients do not automatically retry settings writes; after an uncertain creation result, list resources before creating again.
+
+The [Account API contract](https://github.com/yir-ai/sdk/blob/main/spec/account-openapi.json) contains the complete request and response schemas. It is separate from the Gateway API contract.
