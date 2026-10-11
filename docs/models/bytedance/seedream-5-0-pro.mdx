@@ -22,6 +22,7 @@ description: "ByteDance flagship image generation model with superior text rende
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `1K`, `2K` | `1K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `2:3`, `3:2`, `21:9` | `1:1` | No |
+| `size` | Exact size: Exact output pixels; only explicitly compatible supplies are eligible. Conflicting resolution/aspect ratio is rejected. | `1024x1024`, `1152x864`, `864x1152`, `1424x800`, `800x1424`, `1248x832`, `832x1248`, `1568x672`, `2048x2048`, `2368x1776`, `1776x2368`, `2816x1584`, `1584x2816`, `2496x1664`, `1664x2496`, `3136x1344` | Not set | No |
 | `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
 
 ## Examples

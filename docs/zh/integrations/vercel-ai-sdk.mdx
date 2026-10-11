@@ -65,7 +65,7 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 
 | 选项 | 说明 |
 | --- | --- |
-| `idempotencyKey` | 推荐提供。省略时适配器为每次调用自动生成，之后的调用无法用它恢复。请持久化并传入自己的键。 |
+| `idempotencyKey` | 跨调用恢复时推荐提供。优先于 `headers["Idempotency-Key"]`，否则使用请求头或生成的键。 |
 | `maxCost` | 可选，Job 的费用上限，十进制字符串。见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
 | `parameters` | Yir 模型参数，例如 `resolution`、`quality` 或 `web_search`。 |
 | `routing` | Yir [路由](/zh/docs/concepts/routing)对象，`routing.only` 为无序白名单。 |
@@ -74,6 +74,7 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 
 | AI SDK 字段 | Yir 请求 |
 | --- | --- |
+| 图片 `size`、视频 `resolution` | `parameters.size`，精确像素，不近似换档 |
 | `aspectRatio` | `parameters.aspect_ratio` |
 | `n` | `parameters.n`（必须为 `1`） |
 | 视频 `duration`、`generateAudio` | `parameters.duration`、`parameters.generate_audio` |
@@ -82,9 +83,13 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 | `inputReferences` | 按显式 MIME 类型映射为图片、视频或音频参考 |
 | 内联字节 | 先通过 Files API 上传，再以文件 ID 引用 |
 
-媒体输入须为字节（`Uint8Array`）或 Base64 数据，适配器会先通过 Files API 上传。URL 形式的媒体输入（包括远程视频参考）会在发出请求前被拒绝。同一参数若同时通过 AI SDK 字段和 `parameters` 设置且取值不同，调用会被拒绝。
+媒体输入支持字节（`Uint8Array`）、Base64 数据或公开 HTTPS URL。字节通过 Files 上传，URL 直接交给 Gateway，不在本地下载。私网 URL、含凭据的 URL、mask 和任意自定义调用头会被拒绝。同一参数通过 AI SDK 字段与 Yir parameters 设置且值冲突时拒绝。
 
-`seed` 和视频 `fps` 映射为同名 Yir 参数，是否接受由模型合同决定。以下能力不支持，会直接拒绝而不是静默忽略：图片 mask、像素 `size`、视频像素 `resolution`，以及单次调用的 headers（视频调用的 `Idempotency-Key` 除外）。请用 Yir 的 `parameters.resolution` 代替像素尺寸。
+精确像素需要 Gateway 已部署 `parameters.size` 支持。首批为 Seedream 5.0 Pro 官方图片尺寸，例如 `1024x1024`、`3136x1344`。省略的档位和画幅由尺寸声明确定，显式冲突时拒绝。视频当前没有已声明精确尺寸渠道，会被拒绝。省略 size 保留原默认值；仅指定分辨率档位不保证精确像素。
+
+`seed` 与视频 `fps` 作为同名参数发送给 Gateway，是否支持由当前模型和渠道合同决定。`image()` / `video()` 是原 `imageModel()` / `videoModel()` 的别名。提供本地模型目录时可查询图片参考输入能力；mask 能力为 false。
+
+图片和视频调用都接受 `Idempotency-Key`，视频轮询也兼容该请求头。`providerOptions.yir.idempotencyKey` 优先；否则复用请求头（包括 AI SDK 的视频重试键）或生成一个键。提交和内联文件上传共享这次调用的身份；跨调用、跨进程恢复时请持久化业务幂等键。
 
 ## 注意事项
 

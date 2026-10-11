@@ -65,7 +65,7 @@ Pass Yir-specific options in `providerOptions.yir`. Unknown keys are rejected.
 
 | Option | Description |
 | --- | --- |
-| `idempotencyKey` | Recommended. When omitted, the adapter generates one per call, so a later call cannot recover it. Persist and pass your own key. |
+| `idempotencyKey` | Recommended for recovery across calls. Overrides `headers["Idempotency-Key"]`; otherwise the supplied header or a generated key is used. |
 | `maxCost` | Optional cap on the Job's charge, as a decimal string. See [billing](/docs/concepts/billing#set-a-spending-limit). |
 | `parameters` | Yir model parameters, such as `resolution`, `quality`, or `web_search`. |
 | `routing` | Yir [routing](/docs/concepts/routing) object. `routing.only` is an unordered allowlist. |
@@ -74,6 +74,7 @@ Pass Yir-specific options in `providerOptions.yir`. Unknown keys are rejected.
 
 | AI SDK field | Yir request |
 | --- | --- |
+| Image `size`, video `resolution` | `parameters.size`, exact pixels without approximation |
 | `aspectRatio` | `parameters.aspect_ratio` |
 | `n` | `parameters.n` (must be `1`) |
 | Video `duration`, `generateAudio` | `parameters.duration`, `parameters.generate_audio` |
@@ -82,9 +83,13 @@ Pass Yir-specific options in `providerOptions.yir`. Unknown keys are rejected.
 | `inputReferences` | Image, video, or audio references, chosen by the explicit MIME type |
 | Inline bytes | Uploaded through the Files API first, then referenced by file ID |
 
-Media inputs must be bytes (`Uint8Array`) or Base64 data; the adapter uploads them through the Files API first. URL media inputs, including remote video references, are rejected before any request is sent. If the same parameter is set both as an AI SDK field and in `parameters` with different values, the call is rejected.
+Media inputs may be bytes (`Uint8Array`), Base64 data, or public HTTPS URLs. Bytes are uploaded through Files; URLs are passed to the Gateway without a local download. Private URLs, credentials in URLs, masks, and arbitrary per-call headers are rejected. Conflicting AI SDK fields and Yir parameters are rejected.
 
-`seed` and video `fps` map to the same-named Yir parameters; the model contract decides whether they are accepted. Not supported, and rejected rather than silently ignored: image masks, pixel `size`, video pixel `resolution`, and per-call headers other than `Idempotency-Key` on video calls. Use Yir `parameters.resolution` instead of pixel sizes.
+Exact pixels require a Gateway deployment with `parameters.size` support. The first declared scope is Seedream 5.0 Pro official image sizes (for example `1024x1024` or `3136x1344`). The Gateway derives omitted resolution tiers and aspect ratios from that declaration and rejects conflicting explicit values. Video has no declared exact-size channel yet and is rejected. Omitting size preserves existing defaults; a resolution tier alone does not guarantee exact pixels.
+
+`seed` and video `fps` reach the Gateway as same-named parameters; acceptance depends on the current model/channel contract. `image()` / `video()` alias `imageModel()` / `videoModel()`. Image file-input capability is reported when a local model catalog is supplied; mask support is false.
+
+The adapter accepts `Idempotency-Key` on both image and video calls, including video polling. `providerOptions.yir.idempotencyKey` takes precedence. AI SDK's video retry key is reused for submission and inline uploads; otherwise a key is generated. Persist a business key when recovering across separate calls or processes.
 
 ## Things to keep in mind
 
