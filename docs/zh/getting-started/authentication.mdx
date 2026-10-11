@@ -3,7 +3,7 @@ title: 身份认证
 description: 在 Bearer Header 中携带 Yir API Key 认证每个 Gateway 请求。
 ---
 
-每个 Gateway 请求都使用标准 HTTP Bearer Header 携带 Yir API Key：
+每个 Gateway 请求都使用标准 HTTP Bearer Header 携带**网关 Key**（`yir_sk_…`）：
 
 ```http
 Authorization: Bearer <YIR_API_KEY>
@@ -13,7 +13,9 @@ Authorization: Bearer <YIR_API_KEY>
 
 ## 获取 Key
 
-每个账户都有一个**默认 API Key**，可以直接开始使用。打开 [Console → API Key](https://yir.ai/zh/console/api-keys) 显示并复制。
+每个账户都有一个**默认网关 Key**，可以直接开始使用。打开 [Console → API Key](https://yir.ai/zh/console/api-keys) 显示并复制。
+
+查询分析数据和修改账户设置时，在同一页面另建**账户 Key**（`yir_ak_…`），使用 `YIR_ACCOUNT_API_KEY`，见 [Account API](/zh/docs/account-api)。两种 Key 不能混用，也不能访问内部 Admin API。
 
 把 Key 存入 Secret Manager 或服务端环境变量：
 

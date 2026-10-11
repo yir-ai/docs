@@ -3,7 +3,7 @@ title: Authentication
 description: Authenticate every Yir Gateway request with a Yir API Key in a Bearer header.
 ---
 
-Every Gateway request uses a Yir API Key in the standard HTTP Bearer header:
+Every Gateway request uses a **Gateway Key** (`yir_sk_…`) in the standard HTTP Bearer header:
 
 ```http
 Authorization: Bearer <YIR_API_KEY>
@@ -13,7 +13,9 @@ Authorization: Bearer <YIR_API_KEY>
 
 ## Get your key
 
-Every account has a **default API Key**, so you can start immediately. Open [Console → API Keys](https://yir.ai/console/api-keys) to reveal and copy it.
+Every account has a **default Gateway Key**, so you can start immediately. Open [Console → API Keys](https://yir.ai/console/api-keys) to reveal and copy it.
+
+For analytics and account settings, create a separate **Account Key** (`yir_ak_…`) on the same page and use `YIR_ACCOUNT_API_KEY`. See the [Account API](/docs/account-api). The two key types are not interchangeable and neither grants internal Admin API access.
 
 Store the key in a secret manager or server environment variable:
 
