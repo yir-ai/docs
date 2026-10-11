@@ -99,7 +99,6 @@ Read the Job's `billing` object for charges. Results may already be available wh
 | `billing.status` | `pending`: more charges may arrive; `settled`: billing is complete. |
 | `billing.total_charged_by_yir` | Amount charged so far; final when `billing.status` is `settled`. |
 | `billing.compute_charges` | Compute line items. A new Job has one `managed` item billed by `yir` that sums every charged attempt, with `status` `settled`, or `waived` with amount `0.000` when nothing was charged. The array can be empty. |
-| `billing.gateway_fee` | The gateway fee: `amount` and `status` (`settled` or `waived`). |
 | `billing.currency` | Always `USD`. |
 | `billing.max_cost` | The cap that applied, if you set one. It is not the charge. |
 | `billing.official_comparison` | Optional comparison with the complete official price frozen at admission for this request. |
@@ -118,3 +117,7 @@ If you resell generation to your users, keep your retail prices and refund rules
 Result delivery does not wait for billing. If billing is `pending`, keep polling `GET /v1/jobs/{id}` or process the independent `job.billing_settled` webhook. Zero and empty `compute_charges` do not prove settlement. Missing or unknown status is unconfirmed.
 
 New requests omit `billing_mode`. For retries with an existing idempotency key, preserve the original request body including legacy fields; removing `billing_mode` changes request identity. An unestimated route with `max_cost` fails with `400 YIR_INVALID_REQUEST`; an estimated price exceeding the cap returns `422 YIR_BUDGET_EXCEEDED`.
+
+`gateway_fee` (currently zero and waived), `supply_type` (`managed`) and `billed_by` (`yir`) remain in v1 responses for compatibility. New integrations do not need them. `amount_basis: yir_price_rule` is a legacy identifier for actual upstream cost with the applicable channel factor and user discount; it does not mean the quote determines the charge.
+
+Use `GET /v1/balance` (SDK: `getBalance` in TypeScript, `GetBalance` in Go) to read `available_amount`, `held_amount` and `total_amount` as USD decimal strings. Available and total balances may be negative after settlement. This snapshot is not a spending authorization or a prerequisite to submit a Job.

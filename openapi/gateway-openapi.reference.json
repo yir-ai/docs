@@ -31,6 +31,9 @@
     },
     {
       "name": "Jobs"
+    },
+    {
+      "name": "Wallet"
     }
   ],
   "paths": {
@@ -897,6 +900,39 @@
           }
         }
       }
+    },
+    "/v1/balance": {
+      "get": {
+        "operationId": "getBalance",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "Read wallet balance",
+        "description": "Returns the API Key owner's wallet snapshot. Amounts are USD decimal strings; available and total balances may be negative after actual-cost settlement. This is not a quote or a spending authorization.",
+        "tags": [
+          "Wallet"
+        ],
+        "responses": {
+          "200": {
+            "description": "Current wallet balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Balance"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1227,6 +1263,38 @@
               ]
             },
             "description": "Ordered references. Model contracts determine counts and required roles."
+          }
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "required": [
+          "object",
+          "currency",
+          "available_amount",
+          "held_amount",
+          "total_amount"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "balance"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "held_amount": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]+)?$"
+          },
+          "total_amount": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
           }
         }
       },
@@ -2572,7 +2640,9 @@
             }
           },
           "gateway_fee": {
-            "$ref": "#/components/schemas/GatewayFee"
+            "$ref": "#/components/schemas/GatewayFee",
+            "deprecated": true,
+            "description": "Compatibility field, currently zero and waived. Read total_charged_by_yir and billing.status."
           },
           "status": {
             "type": "string",
@@ -2611,14 +2681,16 @@
             "enum": [
               "managed"
             ],
-            "description": "Always managed: Yir buys and runs the supply for you."
+            "deprecated": true,
+            "description": "Compatibility field. Yir Cloud always uses managed supply."
           },
           "billed_by": {
             "type": "string",
             "enum": [
               "yir"
             ],
-            "description": "Always yir: the charge is deducted from your Yir wallet."
+            "deprecated": true,
+            "description": "Compatibility field. Charges always use the Yir wallet."
           },
           "amount": {
             "$ref": "#/components/schemas/Decimal"
@@ -2628,7 +2700,7 @@
             "enum": [
               "yir_price_rule"
             ],
-            "description": "Always yir_price_rule: the channel's actual upstream cost for this attempt times your discount, as described in Quotes and billing."
+            "description": "Legacy identifier for actual upstream cost with the applicable channel factor and user discount. It does not mean the estimate determines the charge."
           },
           "usage": {
             "type": "array",

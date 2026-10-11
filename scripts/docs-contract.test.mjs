@@ -57,6 +57,7 @@ const requiredPages = [
 ]
 
 const reviewedOperations = [
+  'GET /v1/balance',
   'POST /v1/images/quotes',
   'POST /v1/images/generations',
   'POST /v1/videos/quotes',

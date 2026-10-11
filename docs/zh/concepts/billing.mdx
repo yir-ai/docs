@@ -99,7 +99,6 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 | `billing.status` | `pending`：费用尚未结清；`settled`：费用已结清。 |
 | `billing.total_charged_by_yir` | 当前已收金额；`billing.status` 为 `settled` 时才是最终金额。 |
 | `billing.compute_charges` | 算力费用明细。新 Job 有一条由 `yir` 计费的 `managed` 条目，汇总所有已收费的尝试，`status` 为 `settled`；没有任何收费时为 `waived`，金额为 `0.000`。数组可以为空。 |
-| `billing.gateway_fee` | 网关费用：`amount` 与 `status`（`settled` 或 `waived`）。 |
 | `billing.currency` | 固定为 `USD`。 |
 | `billing.max_cost` | 你设置的费用上限（如有），不是收费金额。 |
 | `billing.official_comparison` | 可选，与准入时冻结的本次请求完整官方价对比。 |
@@ -118,3 +117,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 结果交付不等待账单。`billing.status` 为 `pending` 时，继续查询 `GET /v1/jobs/{id}`，或处理独立的 `job.billing_settled` 通知。0 元或空 `compute_charges` 均不能证明结清；缺少状态或未知状态也不代表结清。
 
 新请求省略 `billing_mode`。用已有幂等键重试时，保留原始请求体及旧字段；删除 `billing_mode` 会改变请求身份。无可靠估价的路线携带 `max_cost` 返回 `400 YIR_INVALID_REQUEST`；已有估价超过上限返回 `422 YIR_BUDGET_EXCEEDED`。
+
+`gateway_fee`（目前为零且已豁免）、`supply_type`（`managed`）和 `billed_by`（`yir`）继续保留在 v1 响应中，以兼容旧客户端，新接入无需使用。`amount_basis: yir_price_rule` 是历史标识，表示实际上游费用乘以适用的渠道系数和用户折扣，不表示按报价扣费。
+
+通过 `GET /v1/balance`（TypeScript SDK：`getBalance`，Go SDK：`GetBalance`）读取 `available_amount`、`held_amount`、`total_amount`，金额为 USD 十进制字符串。结算后可用余额与总余额可能为负。该快照不是支出授权，也不是提交 Job 的前置步骤。

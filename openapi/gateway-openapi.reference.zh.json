@@ -31,6 +31,9 @@
     },
     {
       "name": "Jobs"
+    },
+    {
+      "name": "Wallet"
     }
   ],
   "paths": {
@@ -897,6 +900,39 @@
           }
         }
       }
+    },
+    "/v1/balance": {
+      "get": {
+        "operationId": "getBalance",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "summary": "读取钱包余额",
+        "description": "返回 API Key 所属账户的钱包余额快照。金额为 USD 十进制字符串；实际结算后，可用余额与总余额可能为负。这不是报价或支出授权。",
+        "tags": [
+          "Wallet"
+        ],
+        "responses": {
+          "200": {
+            "description": "当前钱包余额",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Balance"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1227,6 +1263,38 @@
               ]
             },
             "description": "有序的参考输入。数量与必需的角色由模型合同决定。"
+          }
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "required": [
+          "object",
+          "currency",
+          "available_amount",
+          "held_amount",
+          "total_amount"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "const": "balance"
+          },
+          "currency": {
+            "type": "string",
+            "const": "USD"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+          },
+          "held_amount": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]+)?$"
+          },
+          "total_amount": {
+            "type": "string",
+            "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
           }
         }
       },
@@ -2572,7 +2640,9 @@
             }
           },
           "gateway_fee": {
-            "$ref": "#/components/schemas/GatewayFee"
+            "$ref": "#/components/schemas/GatewayFee",
+            "deprecated": true,
+            "description": "兼容字段，目前金额为零且已豁免。请读取 total_charged_by_yir 和 billing.status。"
           },
           "status": {
             "type": "string",
@@ -2611,14 +2681,16 @@
             "enum": [
               "managed"
             ],
-            "description": "固定为 managed：由 Yir 采购并运行供应。"
+            "deprecated": true,
+            "description": "兼容字段。Yir Cloud 始终使用托管供应。"
           },
           "billed_by": {
             "type": "string",
             "enum": [
               "yir"
             ],
-            "description": "固定为 yir：费用从你的 Yir 钱包扣除。"
+            "deprecated": true,
+            "description": "兼容字段。费用始终从 Yir 钱包扣除。"
           },
           "amount": {
             "$ref": "#/components/schemas/Decimal"
@@ -2628,7 +2700,7 @@
             "enum": [
               "yir_price_rule"
             ],
-            "description": "固定为 yir_price_rule：该次尝试的渠道上游实际费用 × 你的折扣，见「报价与计费」。"
+            "description": "历史标识，表示实际上游费用乘以适用的渠道系数和用户折扣，不表示按估价扣费。"
           },
           "usage": {
             "type": "array",

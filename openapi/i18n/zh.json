@@ -68,9 +68,6 @@
   "Present in API responses; omitted from the static contract file bundled with the SDKs.": "API 响应中返回；SDK 附带的静态合同文件中省略。",
   "Language-neutral static model contracts generated with this Standard OpenAPI release. Runtime price, health, authorization and route facts are excluded.": "与语言无关的静态模型合同，随本次 Standard OpenAPI 版本生成。不含运行时的价格、健康状况、授权与路由数据。",
   "Maximum generated video duration in seconds when a reference of the keyed role is present; not input media duration.": "存在该角色的参考输入时，生成视频的最大时长（秒）；不是输入媒体的时长。",
-  "Always managed: Yir buys and runs the supply for you.": "固定为 managed：由 Yir 采购并运行供应。",
-  "Always yir: the charge is deducted from your Yir wallet.": "固定为 yir：费用从你的 Yir 钱包扣除。",
-  "Always yir_price_rule: the channel's actual upstream cost for this attempt times your discount, as described in Quotes and billing.": "固定为 yir_price_rule：该次尝试的渠道上游实际费用 × 你的折扣，见「报价与计费」。",
   "Model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false; for a retired model the message names its replacement.": "GET /v1/models 列出的模型 ID 或别名。未知或已下架的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下架模型的 message 会给出替代型号。",
   "Public REST API of the Yir Image & Video API Router: quote and submit image and video generation jobs, upload input files, read model contracts, and track jobs.\n\nCompatibility: this API only grows. New fields are optional, enums may gain values, and clients must ignore unknown fields and tolerate unknown enum values. Models, their parameters, allowed values and defaults come from the model contract (GET /v1/models?include=parameters) and change without an SDK release. A published model keeps its defaults, value meanings and billing semantics; a change to any of them ships as a new model ID. IDs are opaque strings; do not parse them. Deprecated fields stay for at least one minor SDK release and are announced in the SDK changelog.": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片和视频生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。",
   "Opaque Job ID.": "不透明的 Job ID。",
@@ -106,6 +103,13 @@
   "Billing completion is independent of Job completion. pending means more charges may arrive; settled confirms the current total is final. Older servers may omit this field; zero or empty compute_charges does not prove settlement.": "费用结清独立于 Job 完成。pending 表示还可能产生费用；settled 表示当前金额已最终确定。旧服务可能省略此字段；0 元或空 compute_charges 不代表结清。",
   "USD charged so far. Final only when billing.status is settled.": "当前已收取的美元金额。仅当 billing.status 为 settled 时才是最终金额。",
   "Estimated USD charge on the current preferred route, as used by admission: the live-balance check, the API Key monthly limit and max_cost compare against it. Unlike primary it includes known input charges (such as reference image tokens) and, for usage-billed routes with enough recent volume, recent actual charges. Omitted when no supply matches or the route has no reliable pre-generation estimate. It is a reference, not a charge ceiling; fallback routes may cost more.": "当前首选路线的预计费用（美元），与准入同口径：实时余额、API Key 月度上限和 max_cost 都以它比较。与 primary 不同，它包含已知的输入费用（如参考图 Token），近期调用量足够的按用量计费路线还参考近期实际收费。没有匹配渠道或路线没有生成前估价（billing_mode 为 actual）时省略。它是参考价，不是收费上限；备选路线可能更贵。",
+  "Read wallet balance": "读取钱包余额",
+  "Returns the API Key owner's wallet snapshot. Amounts are USD decimal strings; available and total balances may be negative after actual-cost settlement. This is not a quote or a spending authorization.": "返回 API Key 所属账户的钱包余额快照。金额为 USD 十进制字符串；实际结算后，可用余额与总余额可能为负。这不是报价或支出授权。",
+  "Current wallet balance": "当前钱包余额",
+  "Compatibility field, currently zero and waived. Read total_charged_by_yir and billing.status.": "兼容字段，目前金额为零且已豁免。请读取 total_charged_by_yir 和 billing.status。",
+  "Compatibility field. Yir Cloud always uses managed supply.": "兼容字段。Yir Cloud 始终使用托管供应。",
+  "Compatibility field. Charges always use the Yir wallet.": "兼容字段。费用始终从 Yir 钱包扣除。",
+  "Legacy identifier for actual upstream cost with the applicable channel factor and user discount. It does not mean the estimate determines the charge.": "历史标识，表示实际上游费用乘以适用的渠道系数和用户折扣，不表示按估价扣费。",
   "Present on a failed Job when the last upstream rejection was caused by the request or its inputs (for example an unsupported reference video). Sanitized diagnostic text: links and quoted text are removed, and wording is not stable.": "失败 Job 的最后一次上游拒绝由请求或输入素材引起时出现（例如参考视频不符合规格）。经脱敏的诊断文本：已去除链接和引号内容，措辞不稳定。",
   "Public provider code of the rejecting route.": "拒绝该请求的路线的公开渠道代码。"
 }
