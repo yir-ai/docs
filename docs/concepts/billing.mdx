@@ -96,7 +96,8 @@ Read the Job's `billing` object for charges. Results may already be available wh
 
 | Field | Meaning |
 | --- | --- |
-| `billing.total_charged_by_yir` | The final amount charged for this Job. |
+| `billing.status` | `pending`: more charges may arrive; `settled`: billing is complete. |
+| `billing.total_charged_by_yir` | Amount charged so far; final when `billing.status` is `settled`. |
 | `billing.compute_charges` | Compute line items. A new Job has one `managed` item billed by `yir` that sums every charged attempt, with `status` `settled`, or `waived` with amount `0.000` when nothing was charged. The array can be empty. |
 | `billing.gateway_fee` | The gateway fee: `amount` and `status` (`settled` or `waived`). |
 | `billing.currency` | Always `USD`. |
@@ -112,4 +113,8 @@ Read the Job's `billing` object for charges. Results may already be available wh
 
 ## Pricing your own product
 
-If you resell generation to your users, keep your retail prices and refund rules separate from Yir's charges. A quote's `expected_amount` (or `primary` when it is absent) is a useful pricing input, but the final charge follows the actual cost, and an `estimate` price covers output only. Set `max_cost` when you need a hard ceiling per Job. Reconcile `total_charged_by_yir` once per Job, including failed Jobs: a failed Job can carry a non-zero charge when the channel billed an attempt.
+If you resell generation to your users, keep your retail prices and refund rules separate from Yir's charges. A quote's `expected_amount` (or `primary` when it is absent) is a useful pricing input, but the final charge follows the actual cost, and an `estimate` price covers output only. Set `max_cost` when you need a hard ceiling per Job. Once `billing.status` is `settled`, reconcile `total_charged_by_yir` once per Job, including failed Jobs: a failed Job can carry a non-zero charge when the channel billed an attempt.
+
+Result delivery does not wait for billing. If billing is `pending`, keep polling `GET /v1/jobs/{id}` or process the independent `job.billing_settled` webhook. Zero and empty `compute_charges` do not prove settlement. Missing or unknown status is unconfirmed.
+
+New requests omit `billing_mode`. For retries with an existing idempotency key, preserve the original request body including legacy fields; removing `billing_mode` changes request identity. An unestimated route with `max_cost` fails with `400 YIR_INVALID_REQUEST`; an estimated price exceeding the cap returns `422 YIR_BUDGET_EXCEEDED`.

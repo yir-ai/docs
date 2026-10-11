@@ -1233,7 +1233,8 @@
       "ActualBillingMode": {
         "type": "string",
         "const": "actual",
-        "description": "显式同意按 Job 每次上游计费尝试的权威实际费用收费，不设 max_cost 上限。仅支持 KIE/APIMart 的 Kling 2.6/3.0 Motion Control 与 FAL 的 FLUX 2 Pro 图片编辑，routing.only 必须显式选择这些渠道。不能与 max_cost 同时使用。钱包余额不足的部分记为 Job 欠款，由之后的手动充值偿还；有未偿欠款时拒绝新 Job。上游实际计费的每次尝试都向用户收费，包括失败的和未胜出的尝试；上游未计费的尝试，以及 Yir 自身的交付失败或结果超时，不收费。省略时使用默认合同：不冻结余额，每次尝试前按实时余额核对该路由的估价，上游计费的每次尝试按上游权威金额乘以托管折扣收费，显式设置的 max_cost 为 Job 总费用封顶。"
+        "deprecated": true,
+        "description": "兼容历史请求的旧字段，新请求省略。使用已有幂等键重试时，保留原始请求（包括此字段）。旧 actual 模式仅支持 KIE/APIMart Kling 动作控制与 FAL FLUX 2 Pro 图生图，须指定 routing.only 且不可携带 max_cost；历史计费条款不变。新请求默认按上游实际账单结算，余额不足转为欠款；有可靠估价时可用 max_cost 限制总费用。"
       },
       "StandardImageGenerationRequest": {
         "type": "object",
@@ -2551,8 +2552,17 @@
           "gateway_fee": {
             "$ref": "#/components/schemas/GatewayFee"
           },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "settled"
+            ],
+            "description": "费用结清独立于 Job 完成。pending 表示还可能产生费用；settled 表示当前金额已最终确定。旧服务可能省略此字段；0 元或空 compute_charges 不代表结清。"
+          },
           "total_charged_by_yir": {
-            "$ref": "#/components/schemas/Decimal"
+            "$ref": "#/components/schemas/Decimal",
+            "description": "当前已收取的美元金额。仅当 billing.status 为 settled 时才是最终金额。"
           },
           "max_cost": {
             "$ref": "#/components/schemas/MaxCost"

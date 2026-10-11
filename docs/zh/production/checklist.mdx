@@ -84,3 +84,5 @@ description: 让 Yir 集成可安全重试、崩溃后可恢复、费用可控�
 ## 联系支持
 
 发邮件到 [support@yir.ai](mailto:support@yir.ai)，或使用 Console 中的支持按钮。请提供 Job ID、接口、大致 UTC 时间、HTTP 状态、`error.code` 以及错误响应中的 `request_id`。不要发送完整 API Key、提示词、源素材或签名密钥。
+
+Job 终态仍可能带有 `billing.status: pending`。先交付已可用文件，再通过轮询或独立 `job.billing_settled` 通知等待费用 `settled` 后完成入账。

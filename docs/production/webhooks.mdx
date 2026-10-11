@@ -23,7 +23,7 @@ The URL must use HTTPS on the default port 443. You can also register up to 5 [e
 | `Yir-Webhook-Id` | Stable event ID. Use it to deduplicate. |
 | `Yir-Webhook-Timestamp` | Unix seconds when this delivery was signed. |
 | `Yir-Webhook-Signature` | `v1=` followed by a Base64 HMAC-SHA256 signature. |
-| `Yir-Webhook-Event` | `job.succeeded`, `job.failed`, or `job.cancelled`. |
+| `Yir-Webhook-Event` | `job.succeeded`, `job.failed`, `job.cancelled`, or `job.billing_settled`. |
 | `Yir-Webhook-Attempt` | Delivery attempt number. |
 
 ## Verify the signature
@@ -93,15 +93,15 @@ The SDKs provide the same check: `verifyWebhookSignature` and `constructWebhookE
 Deduplicate at two levels:
 
 1. **Event:** store `Yir-Webhook-Id` and skip events you have already handled. Respond with a `2xx` status once the event is stored.
-2. **Job:** polling and Webhooks can both report the same terminal Job. Key your business actions (saving files, charging or refunding your users) by `job.id` so they happen exactly once.
+2. **Job:** polling and Webhooks can both report the same terminal Job. Key your business actions (saving files, and separately finalizing charges or refunds once billing is settled) by `job.id` so they happen exactly once.
 
-Read `billing.total_charged_by_yir` for the final charge. Result URLs in a delivery are short-lived and can differ between deliveries of the same event; download files promptly.
+Read `billing.total_charged_by_yir` for the final charge only when `billing.status` is `settled`. Result events are immediate. If billing was pending when the result event was queued, a separate `job.billing_settled` event follows with its own ID and the same full Job body. Events can arrive out of order: do not overwrite settled billing with a pending snapshot. Deduplicate result fulfillment and final billing separately by Job ID. The event header is not part of the signed message; verify the body and use its `billing.status`, or retrieve the Job, for billing decisions. Result URLs in a delivery are short-lived and can differ between deliveries of the same event; download files promptly.
 
 ## Retries
 
 If your endpoint does not answer with a `2xx` status, Yir retries automatically. Retries carry the same event ID with a new timestamp and signature. They never resubmit or charge the Job again. There is no manual redelivery.
 
-If a callback is lost, `GET /v1/jobs/{id}` always returns the same terminal Job while it is retained. Many integrations treat the Webhook as a wake-up signal and keep slow polling as a fallback.
+If a callback is lost, `GET /v1/jobs/{id}` returns the current Job while it is retained, including billing updates. Many integrations treat the Webhook as a wake-up signal and keep slow polling as a fallback.
 
 Do not log signatures, secrets, or result URLs.
 

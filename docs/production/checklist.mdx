@@ -84,3 +84,5 @@ Use a single-entry `routing.only` to test one channel, a separate API Key with a
 ## Support requests
 
 Email [support@yir.ai](mailto:support@yir.ai) or use the support button in Console. Include the Job ID, endpoint, approximate UTC time, HTTP status, `error.code`, and the `request_id` from the error response. Never send your full API Key, prompts, source media, or signing secret.
+
+A terminal Job can still have `billing.status: pending`. Deliver available files immediately; finalize financial records only after `settled`, via polling or the separate `job.billing_settled` event.

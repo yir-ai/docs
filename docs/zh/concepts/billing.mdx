@@ -96,7 +96,8 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 
 | 字段 | 含义 |
 | --- | --- |
-| `billing.total_charged_by_yir` | 此 Job 的最终收费金额。 |
+| `billing.status` | `pending`：费用尚未结清；`settled`：费用已结清。 |
+| `billing.total_charged_by_yir` | 当前已收金额；`billing.status` 为 `settled` 时才是最终金额。 |
 | `billing.compute_charges` | 算力费用明细。新 Job 有一条由 `yir` 计费的 `managed` 条目，汇总所有已收费的尝试，`status` 为 `settled`；没有任何收费时为 `waived`，金额为 `0.000`。数组可以为空。 |
 | `billing.gateway_fee` | 网关费用：`amount` 与 `status`（`settled` 或 `waived`）。 |
 | `billing.currency` | 固定为 `USD`。 |
@@ -112,4 +113,8 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 
 ## 为自己的产品定价
 
-如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的收费分开。报价的 `expected_amount`（缺省时用 `primary`）可作为定价参考，但最终费用以实际成本为准，`estimate` 类价格仅覆盖输出。需要为每个 Job 设定硬上限时，请设置 `max_cost`。每个 Job（包括失败的）核对一次 `total_charged_by_yir`：渠道对某次尝试计了费时，失败的 Job 也可能有费用。
+如果你向自己的用户转售生成能力，请把零售价格和退款规则与 Yir 的收费分开。报价的 `expected_amount`（缺省时用 `primary`）可作为定价参考，但最终费用以实际成本为准，`estimate` 类价格仅覆盖输出。需要为每个 Job 设定硬上限时，请设置 `max_cost`。等 `billing.status` 为 `settled` 后，每个 Job（包括失败的）核对一次 `total_charged_by_yir`：渠道对某次尝试计了费时，失败的 Job 也可能有费用。
+
+结果交付不等待账单。`billing.status` 为 `pending` 时，继续查询 `GET /v1/jobs/{id}`，或处理独立的 `job.billing_settled` 通知。0 元或空 `compute_charges` 均不能证明结清；缺少状态或未知状态也不代表结清。
+
+新请求省略 `billing_mode`。用已有幂等键重试时，保留原始请求体及旧字段；删除 `billing_mode` 会改变请求身份。无可靠估价的路线携带 `max_cost` 返回 `400 YIR_INVALID_REQUEST`；已有估价超过上限返回 `422 YIR_BUDGET_EXCEEDED`。
