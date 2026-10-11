@@ -25,6 +25,8 @@ Errors use one stable shape, whether they come back from an HTTP request or appe
 
 On a failed Job, the same `error` object (without `request_id`) is in both `GET /v1/jobs/{id}` and `GET /v1/jobs/{id}/status`.
 
+When the upstream rejected the request or its inputs (for example a reference video below the model's pixel minimum), a failed Job's `error` also carries `provider_error: {provider, message}` with the upstream's own reason. Links and quoted text are removed. Use it to diagnose and fix the input; its wording is not stable, so keep branching on `code`.
+
 ## Request errors
 
 Returned immediately by an HTTP call. When a generation request is rejected this way, no Job is created and nothing is charged.
