@@ -25,7 +25,7 @@ description: Yir 所有稳定错误码的 HTTP 状态、出现位置、是否可
 
 Job 失败时，`GET /v1/jobs/{id}` 与 `GET /v1/jobs/{id}/status` 中都有相同的 `error` 对象（不含 `request_id`）。
 
-上游因请求或输入素材拒绝时（如参考视频低于模型的像素下限），失败 Job 的 `error` 还带 `provider_error: {provider, message}`，给出上游自己的原因，链接与引号内容已去除。用它排查并修正输入；措辞不稳定，分支仍以 `code` 为准。
+只要上游给出了最后一次失败尝试的原因，失败 Job 的 `error` 就带 `provider_error: {provider, message}`，原样给出上游的说法，例如参考视频低于模型的像素下限、上游超时。Yir 自己渠道账户的问题（余额、Key、限流）不透传。链接与回显的提示词已去除。用它排查失败原因；措辞不稳定，分支仍以 `code` 为准。
 
 ## 请求错误
 
