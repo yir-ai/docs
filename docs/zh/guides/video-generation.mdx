@@ -21,7 +21,7 @@ description: 使用 Yir Standard API 从文本、首尾帧，或图片、视频�
 
 | 参数 | 说明 |
 | --- | --- |
-| `duration` | 输出时长（秒），需在模型范围内。 |
+| `duration` | 输出时长（秒），需在模型范围内；支持的参考视频编辑可用 `"auto"`。Quote 和 Job 保留 `"auto"`；URL 报价可在供给可用时保持金额未知。见 [Seedance 2.5](/zh/docs/models/bytedance/seedance-2-5)。 |
 | `resolution` | 例如 `480p`、`720p`、`1080p`。 |
 | `aspect_ratio` | 例如 `16:9`、`9:16`、`1:1`，支持时可用 `adaptive`。 |
 | `generate_audio` | 支持时随视频生成原生音频。 |

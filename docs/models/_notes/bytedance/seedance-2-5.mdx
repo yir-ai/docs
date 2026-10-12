@@ -2,7 +2,9 @@
 
 For video edits, use `input.type: "reference"` with at least one `reference_video` and `parameters.duration: "auto"`. Set `aspect_ratio: "auto"` or omit it; a fixed ratio is rejected with automatic duration. The upstream model determines from the prompt whether the request is an edit. This option is not available for text-only, first-frame, or image-only reference requests.
 
-For a quote, upload the reference videos first and use their `file_id` values so Yir can read their measured durations. A generation request can also use reference-video URLs, which Yir imports and measures before admission. For estimates and admission, Yir rounds the longest reference duration up to whole seconds within the model’s 4–30 second range. Final charges use the actual upstream amount; the estimate does not guarantee the output length.
+Quote accepts public HTTPS reference-video URLs without downloading them. When `duration` is `"auto"` and any reference video is a URL, supply may be available while `primary.amount` and `official.amount` are `null` and `expected_amount` is absent. Upload videos and use their ready `file_id` values when you need an estimate based on measured duration. Submit still imports, validates and measures URLs before admission; unknown estimates never override an explicit `max_cost` or other budget limits. Quote and Job echo `parameters.duration: "auto"`, including Webhooks; internal measured seconds are not substituted. Numeric requests keep their numeric echo.
+
+For estimates and admission, Yir rounds the longest measured reference duration up to whole seconds within the model’s 4–30 second range. Final charges use the actual upstream amount; the estimate does not guarantee the output length.
 
 Omitting `duration` keeps the default of 4 seconds. Explicit integer durations keep their existing behavior; do not send the upstream value `-1` to Yir.
 

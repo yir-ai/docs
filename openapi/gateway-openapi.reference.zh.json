@@ -1648,7 +1648,7 @@
                     ]
                   }
                 ],
-                "description": "输出时长（秒），支持参考视频编辑的模型合同也可使用 auto。报价不下载 URL：未知时长时不提供金额；提交会在准入前导入并测量 URL 素材。"
+                "description": "输出秒数；模型合同支持参考视频编辑时也可用 auto。Quote 不下载 URL：未知时长保持金额不可用。Submit 在准入前导入并测量 URL 素材。"
               },
               "resolution": {
                 "type": "string",
@@ -1733,7 +1733,7 @@
                     ]
                   }
                 ],
-                "description": "输出时长（秒），支持参考视频编辑的模型合同也可使用 auto。报价不下载 URL：未知时长时不提供金额；提交会在准入前导入并测量 URL 素材。"
+                "description": "输出秒数；模型合同支持参考视频编辑时也可用 auto。Quote 不下载 URL：未知时长保持金额不可用。Submit 在准入前导入并测量 URL 素材。"
               },
               "resolution": {
                 "type": "string",
@@ -2187,7 +2187,7 @@
                 ]
               }
             ],
-            "description": "视频输出时长（秒），支持的参考视频编辑也可使用 auto。报价与 Job 保留 auto，测量秒数仅用于内部估价。"
+            "description": "视频输出秒数，或在支持的参考视频编辑中使用 auto。Quote 和 Job 保留 auto；实测秒数仅用于内部估价。"
           },
           "resolution": {
             "type": "string",
