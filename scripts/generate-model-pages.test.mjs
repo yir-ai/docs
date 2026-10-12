@@ -51,3 +51,16 @@ test('keeps generated model pages in sync with the model contract', async () => 
   }
   assert.deepEqual((await existingGeneratedFiles()).filter(rel => !(rel in files)), [], 'remove pages of retired models')
 })
+
+test('renders numeric duration ranges with additional string values in both languages', () => {
+  const extended = structuredClone(model)
+  extended.operations[0].parameters[0].string_values = ['auto']
+  for (const lang of ['en', 'zh']) {
+    const page = renderPage(extended, lang, null)
+    const row = page.split('\n').find(line => line.startsWith('| `duration` |'))
+    assert.ok(row.includes('`4`'))
+    assert.ok(row.includes('`15`'))
+    assert.ok(row.includes('`auto`'))
+    assert.ok(row.includes(' | `5` |'))
+  }
+})

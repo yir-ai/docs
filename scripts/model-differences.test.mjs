@@ -60,6 +60,8 @@ for (const s of ['seedance-1.5-pro', 'seedance-2.0', 'seedance-2.0-fast', 'seeda
 const s25 = 'bytedance/seedance-2.5'
 check('seedance-2.5 resolution default 720p', def(s25, 'resolution') === '720p', def(s25, 'resolution'))
 check('seedance-2.5 duration default 4', def(s25, 'duration') === 4, def(s25, 'duration'))
+check('seedance-2.5 reference duration accepts auto', sameSet(P(s25, 'duration', 'reference')?.string_values, ['auto']), P(s25, 'duration', 'reference')?.string_values)
+for (const mode of ['text', 'image']) check('seedance-2.5 ' + mode + ' duration stays numeric', !P(s25, 'duration', mode)?.string_values?.length, P(s25, 'duration', mode)?.string_values)
 check('seedance-2.5 generate_audio default false', def(s25, 'generate_audio') === false, def(s25, 'generate_audio'))
 check('seedance-2.5 first frame: only auto, default auto', sameSet(vals(s25, 'aspect_ratio', 'image'), ['auto']) && def(s25, 'aspect_ratio', 'image') === 'auto', [vals(s25, 'aspect_ratio', 'image'), def(s25, 'aspect_ratio', 'image')])
 check('seedance-2.5 resolution 480p/720p', sameSet(vals(s25, 'resolution'), ['480p', '720p']), vals(s25, 'resolution'))

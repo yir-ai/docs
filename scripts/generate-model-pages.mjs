@@ -113,9 +113,10 @@ function roleCell(constraint, t) {
 }
 
 function valuesCell(param, t) {
-  if (param.values?.length) return param.values.map(code).join(t.sep)
-  if (param.minimum !== undefined && param.maximum !== undefined) return t.range(code(param.minimum), code(param.maximum))
-  return param.type
+  const numeric = param.values?.length ? param.values.map(code).join(t.sep)
+    : param.minimum !== undefined && param.maximum !== undefined ? t.range(code(param.minimum), code(param.maximum))
+    : param.type
+  return [numeric, ...(param.string_values ?? []).map(code)].join(t.sep)
 }
 
 function exampleRequest(model, view, mode) {

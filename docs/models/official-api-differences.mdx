@@ -81,7 +81,7 @@ For `google/veo-3.1-generate-001`, first-frame `image` mode may omit `input.prom
 
 ### ByteDance Seedance and Seedream
 
-Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive` (Seedance 2.5 with a first frame uses `auto`), and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. ByteDance's `duration: -1` (model-chosen length), `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
+Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive` (Seedance 2.5 with a first frame uses `auto`), and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. The upstream `duration: -1` value is not accepted directly. Seedance 2.5 reference-video edits can use Yir's `duration: "auto"` with `aspect_ratio: "auto"`; other input modes retain fixed durations. `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
 
 | Model | Parameter or feature | ByteDance API | Yir |
 | --- | --- | --- | --- |
@@ -93,7 +93,7 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | References | Up to 9 images, 3 videos and 3 audio clips. | Up to 3 references in total. No `adaptive` ratio. |
 | `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p` or `720p`. |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`, the only option with a first frame or first and last frames. | Named `auto`. With a first frame or first and last frames, only `auto` is accepted and it is the default. |
-| `bytedance/seedance-2.5` | Video editing (`omni_reference_task_type`), audio-only references, `output_format: mov` | Available. | Not available. References must include an image or a video. |
+| `bytedance/seedance-2.5` | Video editing (`omni_reference_task_type`), audio-only references, `output_format: mov` | Available. | No explicit task-type or MOV parameter. Video edits can use `duration: "auto"` with a reference video and `aspect_ratio: "auto"`; audio-only references remain unsupported. |
 | `bytedance/seedream-4.5` | References | Up to 14 images. | Up to 10. `9:21` only with references. |
 | `bytedance/seedream-4.5`, `-5.0`, `-5.0-pro` | Image sets (`sequential_image_generation`, `max_images`) | Up to 15 images per request. | One image per Job. |
 | `bytedance/seedream-4.5`, `-5.0`, `-5.0-pro` | Aspect ratio | Any ratio from 1:16 to 16:1. | A fixed list of ratios. |

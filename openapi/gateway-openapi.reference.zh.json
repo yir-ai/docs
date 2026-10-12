@@ -3586,6 +3586,15 @@
               "$ref": "#/components/schemas/ModelParameterValue"
             }
           },
+          "string_values": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            },
+            "description": "数值参数额外接受的字符串值，例如 duration \"auto\"。适用条件由 locales 说明，并由网关校验。"
+          },
           "default": {
             "$ref": "#/components/schemas/ModelParameterValue",
             "description": "省略该参数时采用的值。只有必填参数和 quality 没有默认值；省略 quality 表示不约束。"
