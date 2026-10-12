@@ -91,9 +91,11 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 
 图片和视频调用都接受 `Idempotency-Key`，视频轮询也兼容该请求头。`providerOptions.yir.idempotencyKey` 优先；否则复用请求头（包括 AI SDK 的视频重试键）或生成一个键。提交和内联文件上传共享这次调用的身份；跨调用、跨进程恢复时请持久化业务幂等键。
 
+可选视频 `fps` 需要 Gateway 已部署 FPS 支持。首批仅 `google/veo-3.1-generate-001` 的 Google 官方渠道声明原生 `24` FPS。不支持的值或渠道会被拒绝，不补帧或转码；省略 FPS 保留旧行为。
+
 ## 注意事项
 
 - 适配器不负责报价或预算审批。如需价格，请先用[原生客户端](/zh/docs/integrations/sdk)调用 `quoteImage` / `quoteVideo`。
 - 请设置 `maxRetries: 0`，或始终传入已持久化的 `idempotencyKey`，避免 AI SDK 的重试创建额外 Job。
 - 中止或超时只停止本地等待。要停止远端 Job，请调用原生 `cancelJob`；当前尝试仍可能成功并收费。
-- 最终的 `parameter_notices` 会作为生成 `warnings` 返回，Job ID 与收费金额在 `providerMetadata.yir` 中。
+- 最终的 `parameter_notices` 和结果警告会作为生成 `warnings` 返回。尾帧等辅助图片保留在 `providerMetadata.yir.additionalFiles` 中，只有视频文件进入生成的视频列表。Job ID 与收费金额在 `providerMetadata.yir` 中。

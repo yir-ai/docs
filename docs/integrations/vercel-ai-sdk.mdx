@@ -91,9 +91,11 @@ Exact pixels require a Gateway deployment with `parameters.size` support. The fi
 
 The adapter accepts `Idempotency-Key` on both image and video calls, including video polling. `providerOptions.yir.idempotencyKey` takes precedence. AI SDK's video retry key is reused for submission and inline uploads; otherwise a key is generated. Persist a business key when recovering across separate calls or processes.
 
+Optional video `fps` requires a Gateway deployment with FPS support. Initially only the official Google route for `google/veo-3.1-generate-001` declares native `24` FPS. Unsupported values or channels are rejected without interpolation or transcoding; omitting FPS preserves existing behavior.
+
 ## Things to keep in mind
 
 - The adapter does not quote or approve budgets. Call `quoteImage` / `quoteVideo` on the [native client](/docs/integrations/sdk) first if you need prices.
 - Set `maxRetries: 0`, or always pass a persisted `idempotencyKey`, so AI SDK retries cannot create extra Jobs.
 - Aborting or timing out stops local waiting only. To stop the remote Job, call the native `cancelJob`; the current attempt may still succeed and be charged.
-- Final `parameter_notices` are returned as generation `warnings`. The Job ID and charge are in `providerMetadata.yir`.
+- Final `parameter_notices` and result warnings are returned as generation `warnings`. Auxiliary images, such as a last-frame image, are preserved in `providerMetadata.yir.additionalFiles`; only video files become generated videos. The Job ID and charge are in `providerMetadata.yir`.

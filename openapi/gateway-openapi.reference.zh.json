@@ -1632,6 +1632,11 @@
                 "pattern": "^[1-9][0-9]*x[1-9][0-9]*$",
                 "description": "可选精确输出像素（宽x高），仅适用于明确支持该尺寸的模型和渠道。省略的 resolution 和 aspect_ratio 由已声明尺寸确定，显式冲突值会被拒绝。不近似缩放或替换档位，省略 size 保留既有模型默认值。"
               },
+              "fps": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "可选的原生输出帧率。仅接受当前模型和渠道明确声明的值；不支持的值会被拒绝，不通过补帧或转码满足请求。省略时保留原有行为。"
+              },
               "duration": {
                 "type": "integer",
                 "minimum": 1,
@@ -1701,6 +1706,11 @@
                 "type": "string",
                 "pattern": "^[1-9][0-9]*x[1-9][0-9]*$",
                 "description": "可选精确输出像素（宽x高），仅适用于明确支持该尺寸的模型和渠道。省略的 resolution 和 aspect_ratio 由已声明尺寸确定，显式冲突值会被拒绝。不近似缩放或替换档位，省略 size 保留既有模型默认值。"
+              },
+              "fps": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "可选的原生输出帧率。仅接受当前模型和渠道明确声明的值；不支持的值会被拒绝，不通过补帧或转码满足请求。省略时保留原有行为。"
               },
               "duration": {
                 "type": "integer",
@@ -2140,6 +2150,11 @@
             "type": "string",
             "minLength": 1,
             "description": "请求约束的图片画质档位；省略时不出现，表示任何渠道都可执行。"
+          },
+          "fps": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "可选的原生输出帧率。仅接受当前模型和渠道明确声明的值；不支持的值会被拒绝，不通过补帧或转码满足请求。省略时保留原有行为。"
           },
           "duration": {
             "type": "integer",
