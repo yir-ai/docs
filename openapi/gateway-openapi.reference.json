@@ -1636,9 +1636,19 @@
                 "description": "Optional native output frame rate. Only models and channels explicitly declaring this frame rate are eligible; unsupported values are rejected without interpolation or transcoding. Omit to preserve existing behavior."
               },
               "duration": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "Output length in seconds; allowed values come from the model contract."
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "description": "Output length in seconds, or auto when the model contract supports reference-video edits. Quote does not download URLs: unknown duration leaves amounts unavailable. Submit imports and measures URLs before admission."
               },
               "resolution": {
                 "type": "string",
@@ -1711,9 +1721,19 @@
                 "description": "Optional native output frame rate. Only models and channels explicitly declaring this frame rate are eligible; unsupported values are rejected without interpolation or transcoding. Omit to preserve existing behavior."
               },
               "duration": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "Output length in seconds; allowed values come from the model contract."
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "description": "Output length in seconds, or auto when the model contract supports reference-video edits. Quote does not download URLs: unknown duration leaves amounts unavailable. Submit imports and measures URLs before admission."
               },
               "resolution": {
                 "type": "string",
@@ -2155,9 +2175,19 @@
             "description": "Optional native output frame rate. Only models and channels explicitly declaring this frame rate are eligible; unsupported values are rejected without interpolation or transcoding. Omit to preserve existing behavior."
           },
           "duration": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Video output length in seconds; present when the model declares duration."
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "auto"
+                ]
+              }
+            ],
+            "description": "Video output length in seconds, or auto for supported reference-video edits. Quote and Job preserve auto; measured seconds are only used internally for estimation."
           },
           "resolution": {
             "type": "string",

@@ -21,7 +21,7 @@ Which modes, roles, and counts a model accepts is defined in its contract. For e
 
 | Parameter | Description |
 | --- | --- |
-| `duration` | Output length in seconds, within the model's range. |
+| `duration` | Output length in seconds, within the model's range, or `"auto"` for supported reference-video edits. Quote and Job preserve `"auto"`; URL quotes may have available supply without a known amount. See [Seedance 2.5](/docs/models/bytedance/seedance-2-5). |
 | `resolution` | For example `480p`, `720p`, `1080p`. |
 | `aspect_ratio` | For example `16:9`, `9:16`, `1:1`, or `adaptive` where supported. |
 | `generate_audio` | Generate native audio with the video, where supported. |

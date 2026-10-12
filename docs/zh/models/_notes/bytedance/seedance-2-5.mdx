@@ -2,6 +2,8 @@
 
 视频编辑时，使用 `input.type: "reference"`，至少提供一个 `reference_video`，并设置 `parameters.duration: "auto"`。将 `aspect_ratio` 设为 `"auto"` 或省略；自动时长不接受固定画幅。上游模型根据提示词判断请求是否属于编辑。纯文本、首帧和仅含图片的参考输入不能使用此选项。
 
-报价前请先上传参考视频，使用其 `file_id`，让 Yir 读取已测量时长。生成请求也可使用参考视频 URL，Yir 会先导入并测量，再进行准入。估价和准入按最长参考视频时长向上取整为秒，并限制在模型的 4–30 秒范围内。最终费用按实际上游金额结算，估价秒数不保证输出时长。
+Quote 接受公开 HTTPS 参考视频 URL，但不会下载素材。设置 `duration: "auto"` 且任一参考视频为 URL 时，供给可以可用，同时 `primary.amount` 和 `official.amount` 为 `null`，不返回 `expected_amount`。需要基于实测时长的估价时，请先上传视频并使用已就绪的 `file_id`。Submit 仍会先导入、校验并测量 URL 素材，再进行准入；未知估价不会绕过显式 `max_cost` 或其他预算限制。Quote 和 Job（包括 Webhook）均回显 `parameters.duration: "auto"`，不会替换成内部实测秒数；数值请求仍回显数值。
+
+估价和准入按最长实测参考视频时长向上取整为秒，并限制在模型的 4–30 秒范围内。最终费用按实际上游金额结算，估价秒数不保证输出时长。
 
 省略 `duration` 仍使用默认 4 秒；显式整数时长保持既有行为。不要向 Yir 传入上游的 `-1` 值。

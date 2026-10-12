@@ -1636,9 +1636,19 @@
                 "description": "可选的原生输出帧率。仅接受当前模型和渠道明确声明的值；不支持的值会被拒绝，不通过补帧或转码满足请求。省略时保留原有行为。"
               },
               "duration": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "输出时长（秒），允许值来自模型合同。"
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "description": "输出秒数；模型合同支持参考视频编辑时也可用 auto。Quote 不下载 URL：未知时长保持金额不可用。Submit 在准入前导入并测量 URL 素材。"
               },
               "resolution": {
                 "type": "string",
@@ -1711,9 +1721,19 @@
                 "description": "可选的原生输出帧率。仅接受当前模型和渠道明确声明的值；不支持的值会被拒绝，不通过补帧或转码满足请求。省略时保留原有行为。"
               },
               "duration": {
-                "type": "integer",
-                "minimum": 1,
-                "description": "输出时长（秒），允许值来自模型合同。"
+                "oneOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto"
+                    ]
+                  }
+                ],
+                "description": "输出秒数；模型合同支持参考视频编辑时也可用 auto。Quote 不下载 URL：未知时长保持金额不可用。Submit 在准入前导入并测量 URL 素材。"
               },
               "resolution": {
                 "type": "string",
@@ -2155,9 +2175,19 @@
             "description": "可选的原生输出帧率。仅接受当前模型和渠道明确声明的值；不支持的值会被拒绝，不通过补帧或转码满足请求。省略时保留原有行为。"
           },
           "duration": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "视频输出秒数；模型声明 duration 时出现。"
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "auto"
+                ]
+              }
+            ],
+            "description": "视频输出秒数，或在支持的参考视频编辑中使用 auto。Quote 和 Job 保留 auto；实测秒数仅用于内部估价。"
           },
           "resolution": {
             "type": "string",
