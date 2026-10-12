@@ -77,6 +77,8 @@ Migrating: set `duration` explicitly to one of the supported lengths; other valu
 | `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | Last frame, reference images, video extension | Available. | Not available; `image` mode takes a `first_frame` only. |
 | `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | `personGeneration`, `resizeMode` | Available. | Not available. |
 
+For `google/veo-3.1-generate-001`, first-frame `image` mode may omit `input.prompt` or pass blank text only when routed to the Google official channel. Other modes, Veo 3.1 Fast, and other channels still require text. Yir exposes this capability as `prompt_optional` in the input contract and does not invent a replacement prompt. The initial scope follows the [Vercel Veo 3.1 model documentation](https://vercel.com/ai-gateway/models/veo-3.1-generate-001).
+
 ### ByteDance Seedance and Seedream
 
 Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive` (Seedance 2.5 with a first frame uses `auto`), and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. ByteDance's `duration: -1` (model-chosen length), `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.

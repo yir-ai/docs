@@ -93,6 +93,10 @@ Yir 特有选项放在 `providerOptions.yir` 中，未知字段会被拒绝。
 
 可选视频 `fps` 需要 Gateway 已部署 FPS 支持。首批仅 `google/veo-3.1-generate-001` 的 Google 官方渠道声明原生 `24` FPS。不支持的值或渠道会被拒绝，不补帧或转码；省略 FPS 保留旧行为。
 
+`generateVideo({ webhook })` 支持标准回调工厂，地址映射为 `webhook_url`。接收端验签、确认对应 Job 的终态通知并 resolve `received` 后，适配器回读原 Job 获取结果，不把回调正文直接当作生成结果。未传该选项时保持轮询。
+
+首帧视频输入仅在模型输入合同声明 `prompt_optional` 且存在匹配渠道时可省略文字，首批为 Veo 3.1 官方渠道。纯文本生成、图片生成和其他输入模式仍须文字。省略或空白按无文字处理，不自动编造提示词；需要部署对应 Gateway 更新。
+
 ## 注意事项
 
 - 适配器不负责报价或预算审批。如需价格，请先用[原生客户端](/zh/docs/integrations/sdk)调用 `quoteImage` / `quoteVideo`。

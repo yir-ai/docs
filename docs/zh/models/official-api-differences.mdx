@@ -77,6 +77,8 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 尾帧、参考图、视频延长 | 支持。 | 不可用；`image` 模式只接受 `first_frame`。 |
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | `personGeneration`、`resizeMode` | 支持。 | 不可用。 |
 
+`google/veo-3.1-generate-001` 的首帧 `image` 模式仅在 Google 官方渠道允许省略 `input.prompt` 或传空白文字。其他模式、Veo 3.1 Fast 和其他渠道仍要求提示词。输入合同通过 `prompt_optional` 声明此能力，Yir 不自动编造替代提示词。首批范围依据 [Vercel Veo 3.1 模型说明](https://vercel.com/ai-gateway/models/veo-3.1-generate-001)。
+
 ### 字节跳动 Seedance 与 Seedream
 
 Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `480p`（Seedance 2.5 为 `720p`），而非 `720p`；`duration` 为 `4` 秒（2.0 Fast 与 2.0 Mini 为 `5` 秒），而非 `5` 秒或由模型决定；`aspect_ratio` 为 `16:9` 而非 `adaptive`（Seedance 2.5 带首帧时为 `auto`）；`generate_audio` 为 `false` 而非 `true`。如果依赖字节跳动的默认值，请显式设置这些参数。所有 Seedance 模型都不提供字节跳动的 `duration: -1`（由模型决定时长）、`camera_fixed`、`draft`、`service_tier` 和 `priority`。

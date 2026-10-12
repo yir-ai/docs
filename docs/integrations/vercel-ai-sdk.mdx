@@ -93,6 +93,10 @@ The adapter accepts `Idempotency-Key` on both image and video calls, including v
 
 Optional video `fps` requires a Gateway deployment with FPS support. Initially only the official Google route for `google/veo-3.1-generate-001` declares native `24` FPS. Unsupported values or channels are rejected without interpolation or transcoding; omitting FPS preserves existing behavior.
 
+`generateVideo({ webhook })` supports the standard callback factory. Its URL maps to `webhook_url`; after your verified, correlated terminal notification resolves `received`, the adapter reads the original Job for its result. It does not trust the notification body as the generated output. Without this option, polling is unchanged.
+
+First-frame video input may omit prompt text only when the model input contract declares `prompt_optional` and a matching channel is available. Initially this is official Google Veo 3.1. Text-only generation, image generation, and other input modes still require text. Omitted or blank text is treated as absent; no prompt is invented. This requires the corresponding Gateway update.
+
 ## Things to keep in mind
 
 - The adapter does not quote or approve budgets. Call `quoteImage` / `quoteVideo` on the [native client](/docs/integrations/sdk) first if you need prices.

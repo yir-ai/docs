@@ -1464,7 +1464,6 @@
         "additionalProperties": false,
         "required": [
           "type",
-          "prompt",
           "references"
         ],
         "properties": {
@@ -1474,9 +1473,8 @@
           },
           "prompt": {
             "type": "string",
-            "minLength": 1,
             "maxLength": 20000,
-            "pattern": "\\S"
+            "description": "仅当模型输入合同声明 prompt_optional 且所选渠道支持时，文字才可省略或留空。纯文本生成仍须提供提示词，不会自动补写文字。"
           },
           "references": {
             "type": "array",
@@ -3467,6 +3465,10 @@
           "allowed_reference_roles"
         ],
         "properties": {
+          "prompt_optional": {
+            "type": "boolean",
+            "description": "为 true 时，该输入模式可在明确支持的渠道省略文字；未声明则提示词必填。"
+          },
           "min_references": {
             "type": "integer",
             "minimum": 0
