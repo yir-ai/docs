@@ -91,7 +91,7 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 | `bytedance/seedance-2.0-fast` | `duration` | Any integer from 4 to 15. | `5`, `10` or `15`. |
 | `bytedance/seedance-2.0-mini` | `duration` | Any integer from 4 to 15. | `5` or `10`. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | References | Up to 9 images, 3 videos and 3 audio clips. | Up to 3 references in total. No `adaptive` ratio. |
-| `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p` or `720p`. |
+| `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | Text: `480p`, `720p`, `1080p` (1080p requires the official channel). Image/reference: `480p` or `720p`. Default remains `720p`. |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`, the only option with a first frame or first and last frames. | Named `auto`. With a first frame or first and last frames, only `auto` is accepted and it is the default. |
 | `bytedance/seedance-2.5` | Video editing (`omni_reference_task_type`), audio-only references, `output_format: mov` | Available. | No explicit task-type or MOV parameter. Video edits can use `duration: "auto"` with a reference video and `aspect_ratio: "auto"`; audio-only references remain unsupported. |
 | `bytedance/seedream-4.5` | References | Up to 14 images. | Up to 10. `9:21` only with references. |

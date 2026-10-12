@@ -91,7 +91,7 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `bytedance/seedance-2.0-fast` | `duration` | 4–15 之间任意整数。 | `5`、`10` 或 `15`。 |
 | `bytedance/seedance-2.0-mini` | `duration` | 4–15 之间任意整数。 | `5` 或 `10`。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | 参考素材 | 最多 9 张图、3 段视频、3 段音频。 | 合计最多 3 个。没有 `adaptive` 比例。 |
-| `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | `480p` 或 `720p`。 |
+| `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生：`480p`、`720p`、`1080p`（1080p 仅官方渠道）；图片／参考：`480p` 或 `720p`。默认仍为 `720p`。 |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`，首帧与首尾帧只支持该值。 | 名为 `auto`。首帧与首尾帧只接受 `auto`，也是默认值。 |
 | `bytedance/seedance-2.5` | 视频编辑（`omni_reference_task_type`）、纯音频参考、`output_format: mov` | 支持。 | 不提供显式任务类型或 MOV 参数。视频编辑可使用参考视频、`duration: "auto"` 和 `aspect_ratio: "auto"`；仍不支持纯音频参考。 |
 | `bytedance/seedream-4.5` | 参考图 | 最多 14 张。 | 最多 10 张。`9:21` 仅在有参考图时可用。 |
