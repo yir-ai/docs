@@ -22,7 +22,7 @@ description: "Google next-generation image model with wide aspect ratios, up to 
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `1K`, `2K`, `4K` | `1K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `auto`, `21:9`, `16:9`, `3:2`, `4:3`, `5:4`, `1:1`, `4:5`, `3:4`, `2:3`, `9:16`, `4:1`, `1:4`, `8:1`, `1:8` | `auto` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
+| `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
 

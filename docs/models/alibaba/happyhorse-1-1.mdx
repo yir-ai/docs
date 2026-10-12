@@ -25,7 +25,7 @@ description: "Alibaba HappyHorse 1.1 generates videos with native audio from tex
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9` | `16:9` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `adaptive` | `adaptive` | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
+| `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
 

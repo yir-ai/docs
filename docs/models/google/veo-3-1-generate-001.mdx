@@ -27,7 +27,7 @@ Text is optional in these input modes on explicitly supported channels: `image`
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `16:9`, `9:16` | `16:9` | No |
 | `fps` | Frame rate: Optional native output frame rate. Only explicitly certified supplies are eligible; no frame interpolation or transcoding. | `24` | Not set | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `false`, `true` | `true` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
+| `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
 

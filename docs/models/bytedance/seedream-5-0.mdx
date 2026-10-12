@@ -22,7 +22,7 @@ description: "Seedream 5.0 image generation and editing model"
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `2K`, `3K`, `4K` | `2K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` | `1:1` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
+| `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
 

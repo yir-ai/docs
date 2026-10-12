@@ -22,7 +22,7 @@ description: "Google lightweight high-speed image model. Scheduled for deprecati
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `1K` | `1K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` | `1:1` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
+| `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
 

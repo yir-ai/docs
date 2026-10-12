@@ -22,7 +22,7 @@ description: "Google flagship professional image model supporting up to 4K resol
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `1K`, `2K`, `4K` | `1K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `auto`, `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` | `auto` | No |
-| `n` | Outputs: Number of generated outputs. | `1` | `1` | No |
+| `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
 
