@@ -1,0 +1,48 @@
+---
+title: "MiniMax Music 2.6"
+description: "MiniMax 音乐生成模型，按提示词与歌词生成带人声的完整歌曲或纯音乐"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/minimax/music-2-6.mdx */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `minimax/music-2.6` | `music-2.6` | [音乐生成](/zh/docs/guides/music-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `instrumental` | 纯音乐：生成无人声的纯音乐；不能同时传 input.lyrics 或 lyrics_optimizer。 | `false`、`true` | `false` | 否 |
+| `lyrics_optimizer` | 自动写词：按提示词自动写词；不能同时传 input.lyrics，另收写词费用。 | `false`、`true` | `false` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "minimax/music-2.6",
+  "input": {
+    "type": "text",
+    "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
+    "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet"
+  },
+  "parameters": {
+    "instrumental": false,
+    "lyrics_optimizer": false,
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/minimax/music-2.6?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
+
+<include>/zh/models/_notes/minimax/music-2-6.mdx</include>

@@ -11,7 +11,7 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 
 | Topic | Official APIs | Yir |
 | --- | --- | --- |
-| Request shape | Each provider has its own endpoint and body. | One body for all models: `model`, `input` (prompt and references), `parameters`. See [image generation](/docs/guides/image-generation) and [video generation](/docs/guides/video-generation). |
+| Request shape | Each provider has its own endpoint and body. | One body for all models: `model`, `input` (prompt and references), `parameters`. See [image generation](/docs/guides/image-generation), [video generation](/docs/guides/video-generation) and [music generation](/docs/guides/music-generation). |
 | Execution | Often synchronous, sometimes streamed. | Always an asynchronous Job. Poll, long-poll or use a Webhook; there is no streaming or partial-image output. See [Job lifecycle](/docs/concepts/task-lifecycle). |
 | Output size | Usually pixel sizes (`size`, `width`/`height`) or provider-specific presets. | `resolution` (a tier such as `1K`, `2K`, `4K`, or `480p`, `720p`, `1080p`) plus `aspect_ratio`. Yir translates them into each channel's native size, so exact pixel dimensions can differ by channel. |
 | Number of outputs | Many APIs accept `n` greater than 1. | `n` is always `1`. Submit one Job per output, each with its own idempotency key. |
@@ -154,6 +154,8 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` (MiniMax's H3 Max default is `768P`) and 5 s. |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `aspect_ratio` with a first frame | Any value is treated as `adaptive`. | Only `adaptive` is accepted. |
 | `minimax/minimax-h3-max` | Reference to video, `prompt_expansion_mode` | Available. | Not available. |
+| `minimax/music-2.6` | `audio_setting` (`sample_rate`, `bitrate`, `format`) | Configurable. | Not available. Output is always MP3; the result file reports its measured `duration_ms`. |
+| `minimax/music-2.6` | Own `lyrics` with `lyrics_optimizer` | Can be sent together. | Not allowed. `lyrics_optimizer: true` requires omitting `lyrics`; vocal music otherwise requires `lyrics`. |
 
 ### xAI Grok Imagine
 

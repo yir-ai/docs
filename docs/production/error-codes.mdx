@@ -59,8 +59,8 @@ Each API key has a per-minute request limit on every Gateway endpoint. The limit
 | Endpoints | Limit per key, per endpoint |
 | --- | --- |
 | Reads: `GET` Jobs, Job status, files, file content, models, balance | 6,000 / minute |
-| Quotes: `POST /v1/images/quotes`, `/v1/videos/quotes`, `/v1/quotes` | 1,500 / minute |
-| Writes: `POST /v1/images/generations`, `/v1/videos/generations`, `/v1/files`, `/v1/files/{id}/complete`, `/v1/jobs/{id}/cancel` | 600 / minute |
+| Quotes: `POST /v1/images/quotes`, `/v1/videos/quotes`, `/v1/music/quotes`, `/v1/quotes` | 1,500 / minute |
+| Writes: `POST /v1/images/generations`, `/v1/videos/generations`, `/v1/music/generations`, `/v1/files`, `/v1/files/{id}/complete`, `/v1/jobs/{id}/cancel` | 600 / minute |
 
 Counting uses fixed one-minute windows. Over the limit, the request returns `429` with `YIR_RATE_LIMITED` (`retryable: true`, `action: retry_later`) and a `Retry-After` header in seconds; nothing is created or charged. A `429` for too many in-progress Jobs has no `Retry-After`. If you hit this limit, check your client for a loop first; contact support if your normal traffic needs more.
 

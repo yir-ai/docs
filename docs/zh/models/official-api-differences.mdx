@@ -11,7 +11,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 
 | 方面 | 官方 API | Yir |
 | --- | --- | --- |
-| 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)和[视频生成](/zh/docs/guides/video-generation)。 |
+| 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)和[音乐生成](/zh/docs/guides/music-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
 | 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 固定为 `1`。每个输出提交一个 Job，各用独立的幂等键。 |
@@ -154,6 +154,8 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 为 `480p`（MiniMax 的 H3 Max 默认 `768P`）、5 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | 有首帧时的 `aspect_ratio` | 任何取值都按 `adaptive` 处理。 | 只接受 `adaptive`。 |
 | `minimax/minimax-h3-max` | 参考生视频、`prompt_expansion_mode` | 支持。 | 不可用。 |
+| `minimax/music-2.6` | `audio_setting`（`sample_rate`、`bitrate`、`format`） | 可配置。 | 不可用。输出固定为 MP3，结果文件返回实测 `duration_ms`。 |
+| `minimax/music-2.6` | 自带 `lyrics` 同时开启 `lyrics_optimizer` | 可同时传。 | 不允许。`lyrics_optimizer: true` 时须省略 `lyrics`；否则人声音乐必须提供 `lyrics`。 |
 
 ### xAI Grok Imagine
 

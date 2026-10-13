@@ -117,6 +117,11 @@ check('minimax-h3 defaults 768P / 6s', def('minimax/minimax-h3', 'resolution') =
 check('minimax-h3-max defaults 480p / 5s', String(def('minimax/minimax-h3-max', 'resolution')).toLowerCase() === '480p' && def('minimax/minimax-h3-max', 'duration') === 5, [def('minimax/minimax-h3-max', 'resolution'), def('minimax/minimax-h3-max', 'duration')])
 for (const h of ['minimax-h3', 'minimax-h3-max']) check(`${h} first frame aspect only adaptive`, sameSet(vals('minimax/' + h, 'aspect_ratio', 'image') ?? [], ['adaptive']), vals('minimax/' + h, 'aspect_ratio', 'image'))
 check('minimax-h3-max no reference mode', !modes('minimax/minimax-h3-max').includes('reference'), modes('minimax/minimax-h3-max'))
+const mu = 'minimax/music-2.6'
+const muParams = M(mu).operations.flatMap(o => o.parameters.map(p => p.name))
+check('music-2.6 text only, no audio_setting parameters', eq(modes(mu), ['text']) && sameSet(muParams, ['instrumental', 'lyrics_optimizer', 'n']), [modes(mu), muParams])
+check('music-2.6 instrumental and lyrics_optimizer default false', def(mu, 'instrumental') === false && def(mu, 'lyrics_optimizer') === false, [def(mu, 'instrumental'), def(mu, 'lyrics_optimizer')])
+check('music-2.6 lyrics_optimizer requires omitting lyrics', /Omit input\.lyrics/.test(P(mu, 'lyrics_optimizer')?.locales.en.description ?? ''), P(mu, 'lyrics_optimizer')?.locales.en.description)
 // xAI
 const gi = 'spacexai/grok-imagine-image'
 check('grok-image ratios 1:1/16:9/9:16/3:2/2:3 default 1:1', sameSet(vals(gi, 'aspect_ratio'), ['1:1', '16:9', '9:16', '3:2', '2:3']) && def(gi, 'aspect_ratio') === '1:1', vals(gi, 'aspect_ratio'))

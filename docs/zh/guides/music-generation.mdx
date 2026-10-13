@@ -1,0 +1,80 @@
+---
+title: 音乐生成
+description: 使用 Yir Standard API 根据提示词和歌词生成歌曲，或生成纯音乐。
+---
+
+音乐 Job 提交到 `POST /v1/music/generations`。音乐遵循与图片、视频相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)、[路由](/zh/docs/concepts/routing)和 [Webhook](/zh/docs/production/webhooks) 规则。每个 Job 生成一首曲目。
+
+## 请求字段
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `model` | 是 | 音乐模型，例如 `minimax/music-2.6`。见[模型与参数](/zh/docs/models)。 |
+| `input` | 是 | `{ "type": "text", "prompt": ..., "lyrics": ... }`。`prompt` 描述风格、情绪和使用场景（最多 2,000 个字符）。`lyrics` 最多 3,500 个字符，各行用 `\n` 分隔。 |
+| `parameters` | 否 | `instrumental`（默认 `false`）、`lyrics_optimizer`（默认 `false`）和 `n`（固定为 `1`）。 |
+| `max_cost` | 否 | 可选，Job 的美元费用上限，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
+| `routing` | 否 | 见[路由](/zh/docs/concepts/routing)。 |
+| `webhook_url` | 否 | 接收终态 Job 的 HTTPS 地址。 |
+
+人声音乐必须提供 `lyrics`。设置 `lyrics_optimizer: true` 并省略 `lyrics`，模型会根据提示词自动写词（另收费用，报价中可见）；设置 `instrumental: true` 并省略两者，则生成不含人声的曲目。其他组合返回 `400 YIR_INVALID_REQUEST`。模型规则与价格见 [MiniMax Music 2.6](/zh/docs/models/minimax/music-2-6)。
+
+不支持控制时长、速度或调性，曲目长度由模型决定。
+
+## 报价、提交与获取结果
+
+用相同的请求体（不含 `max_cost` 和 `webhook_url`）报价，并检查 `supply.available`：
+
+```bash
+curl https://gateway.yir.ai/v1/music/quotes \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "model": "minimax/music-2.6",
+    "input": {
+      "type": "text",
+      "prompt": "温暖的独立民谣，木吉他与轻柔人声，清晨散步",
+      "lyrics": "[Verse]\n晨光落在空荡的街\n[Chorus]\n陪我慢慢走一段"
+    }
+  }'
+```
+
+带上 `Idempotency-Key` 提交：
+
+```bash
+curl https://gateway.yir.ai/v1/music/generations \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: music-$(date +%s)" \
+  --data '{
+    "model": "minimax/music-2.6",
+    "input": {
+      "type": "text",
+      "prompt": "温暖的独立民谣，木吉他与轻柔人声，清晨散步",
+      "lyrics": "[Verse]\n晨光落在空荡的街\n[Chorus]\n陪我慢慢走一段"
+    }
+  }' | tee job.json
+
+export YIR_JOB_ID="$(jq -r '.id' job.json)"
+```
+
+轮询到终态后下载曲目：
+
+```bash
+while true; do
+  status="$(curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID/status \
+    --header "Authorization: Bearer $YIR_API_KEY" | jq -r '.status')"
+  echo "status: $status"
+  case "$status" in
+    succeeded|failed|cancelled) break ;;
+    *) sleep 5 ;;
+  esac
+done
+
+curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID \
+  --header "Authorization: Bearer $YIR_API_KEY" > job.json
+curl --location --output track.mp3 "$(jq -r '.result.files[0].url' job.json)"
+```
+
+## 结果
+
+成功的 Job 在 `result.files` 中返回一个 MP3 文件，`media_type` 为 `"audio/mpeg"`，`duration_ms` 为实测时长。URL 是短期签名链接，请把文件复制到自己的存储。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。

@@ -3,7 +3,7 @@
   "info": {
     "title": "Yir Standard Async AIGC API",
     "version": "1.0.0-preview",
-    "description": "Public REST API of the Yir Image & Video API Router: quote and submit image and video generation jobs, upload input files, read model contracts, and track jobs.\n\nCompatibility: this API only grows. New fields are optional, enums may gain values, and clients must ignore unknown fields and tolerate unknown enum values. Models, their parameters, allowed values and defaults come from the model contract (GET /v1/models?include=parameters) and change without an SDK release. A published model keeps its defaults, value meanings and billing semantics; a change to any of them ships as a new model ID. IDs are opaque strings; do not parse them. Deprecated fields stay for at least one minor SDK release and are announced in the SDK changelog."
+    "description": "Public REST API of the Yir Image & Video API Router: quote and submit image, video and music generation jobs, upload input files, read model contracts, and track jobs.\n\nCompatibility: this API only grows. New fields are optional, enums may gain values, and clients must ignore unknown fields and tolerate unknown enum values. Models, their parameters, allowed values and defaults come from the model contract (GET /v1/models?include=parameters) and change without an SDK release. A published model keeps its defaults, value meanings and billing semantics; a change to any of them ships as a new model ID. IDs are opaque strings; do not parse them. Deprecated fields stay for at least one minor SDK release and are announced in the SDK changelog."
   },
   "servers": [
     {
@@ -22,6 +22,9 @@
     },
     {
       "name": "Videos"
+    },
+    {
+      "name": "Music"
     },
     {
       "name": "Files"
@@ -217,10 +220,11 @@
       "post": {
         "operationId": "quoteBatch",
         "summary": "Quote up to 20 requests",
-        "description": "Quotes up to 20 image or video requests against the same pricing snapshot. Each request is evaluated with the same rules as the corresponding single-request quote. An invalid request returns an error in its own result entry; pricing-data and infrastructure failures fail the entire call. This endpoint does not enumerate model specifications or infer equivalent quality across models.",
+        "description": "Quotes up to 20 image, video or music requests against the same pricing snapshot. Each request is evaluated with the same rules as the corresponding single-request quote. An invalid request returns an error in its own result entry; pricing-data and infrastructure failures fail the entire call. This endpoint does not enumerate model specifications or infer equivalent quality across models.",
         "tags": [
           "Images",
-          "Videos"
+          "Videos",
+          "Music"
         ],
         "security": [
           {
@@ -382,6 +386,142 @@
                 "routing": {
                   "preference": "cost",
                   "fallback": true
+                },
+                "webhook_url": "https://example.com/webhooks/yir"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "$ref": "#/components/responses/JobAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/InsufficientBalance"
+          },
+          "403": {
+            "$ref": "#/components/responses/SpendLimitExceeded"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/music/quotes": {
+      "post": {
+        "operationId": "quoteMusicGeneration",
+        "summary": "Quote a music job",
+        "description": "Estimates the price and checks available supply for a music generation request. Creates no job and charges nothing.",
+        "tags": [
+          "Music"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMusicQuoteRequest"
+              },
+              "example": {
+                "model": "minimax/music-2.6",
+                "input": {
+                  "type": "text",
+                  "prompt": "A warm acoustic folk ballad with fingerpicked guitar",
+                  "lyrics": "[Verse]\nWalking down a dusty road\n[Chorus]\nEvery step a story told"
+                },
+                "parameters": {
+                  "instrumental": false,
+                  "lyrics_optimizer": false,
+                  "n": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Current advisory quote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/music/generations": {
+      "post": {
+        "operationId": "submitMusicGeneration",
+        "summary": "Submit a music job",
+        "description": "Generates one song or instrumental track as an audio file. The model decides the track length, reported on the result file as duration_ms; prompts do not guarantee a duration or tempo.",
+        "tags": [
+          "Music"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMusicGenerationRequest"
+              },
+              "example": {
+                "model": "minimax/music-2.6",
+                "input": {
+                  "type": "text",
+                  "prompt": "A calm lo-fi hip hop instrumental with mellow piano chords"
+                },
+                "parameters": {
+                  "instrumental": true,
+                  "n": 1
                 },
                 "webhook_url": "https://example.com/webhooks/yir"
               }
@@ -1757,6 +1897,122 @@
         },
         "description": "The video generation request contract without webhook_url or max_cost. A quote creates no job and charges nothing."
       },
+      "StandardMusicTextInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "prompt"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "text"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "pattern": "\\S",
+            "description": "Style, mood and scenario of the music."
+          },
+          "lyrics": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3500,
+            "pattern": "\\S",
+            "description": "Song lyrics, lines separated by \\n; structure tags such as [Verse] and [Chorus] are allowed. Required for vocal music unless parameters.lyrics_optimizer is true; omit it when parameters.instrumental or parameters.lyrics_optimizer is true."
+          }
+        }
+      },
+      "StandardMusicParameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Optional music parameters; omitted fields take their defaults. There is no duration, tempo or key control: the delivered file reports its measured duration.",
+        "properties": {
+          "instrumental": {
+            "type": "boolean",
+            "default": false,
+            "description": "Generate music without vocals. Omit input.lyrics and lyrics_optimizer."
+          },
+          "lyrics_optimizer": {
+            "type": "boolean",
+            "default": false,
+            "description": "Write the lyrics from the prompt. Omit input.lyrics. Adds a lyrics-writing charge shown in the quote."
+          },
+          "n": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          }
+        }
+      },
+      "StandardMusicGenerationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "input"
+        ],
+        "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
+          "max_cost": {
+            "$ref": "#/components/schemas/MaxCost"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Music model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false; for a retired model the message names its replacement."
+          },
+          "input": {
+            "$ref": "#/components/schemas/StandardMusicTextInput"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingOverride"
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 1000,
+            "pattern": "^https://"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/StandardMusicParameters"
+          }
+        },
+        "description": "Music request: one track per Job, delivered as an audio file behind a short-lived link."
+      },
+      "StandardMusicQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "input"
+        ],
+        "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Music model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false; for a retired model the message names its replacement."
+          },
+          "input": {
+            "$ref": "#/components/schemas/StandardMusicTextInput"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingOverride"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/StandardMusicParameters"
+          }
+        },
+        "description": "The music generation request contract without webhook_url or max_cost. A quote creates no job and charges nothing."
+      },
       "MaxCost": {
         "type": "string",
         "pattern": "^[0-9]{1,13}(\\.[0-9]{1,6})?$",
@@ -1805,6 +2061,22 @@
                     },
                     "request": {
                       "$ref": "#/components/schemas/StandardVideoQuoteRequest"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "operation",
+                    "request"
+                  ],
+                  "properties": {
+                    "operation": {
+                      "const": "generate_music"
+                    },
+                    "request": {
+                      "$ref": "#/components/schemas/StandardMusicQuoteRequest"
                     }
                   }
                 }
@@ -1945,7 +2217,8 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_mode": {
@@ -2153,11 +2426,9 @@
         "type": "object",
         "additionalProperties": true,
         "required": [
-          "resolution",
-          "aspect_ratio",
           "n"
         ],
-        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration and a silent video model carries no generate_audio. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
+        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration, a silent video model carries no generate_audio, and a music echo carries instrumental and lyrics_optimizer but no resolution or aspect_ratio. Image and video echoes always include resolution and aspect_ratio. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
         "properties": {
           "size": {
             "type": "string",
@@ -2200,6 +2471,14 @@
           "generate_audio": {
             "type": "boolean",
             "description": "Present when the model declares generate_audio."
+          },
+          "instrumental": {
+            "type": "boolean",
+            "description": "Music only: no vocals."
+          },
+          "lyrics_optimizer": {
+            "type": "boolean",
+            "description": "Music only: lyrics written from the prompt."
           },
           "n": {
             "type": "integer",
@@ -2607,6 +2886,12 @@
           "height": {
             "type": "integer",
             "minimum": 0
+          },
+          "duration_ms": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "Measured playback duration of an audio result in milliseconds. Omitted when not measured."
           },
           "expires_at": {
             "type": "integer",
@@ -3102,7 +3387,8 @@
           "operation": {
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_mode": {
@@ -3218,7 +3504,8 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_mode": {
@@ -3451,7 +3738,8 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_modes": {

@@ -1,0 +1,19 @@
+## Lyrics
+
+Choose one of three combinations:
+
+| Goal | `input.lyrics` | `instrumental` | `lyrics_optimizer` |
+| --- | --- | --- | --- |
+| Song with your own lyrics | Required | `false` | `false` |
+| Song with lyrics written from the prompt | Omit | `false` | `true` |
+| Instrumental | Omit | `true` | `false` |
+
+Any other combination is rejected with `400 YIR_INVALID_REQUEST`: a vocal track needs lyrics unless `lyrics_optimizer` is on, `instrumental` cannot be combined with lyrics or `lyrics_optimizer`, and your own lyrics cannot be combined with `lyrics_optimizer`. Separate lines with `\n`; structure tags such as `[Verse]` and `[Chorus]` are allowed. Prompts are up to 2,000 characters and lyrics up to 3,500.
+
+## Length and output
+
+There is no duration, tempo or key parameter. The model decides the track length, and the prompt does not guarantee one. Each Job returns one MP3 file (`media_type: "audio/mpeg"`) in `result.files`, with its measured length in `duration_ms`.
+
+## Price
+
+Served through the MiniMax official channel at US$0.15 per track. `lyrics_optimizer` adds US$0.01 for writing the lyrics, shown in the quote. The final charge is the amount the channel actually billed.

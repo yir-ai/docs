@@ -1,0 +1,19 @@
+## 歌词
+
+按以下三种组合之一请求：
+
+| 目标 | `input.lyrics` | `instrumental` | `lyrics_optimizer` |
+| --- | --- | --- | --- |
+| 用自己的歌词生成歌曲 | 必填 | `false` | `false` |
+| 根据提示词自动写词并生成歌曲 | 不传 | `false` | `true` |
+| 纯音乐 | 不传 | `true` | `false` |
+
+其他组合会返回 `400 YIR_INVALID_REQUEST`：人声曲目必须提供歌词，除非开启 `lyrics_optimizer`；`instrumental` 不能与歌词或 `lyrics_optimizer` 同时使用；自带歌词也不能同时开启 `lyrics_optimizer`。歌词各行用 `\n` 分隔，可使用 `[Verse]`、`[Chorus]` 等结构标签。提示词最多 2,000 个字符，歌词最多 3,500 个字符。
+
+## 时长与输出
+
+不支持时长、速度或调性参数。曲目长度由模型决定，提示词不保证时长。每个 Job 在 `result.files` 中返回一个 MP3 文件（`media_type: "audio/mpeg"`），`duration_ms` 为实测时长。
+
+## 价格
+
+通过 MiniMax 官方渠道执行，每首 0.15 美元。开启 `lyrics_optimizer` 另收 0.01 美元写词费用，报价中可见。最终费用按渠道实际计费金额结算。

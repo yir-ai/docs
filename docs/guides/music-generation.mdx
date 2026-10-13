@@ -1,0 +1,80 @@
+---
+title: Music generation
+description: Generate a song from a prompt and lyrics, or an instrumental track, with the Yir Standard API.
+---
+
+Submit music Jobs to `POST /v1/music/generations`. Music Jobs follow the same [lifecycle](/docs/concepts/task-lifecycle), [billing](/docs/concepts/billing), [routing](/docs/concepts/routing), and [Webhooks](/docs/production/webhooks) as images and videos. Each Job returns one track.
+
+## Request fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `model` | Yes | A music model such as `minimax/music-2.6`. See [models and parameters](/docs/models). |
+| `input` | Yes | `{ "type": "text", "prompt": ..., "lyrics": ... }`. `prompt` describes style, mood and scenario (up to 2,000 characters). `lyrics` is up to 3,500 characters, lines separated by `\n`. |
+| `parameters` | No | `instrumental` (default `false`), `lyrics_optimizer` (default `false`), and `n` (always `1`). |
+| `max_cost` | No | Optional cap on the Job's charge in USD. See [billing](/docs/concepts/billing#set-a-spending-limit). |
+| `routing` | No | See [routing](/docs/concepts/routing). |
+| `webhook_url` | No | HTTPS URL that receives the terminal Job. |
+
+Vocal music needs `lyrics`. Set `lyrics_optimizer: true` and omit `lyrics` to have the model write them from the prompt (an extra charge shown in the quote), or set `instrumental: true` and omit both for a track without vocals. Other combinations fail with `400 YIR_INVALID_REQUEST`. See [MiniMax Music 2.6](/docs/models/minimax/music-2-6) for the model's rules and price.
+
+There is no duration, tempo or key control: the model decides the length.
+
+## Quote, submit and collect
+
+Quote the request with the same body (without `max_cost` and `webhook_url`) and check `supply.available`:
+
+```bash
+curl https://gateway.yir.ai/v1/music/quotes \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "model": "minimax/music-2.6",
+    "input": {
+      "type": "text",
+      "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
+      "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet"
+    }
+  }'
+```
+
+Submit it with an `Idempotency-Key`:
+
+```bash
+curl https://gateway.yir.ai/v1/music/generations \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: music-$(date +%s)" \
+  --data '{
+    "model": "minimax/music-2.6",
+    "input": {
+      "type": "text",
+      "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
+      "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet"
+    }
+  }' | tee job.json
+
+export YIR_JOB_ID="$(jq -r '.id' job.json)"
+```
+
+Poll until the Job reaches a terminal state, then download the track:
+
+```bash
+while true; do
+  status="$(curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID/status \
+    --header "Authorization: Bearer $YIR_API_KEY" | jq -r '.status')"
+  echo "status: $status"
+  case "$status" in
+    succeeded|failed|cancelled) break ;;
+    *) sleep 5 ;;
+  esac
+done
+
+curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID \
+  --header "Authorization: Bearer $YIR_API_KEY" > job.json
+curl --location --output track.mp3 "$(jq -r '.result.files[0].url' job.json)"
+```
+
+## Results
+
+A successful Job returns one MP3 file in `result.files` with `media_type: "audio/mpeg"` and its measured length in `duration_ms`. The URL is a short-lived signed link; copy the file to your own storage. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).

@@ -4,5 +4,5 @@ export default defineMeta({
   title: "Generation",
   icon: "wand-sparkles",
   order: 3,
-  pages: ["image-generation", "video-generation", "input-files"],
+  pages: ["image-generation", "video-generation", "music-generation", "input-files"],
 });

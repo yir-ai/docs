@@ -3,7 +3,7 @@
   "info": {
     "title": "Yir Standard 异步 AIGC API",
     "version": "1.0.0-preview",
-    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片和视频生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
+    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片、视频和音乐生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
   },
   "servers": [
     {
@@ -22,6 +22,9 @@
     },
     {
       "name": "Videos"
+    },
+    {
+      "name": "Music"
     },
     {
       "name": "Files"
@@ -217,10 +220,11 @@
       "post": {
         "operationId": "quoteBatch",
         "summary": "批量报价（最多 20 个）",
-        "description": "基于同一价格快照，为最多 20 个图片或视频请求报价。每个请求按对应单个报价接口的相同规则评估。无效请求只在自己的结果项中返回错误；价格数据或基础设施故障会使整个调用失败。本接口不列举模型规格，也不推断不同模型之间的等效画质。",
+        "description": "基于同一价格快照，为最多 20 个图片、视频或音乐请求报价。每个请求按对应单个报价接口的相同规则评估。无效请求只在自己的结果项中返回错误；价格数据或基础设施故障会使整个调用失败。本接口不列举模型规格，也不推断不同模型之间的等效画质。",
         "tags": [
           "Images",
-          "Videos"
+          "Videos",
+          "Music"
         ],
         "security": [
           {
@@ -382,6 +386,142 @@
                 "routing": {
                   "preference": "cost",
                   "fallback": true
+                },
+                "webhook_url": "https://example.com/webhooks/yir"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "$ref": "#/components/responses/JobAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/InsufficientBalance"
+          },
+          "403": {
+            "$ref": "#/components/responses/SpendLimitExceeded"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/music/quotes": {
+      "post": {
+        "operationId": "quoteMusicGeneration",
+        "summary": "音乐报价",
+        "description": "估算音乐生成请求的价格并检查可用渠道。不创建 Job，不收费。",
+        "tags": [
+          "Music"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMusicQuoteRequest"
+              },
+              "example": {
+                "model": "minimax/music-2.6",
+                "input": {
+                  "type": "text",
+                  "prompt": "A warm acoustic folk ballad with fingerpicked guitar",
+                  "lyrics": "[Verse]\nWalking down a dusty road\n[Chorus]\nEvery step a story told"
+                },
+                "parameters": {
+                  "instrumental": false,
+                  "lyrics_optimizer": false,
+                  "n": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "当前参考报价",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/music/generations": {
+      "post": {
+        "operationId": "submitMusicGeneration",
+        "summary": "提交音乐 Job",
+        "description": "生成一首歌曲或纯音乐，以音频文件交付。曲目长度由模型决定，并在结果文件的 duration_ms 中返回；提示词不保证时长或节奏。",
+        "tags": [
+          "Music"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMusicGenerationRequest"
+              },
+              "example": {
+                "model": "minimax/music-2.6",
+                "input": {
+                  "type": "text",
+                  "prompt": "A calm lo-fi hip hop instrumental with mellow piano chords"
+                },
+                "parameters": {
+                  "instrumental": true,
+                  "n": 1
                 },
                 "webhook_url": "https://example.com/webhooks/yir"
               }
@@ -1757,6 +1897,122 @@
         },
         "description": "视频生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
       },
+      "StandardMusicTextInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "prompt"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "text"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "pattern": "\\S",
+            "description": "音乐的风格、情绪和使用场景。"
+          },
+          "lyrics": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3500,
+            "pattern": "\\S",
+            "description": "歌词，各行用 \\n 分隔，可使用 [Verse]、[Chorus] 等结构标签。人声音乐必填，除非 parameters.lyrics_optimizer 为 true；parameters.instrumental 或 parameters.lyrics_optimizer 为 true 时不要传。"
+          }
+        }
+      },
+      "StandardMusicParameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "可选的音乐参数，省略的字段取默认值。不支持控制时长、速度或调性：交付文件会返回实测时长。",
+        "properties": {
+          "instrumental": {
+            "type": "boolean",
+            "default": false,
+            "description": "生成不含人声的纯音乐。不要传 input.lyrics 和 lyrics_optimizer。"
+          },
+          "lyrics_optimizer": {
+            "type": "boolean",
+            "default": false,
+            "description": "根据提示词自动写词。不要传 input.lyrics。会增加一笔写词费用，报价中可见。"
+          },
+          "n": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          }
+        }
+      },
+      "StandardMusicGenerationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "input"
+        ],
+        "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
+          "max_cost": {
+            "$ref": "#/components/schemas/MaxCost"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "GET /v1/models 列出的音乐模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下线模型的错误消息会给出替代模型。"
+          },
+          "input": {
+            "$ref": "#/components/schemas/StandardMusicTextInput"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingOverride"
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 1000,
+            "pattern": "^https://"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/StandardMusicParameters"
+          }
+        },
+        "description": "音乐请求：每个 Job 生成一首曲目，以短期链接交付音频文件。"
+      },
+      "StandardMusicQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "input"
+        ],
+        "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "GET /v1/models 列出的音乐模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下线模型的错误消息会给出替代模型。"
+          },
+          "input": {
+            "$ref": "#/components/schemas/StandardMusicTextInput"
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingOverride"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/StandardMusicParameters"
+          }
+        },
+        "description": "音乐生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
+      },
       "MaxCost": {
         "type": "string",
         "pattern": "^[0-9]{1,13}(\\.[0-9]{1,6})?$",
@@ -1805,6 +2061,22 @@
                     },
                     "request": {
                       "$ref": "#/components/schemas/StandardVideoQuoteRequest"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "operation",
+                    "request"
+                  ],
+                  "properties": {
+                    "operation": {
+                      "const": "generate_music"
+                    },
+                    "request": {
+                      "$ref": "#/components/schemas/StandardMusicQuoteRequest"
                     }
                   }
                 }
@@ -1945,7 +2217,8 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_mode": {
@@ -2153,11 +2426,9 @@
         "type": "object",
         "additionalProperties": true,
         "required": [
-          "resolution",
-          "aspect_ratio",
           "n"
         ],
-        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio。这里只记录通用参数；模型专属参数按合同名回显。",
+        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio，音乐回显有 instrumental 和 lyrics_optimizer，但没有 resolution 和 aspect_ratio。图片和视频回显始终包含 resolution 和 aspect_ratio。这里只记录通用参数；模型专属参数按合同名回显。",
         "properties": {
           "size": {
             "type": "string",
@@ -2200,6 +2471,14 @@
           "generate_audio": {
             "type": "boolean",
             "description": "模型声明 generate_audio 时出现。"
+          },
+          "instrumental": {
+            "type": "boolean",
+            "description": "仅音乐：不含人声。"
+          },
+          "lyrics_optimizer": {
+            "type": "boolean",
+            "description": "仅音乐：根据提示词自动写词。"
           },
           "n": {
             "type": "integer",
@@ -2607,6 +2886,12 @@
           "height": {
             "type": "integer",
             "minimum": 0
+          },
+          "duration_ms": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "音频结果的实测播放时长（毫秒）。未测量时省略。"
           },
           "expires_at": {
             "type": "integer",
@@ -3102,7 +3387,8 @@
           "operation": {
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_mode": {
@@ -3218,7 +3504,8 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_mode": {
@@ -3451,7 +3738,8 @@
             "type": "string",
             "enum": [
               "generate_image",
-              "generate_video"
+              "generate_video",
+              "generate_music"
             ]
           },
           "input_modes": {
