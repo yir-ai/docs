@@ -138,6 +138,22 @@ In TypeScript, `uploadFile`, `createAndUploadFile`, and `waitForFileReady` are f
 - **Validation.** The SDKs bundle no model catalog. Fetch it with `getModelContracts` / `GetModelContracts` (or generate `models.ts` from it) and pass it in for local checks; otherwise the Gateway validates. New models never need an SDK release. See [models and parameters](/docs/models).
 - **Job IDs** are opaque strings. Store them as returned and do not parse them.
 
+## Apps you publish for others
+
+If you publish an app that other people deploy, such as an open-source studio, you can credit its usage to your referral code. Set it on the server client and every request carries the `Yir-Referral` header:
+
+```ts
+const client = createNodeYirClient({ referralCode: process.env.YIR_REFERRAL_CODE });
+```
+
+```go
+client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{ReferralCode: os.Getenv("YIR_REFERRAL_CODE")})
+```
+
+- Jobs submitted with your code count toward your referral rebate instead of the account's sign-up referrer, with no time limit. Your code and rebate are on the Console [Rebates](https://yir.ai/console/rebates) page.
+- The header counts only after Yir enables your code for partner attribution. Contact support to enable it. Until then, and for unknown or suspended codes, the header is ignored; it never fails a request or changes price, routing or idempotency.
+- Jobs submitted with your own API Key never earn a rebate. The header pays off when the people running your app use their own keys.
+
 ## Upgrading
 
 **TypeScript 0.3.0 / Go 0.4.0.** Waiting now backs off (5 s, then 10 s, then 20 s) instead of polling every 2 seconds; set `pollIntervalMs` / `WaitOptions.PollInterval` to keep a fixed interval. `constructWebhookEvent` / `ConstructWebhookEvent` are new. No call signatures change.

@@ -156,6 +156,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/YirReferral"
           }
         ],
         "requestBody": {
@@ -355,6 +358,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/YirReferral"
           }
         ],
         "requestBody": {
@@ -504,6 +510,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/YirReferral"
           }
         ],
         "requestBody": {
@@ -1115,6 +1124,17 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 200
+        }
+      },
+      "YirReferral": {
+        "name": "Yir-Referral",
+        "in": "header",
+        "required": false,
+        "description": "可选。部署发出此请求的应用（例如自部署的开源创作工具）的合作推广者的推广码。带 Yir 已开通合作归因的推广码创建的 Job，计入该推广者的邀请返利，而不是账户注册时的邀请人；不影响 Job 的价格、路由与幂等。未知、不符合条件或已暂停的推广码，以及推广者用自己的 API Key 提交时，一律忽略，不会导致请求失败。",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
         }
       },
       "JobID": {

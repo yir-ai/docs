@@ -138,6 +138,22 @@ TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是�
 - **校验。** SDK 不内置模型目录。用 `getModelContracts` / `GetModelContracts` 获取（或据此生成 `models.ts`）并传入后做本地校验，否则由 Gateway 校验。新增模型无需发布 SDK。见[模型与参数](/zh/docs/models)。
 - **Job ID** 是不透明字符串，按返回值保存，不要解析。
 
+## 发布给他人部署的应用
+
+如果你发布的应用由别人部署（例如开源创作工具），可以把它的用量计入你的推广码。在服务端客户端上设置后，每个请求都会带上 `Yir-Referral` 请求头：
+
+```ts
+const client = createNodeYirClient({ referralCode: process.env.YIR_REFERRAL_CODE });
+```
+
+```go
+client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{ReferralCode: os.Getenv("YIR_REFERRAL_CODE")})
+```
+
+- 带你推广码提交的 Job 计入你的邀请返利，而不是账户注册时的邀请人，不设期限。推广码和返利在 Console 的[返利](https://yir.ai/zh/console/rebates)页。
+- Yir 为你的推广码开通合作归因后才生效，请联系客服开通。开通前，以及未知或已暂停的推广码，该请求头一律忽略；它不会导致请求失败，也不影响价格、路由与幂等。
+- 用你自己的 API Key 提交的 Job 不计返利。运行你应用的人使用他们自己的 Key 时才有收益。
+
 ## 升级
 
 **TypeScript 0.3.0 / Go 0.4.0。** 等待改为退避轮询（5 秒、10 秒、20 秒），不再每 2 秒查询一次；如需固定间隔，设置 `pollIntervalMs` / `WaitOptions.PollInterval`。新增 `constructWebhookEvent` / `ConstructWebhookEvent`，调用签名不变。
