@@ -10,6 +10,7 @@ description: 对比 Standard API、官方 SDK、Vercel AI SDK 与 OpenAI 兼容�
 | 新项目，任意语言 | Standard API（REST） | 直接发 HTTP 请求，功能最完整。从[快速上手](/zh/docs/getting-started/quickstart)开始，接口细节见 [API 参考](/zh/docs/reference)。 |
 | 后端用 TypeScript 或 Go | [SDK](/zh/docs/integrations/sdk) | 在 Standard API 之上处理轮询退避、错误类型、文件上传和 Webhook 验签。 |
 | 已在用 Vercel AI SDK | [Vercel AI SDK](/zh/docs/integrations/vercel-ai-sdk) | 用 `generateImage` 与视频函数调用 Yir，现有代码改动最少。 |
+| AI SaaS 模板，自带 Provider 与积分 | [SaaS 模板](/zh/docs/integrations/saas-templates) | 把 Yir 接成一个 Provider，页面、积分和价格不变；模型控件来自合同。 |
 | 已按 OpenAI Images、Sora 或 new-api 对接 | [OpenAI 兼容与 new-api](/zh/docs/integrations/openai-compatibility) | 只换 Base URL 和 Key。同步等待结果，不支持 Webhook 和完整路由控制。 |
 | 在 Claude Code、Codex 等编程 Agent 里生成 | [Agent Skill](/zh/docs/integrations/agent-skill) | 用自然语言让 Agent 生成图片和视频，Skill 代为调用 Standard API。 |
 

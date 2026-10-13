@@ -4,5 +4,5 @@ export default defineMeta({
   title: "Integrations",
   icon: "plug",
   order: 2,
-  pages: ["index", "sdk", "vercel-ai-sdk", "openai-compatibility", "agent-skill"],
+  pages: ["index", "sdk", "vercel-ai-sdk", "saas-templates", "openai-compatibility", "agent-skill"],
 });

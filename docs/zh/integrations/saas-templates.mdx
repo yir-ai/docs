@@ -1,0 +1,135 @@
+---
+title: SaaS 模板
+description: 在已有生成页、积分与任务队列的 AI SaaS 模板中，把 Yir 接入为一个 Provider。
+---
+
+很多 AI SaaS 模板自带生成栈：Provider 注册表、积分账本、生成页，以及由浏览器或后台工作流轮询的任务表。不需要替换这套东西。把 Yir 接成**一个 Provider**，页面、积分和零售价都留在模板里。
+
+Yir 负责：
+
+- **上游与路由。** 一个 Provider 替代按厂商各写一个的适配器。Yir 按请求选择渠道，失败时自动转移。
+- **模型参数。** 选项、默认值和参考图上限来自模型合同，不必再手写每个模型的参数表。
+
+留在模板里的：页面与控件、用户积分与退款、你自己的单次定价，以及成品文件的存储。
+
+如果模板已经通过 Vercel AI SDK 调用图片或视频模型，请改用 [Vercel AI SDK 适配器](/zh/docs/integrations/vercel-ai-sdk)。本页面向自带 Provider 接口的模板。
+
+```sh
+pnpm add @yir-ai/sdk
+```
+
+## 1. 编写 Provider
+
+多数模板把 Provider 定义为 `submit`（或 `generate`）加 `poll`（或 `query`）。在服务端用 `@yir-ai/sdk/server` 实现这两个函数：
+
+```ts
+import { createNodeYirClient, isTerminalJobStatus } from "@yir-ai/sdk/server";
+
+const yir = createNodeYirClient({ apiKey: env.YIR_API_KEY });
+
+export async function submit(task) {
+  const job = await yir.submitImage({
+    model: task.model, // 如 "google/nano-banana-pro"
+    input: task.references.length
+      ? { type: "image", prompt: task.prompt, references: task.references }
+      : { type: "text", prompt: task.prompt },
+    parameters: task.parameters, // 如 { resolution: "2K", aspect_ratio: "16:9" }
+  }, `task-${task.id}`); // 幂等键：每个任务一个，每次重试都复用
+  return { taskId: job.id };
+}
+
+export async function poll(taskId) {
+  const { status } = await yir.getJobStatus(taskId, { waitSeconds: 0 });
+  if (!isTerminalJobStatus(status)) return { status: "pending" };
+  const job = await yir.getJob(taskId);
+  if (job.status === "succeeded" && job.result?.availability === "available") {
+    return { status: "completed", urls: job.result.files.map(file => file.url) };
+  }
+  return { status: "failed", error: job.error };
+}
+```
+
+- 每个模型只用一个模型 ID，如 `openai/gpt-image-2`，渠道由 Yir 选择。全部 ID 见[模型列表](/zh/docs/models)。
+- **传入由任务 ID 派生的稳定幂等键。** 模板工作流常会重试失败的提交步骤；键不变时，重试返回原来的 Job，不会再开一个。把 `job.id` 存进任务记录。
+- `waitSeconds: 0` 立即返回，适合浏览器轮询或工作流步骤。长驻进程也可以直接调用 `yir.waitForJob(taskId)`。
+- 客户端可运行在 Node 和 Cloudflare Workers 上。视频用 `submitVideo`，写法相同。
+
+## 2. 参考图
+
+Yir 不接受 `data:` URL。传公网 HTTPS URL，或上传你已存好的文件，例如 R2 或 S3 中的字节：
+
+```ts
+import { createAndUploadFile } from "@yir-ai/sdk/server";
+
+const file = await createAndUploadFile(yir,
+  { name: "ref.png", media_type: "image/png", size: bytes.byteLength },
+  new Blob([bytes], { type: "image/png" }),
+  `task-${task.id}-ref-0`);
+references.push({ role: "reference_image", file_id: file.id });
+```
+
+上传键同样让重试上传变得安全。限制见[输入文件](/zh/docs/guides/input-files)。
+
+## 3. 结果
+
+结果链接会过期。Job 成功后把文件复制到自己的存储，再从那里提供访问。这通常就是工作流里现有的“保存到存储”步骤。
+
+## 4. 积分与 Yir 计费
+
+积分逻辑保持不变，把 Yir 视为你的进货成本：
+
+- **按你自己的价格向用户收费**，和现在一样：任务开始时扣积分，失败时退回。
+- **Yir 事后向你的账户结算**，按每次尝试的实际上游费用。上游已计费的失败尝试会收费；上游未计费的尝试，以及 Yir 自身的交付失败，不收费。见[计费](/zh/docs/concepts/billing)。
+- 报价里的 `expected_amount` 是估算，不是上限，不要按它向用户扣费。可以设一个留足余量的 `max_cost` 防止失控；上限过紧时，需要更贵备用渠道的 Job 会失败。
+- 以服务端的终态退款（工作流或 [Webhook](/zh/docs/concepts/task-lifecycle)），不要只依赖浏览器碰巧轮询到失败。
+- 核算毛利时，在 `job.billing.status` 变为 `settled` 后读取 `job.billing.total_charged_by_yir`。结算可能比结果稍晚。
+
+## 5. 错误
+
+失败的 Job 和 API 错误都带稳定的 `code` 与建议的 `action`：
+
+| `action` | 含义 | 是否展示给用户 |
+| --- | --- | --- |
+| `fix_request`、`modify_input` | 提示词、参数或输入被拒，例如 `YIR_INPUT_REJECTED`、`YIR_CONTENT_REJECTED` | 是，请用户修改输入 |
+| `add_funds` | 你的 Yir 余额或消费上限用尽，例如 `YIR_INSUFFICIENT_BALANCE` | 否。告警给自己，向用户显示通用的重试提示 |
+| `retry_later` | 临时容量不足或限流 | 提供重试 |
+| `contact_support` | 其他情况 | 通用提示 |
+
+无论哪种 action，失败任务都应退还积分。
+
+## 6. 按模型合同生成控件
+
+不必为每个模型写死比例、分辨率和参考图上限，从合同读取即可。在服务端用 `yir.getModelContracts()` 获取目录，或在构建时生成快照并提交到仓库：
+
+```sh
+YIR_API_KEY=your_key pnpm exec yir-models --output src/yir-models.ts
+```
+
+再用 `@yir-ai/sdk/frontend` 中的纯函数推导表单，不联网、不需要 Key：
+
+```ts
+import { findModelOperationContract, describeModelParameters, describeReferences } from "@yir-ai/sdk/frontend";
+import { models } from "./yir-models";
+
+const roles = form.references.map(reference => reference.role);
+const mode = roles.length ? "image" : "text";
+const operation = findModelOperationContract(models, form.model, "generate_image", mode);
+if (operation) {
+  const fields = describeModelParameters(operation, mode, form.parameters, roles);
+  const references = operation.input_constraints.image && describeReferences(operation.input_constraints.image, roles);
+}
+```
+
+- 每个字段包含参数 `name`、`control` 控件提示（`select`、`aspect_ratio`、`number`、`toggle`）、`options`、当前值或默认值 `value`，以及多语言文案。`type_known` 为 `false` 时渲染通用输入框。
+- `describeReferences` 给出每种角色还能添加几张、哪些角色必填。
+- 合同不含价格。**只展示你自己的价格表覆盖的选项**，上游新增的选项就不会按兜底价售出。
+- 在服务端，`validateGeneration("generate_image", request, models)` 可以在扣积分前拒绝快照之外的取值。Gateway 仍会校验每个请求，包括合同未描述的组合；字段位置见 `error.details`。
+
+## 上线检查
+
+- 切换流量前，用测试 API Key 跑几次低价生成。
+- 每次提交和上传都使用由任务 ID 派生的键。
+- 结果在链接过期前复制到自己的存储。
+- 失败任务由服务端退还积分。
+- `add_funds` 类错误告警给你，而不是你的用户。
+- 价格表未定价的选项已隐藏。

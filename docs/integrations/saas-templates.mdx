@@ -1,0 +1,135 @@
+---
+title: SaaS templates
+description: Add Yir as one provider in an AI SaaS template that already has its own generation pages, credits, and task queue.
+---
+
+Many AI SaaS starters ship their own generation stack: a provider registry, a credits ledger, a generate page, and a task table polled by the browser or a background workflow. You do not need to replace that stack. Add Yir as **one provider**, and let the template keep its UI, credits, and retail prices.
+
+What Yir takes over:
+
+- **Upstreams and routing.** One provider replaces per-vendor adapters. Yir picks a channel per request and falls back when one fails.
+- **Model parameters.** Options, defaults, and reference limits come from the model contract, so you stop hand-maintaining a per-model table.
+
+What stays in your template: pages and controls, user credits and refunds, your own price per generation, and storage of finished files.
+
+If your template already calls image or video models through the Vercel AI SDK, use the [Vercel AI SDK adapter](/docs/integrations/vercel-ai-sdk) instead. This page is for templates with their own provider interface.
+
+```sh
+pnpm add @yir-ai/sdk
+```
+
+## 1. Write the provider
+
+Most templates define a provider as `submit` (or `generate`) plus `poll` (or `query`). Implement both on the server with `@yir-ai/sdk/server`:
+
+```ts
+import { createNodeYirClient, isTerminalJobStatus } from "@yir-ai/sdk/server";
+
+const yir = createNodeYirClient({ apiKey: env.YIR_API_KEY });
+
+export async function submit(task) {
+  const job = await yir.submitImage({
+    model: task.model, // e.g. "google/nano-banana-pro"
+    input: task.references.length
+      ? { type: "image", prompt: task.prompt, references: task.references }
+      : { type: "text", prompt: task.prompt },
+    parameters: task.parameters, // e.g. { resolution: "2K", aspect_ratio: "16:9" }
+  }, `task-${task.id}`); // idempotency key: one per task, reused on every retry
+  return { taskId: job.id };
+}
+
+export async function poll(taskId) {
+  const { status } = await yir.getJobStatus(taskId, { waitSeconds: 0 });
+  if (!isTerminalJobStatus(status)) return { status: "pending" };
+  const job = await yir.getJob(taskId);
+  if (job.status === "succeeded" && job.result?.availability === "available") {
+    return { status: "completed", urls: job.result.files.map(file => file.url) };
+  }
+  return { status: "failed", error: job.error };
+}
+```
+
+- Use one model ID per model, such as `openai/gpt-image-2`; Yir chooses the channel. The [model list](/docs/models) has every ID.
+- **Pass a stable idempotency key** derived from your task ID. Template workflows often retry a failed submit step; with the same key, a retry returns the original Job instead of starting a second one. Save `job.id` in your task row.
+- `waitSeconds: 0` returns at once, which suits a browser poll or a workflow step. A long-running worker can call `yir.waitForJob(taskId)` instead.
+- The client runs in Node and on Cloudflare Workers. Videos use `submitVideo` the same way.
+
+## 2. Reference images
+
+Yir does not accept `data:` URLs. Pass a public HTTPS URL, or upload the bytes you already store, for example in R2 or S3:
+
+```ts
+import { createAndUploadFile } from "@yir-ai/sdk/server";
+
+const file = await createAndUploadFile(yir,
+  { name: "ref.png", media_type: "image/png", size: bytes.byteLength },
+  new Blob([bytes], { type: "image/png" }),
+  `task-${task.id}-ref-0`);
+references.push({ role: "reference_image", file_id: file.id });
+```
+
+The upload key makes a retried upload safe too. See [input files](/docs/guides/input-files) for limits.
+
+## 3. Results
+
+Result URLs expire. Copy each file to your own storage when the Job succeeds, then serve it from there. This is usually the existing "save to storage" step in your workflow.
+
+## 4. Credits and Yir billing
+
+Keep your credits exactly as they are, and treat Yir as your cost of goods:
+
+- **Charge your user your own price**, as today: debit credits when the task starts and refund them if it fails.
+- **Yir bills your account after the fact**, at the actual upstream cost of each attempt. An upstream-billed failed attempt is charged; attempts the upstream never billed, and Yir's own delivery failures, are free. See [billing](/docs/concepts/billing).
+- A quote's `expected_amount` is an estimate, not a ceiling. Do not debit users by it. Optionally set `max_cost` with generous headroom as a runaway guard; a tight cap can fail Jobs that need a pricier fallback.
+- Refund from the server-side terminal state (your workflow, or a [Webhook](/docs/concepts/task-lifecycle)), not only when a browser happens to poll.
+- To track margin, read `job.billing.total_charged_by_yir` once `job.billing.status` is `settled`. Settlement can land shortly after the result.
+
+## 5. Errors
+
+Each failed Job and API error carries a stable `code` and a suggested `action`:
+
+| `action` | Meaning | Show to the user? |
+| --- | --- | --- |
+| `fix_request`, `modify_input` | The prompt, parameters, or input were rejected, for example `YIR_INPUT_REJECTED` or `YIR_CONTENT_REJECTED` | Yes, ask them to change the input |
+| `add_funds` | Your Yir balance or spend limit is exhausted, for example `YIR_INSUFFICIENT_BALANCE` | No. Alert yourself and show a generic retry message |
+| `retry_later` | Temporary capacity or rate limits | Offer a retry |
+| `contact_support` | Anything else | Generic message |
+
+Refund credits for every failed task, whatever the action.
+
+## 6. Generate controls from the model contract
+
+Instead of hard-coding aspect ratios, resolutions, and reference limits per model, read them from the contract. Fetch the catalog on the server with `yir.getModelContracts()`, or commit a snapshot generated at build time:
+
+```sh
+YIR_API_KEY=your_key pnpm exec yir-models --output src/yir-models.ts
+```
+
+Then derive the form with the pure helpers in `@yir-ai/sdk/frontend`, which make no network calls and need no key:
+
+```ts
+import { findModelOperationContract, describeModelParameters, describeReferences } from "@yir-ai/sdk/frontend";
+import { models } from "./yir-models";
+
+const roles = form.references.map(reference => reference.role);
+const mode = roles.length ? "image" : "text";
+const operation = findModelOperationContract(models, form.model, "generate_image", mode);
+if (operation) {
+  const fields = describeModelParameters(operation, mode, form.parameters, roles);
+  const references = operation.input_constraints.image && describeReferences(operation.input_constraints.image, roles);
+}
+```
+
+- Each field has the parameter `name`, a `control` hint (`select`, `aspect_ratio`, `number`, `toggle`), `options`, the current or default `value`, and localized labels. Render a generic input when `type_known` is `false`.
+- `describeReferences` reports how many references each role still accepts and which roles are required.
+- The contract carries no prices. **Show only the options your own price table covers**, so a newly added upstream option never sells at a fallback price.
+- On the server, `validateGeneration("generate_image", request, models)` rejects values outside the snapshot before you debit credits. The Gateway still validates every request, including combinations the contract does not describe; read `error.details` for the field.
+
+## Checklist
+
+- Test with a test API Key and a few cheap generations before switching traffic.
+- Every submit and upload uses a key derived from your task ID.
+- Results are copied to your storage before their URLs expire.
+- Failed tasks refund credits from the server side.
+- `add_funds` errors alert you, not your users.
+- Options without a price in your table are hidden.
