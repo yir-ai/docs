@@ -164,6 +164,8 @@ TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是�
 
 **TypeScript 0.10.1 / Go 0.11.1。** 兼容。`Quote.parameters`（TypeScript 类型 `QuoteParameters`）只回显模型合同声明的参数，图片报价和没有该参数的视频模型不再出现 `duration`、`generate_audio`；`Job.parameters` 自创建起携带同样的回显。模型合同参数只有没有默认值时才 `required`，本地校验不变。模型合同接口返回 `ETag` 与 `Cache-Control: private, max-age=300`，并对 `If-None-Match` 回 304。
 
+**TypeScript 0.11.0（不兼容）。** 报价与提交不再按传入的目录拒绝请求，非法参数由 Gateway 以带 `details` 的 `YIR_INVALID_REQUEST` 返回；需要本地严格校验时调用 `validateGeneration(operation, request, catalog)`。Vercel 适配器透传 `seed`、视频 `fps` 与像素 `size`，不再丢弃。另新增：保持幂等键的自动重试、`getBalance`、Account API 客户端、`provider_error`、`YIR_INPUT_REJECTED`、`billing.status`，以及按模型合同描述参数控件与参考图上限的函数（见 [SaaS 模板](/zh/docs/integrations/saas-templates)）。
+
 完整发布说明见 [TypeScript](https://github.com/yir-ai/sdk/blob/main/typescript/CHANGELOG.md) 与 [Go](https://github.com/yir-ai/sdk/blob/main/go/CHANGELOG.md) 更新日志。
 
 **从 0.1.0 升级。** TypeScript 0.2 与 Go 0.2 移除了内置模型清单和客户端价格表，等待改为轮询状态接口（`onPoll` / `OnPoll` 现在接收状态摘要）。Go 0.3.0 把幂等键参数改为可变参数。升级前请阅读[迁移指南](https://github.com/yir-ai/sdk/blob/main/typescript/docs/parameter-contracts.md)。
