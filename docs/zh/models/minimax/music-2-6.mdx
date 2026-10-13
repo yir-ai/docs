@@ -20,7 +20,7 @@ description: "MiniMax 音乐生成模型，按提示词与歌词生成带人声�
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
 | `instrumental` | 纯音乐：生成无人声的纯音乐；不能同时传 input.lyrics 或 lyrics_optimizer。 | `false`、`true` | `false` | 否 |
-| `lyrics_optimizer` | 自动写词：按提示词自动写词；不能同时传 input.lyrics，另收写词费用。 | `false`、`true` | `false` | 否 |
+| `lyrics_optimizer` | 自动写词：按提示词自动写词；不能同时传 input.lyrics，部分模型另收写词费用（以报价为准）。 | `false`、`true` | `false` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
 ## 示例

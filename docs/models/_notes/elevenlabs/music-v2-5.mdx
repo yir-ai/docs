@@ -1,0 +1,18 @@
+## Lyrics
+
+ElevenLabs music takes no `input.lyrics`. Choose one of two combinations:
+
+| Goal | `instrumental` | `lyrics_optimizer` |
+| --- | --- | --- |
+| Song with lyrics written from the prompt | `false` | `true` |
+| Instrumental | `true` | `false` |
+
+Sending `input.lyrics`, or neither switch, is rejected with `400 YIR_INVALID_REQUEST`. Describe the style, mood and any lyric ideas in the prompt (up to 4,100 characters).
+
+## Length and output
+
+`duration` sets the track length in seconds: `30`, `60`, `120`, `180`, `240` or `300` (default `60`). Each Job returns one MP3 file (`media_type: "audio/mpeg"`) in `result.files`, with its measured length in `duration_ms`.
+
+## Price
+
+Served through FAL at US$0.60 per output minute, rounded up to whole minutes: 30 and 60 seconds cost US$0.60, 300 seconds US$3.00. The quote shows the price for the requested `duration`; the final charge is the amount the channel actually billed. ElevenLabs' official API lists US$0.15 per minute.

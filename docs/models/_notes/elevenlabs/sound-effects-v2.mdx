@@ -1,0 +1,11 @@
+## Request
+
+Sound effects use the music endpoints (`POST /v1/music/quotes` and `POST /v1/music/generations`) with operation `generate_sound_effect`. Describe the sound in `input.prompt` (up to 450 characters). There is no `input.lyrics`, `instrumental` or `lyrics_optimizer`.
+
+## Length and output
+
+`duration` is a whole number of seconds from `1` to `22` (default `5`). Each Job returns one MP3 file (`media_type: "audio/mpeg"`) in `result.files`, with its measured length in `duration_ms`.
+
+## Price
+
+Served through FAL at US$0.002 per output second, the same as ElevenLabs' official API price: the default 5 seconds cost US$0.01, 22 seconds US$0.044. The final charge is the amount the channel actually billed.

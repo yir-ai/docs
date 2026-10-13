@@ -14,7 +14,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)和[音乐生成](/zh/docs/guides/music-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
-| 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 固定为 `1`。每个输出提交一个 Job，各用独立的幂等键。 |
+| 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 为 `1`；`suno/suno-v6` 例外，每次固定生成两首（`n: 2`）。每个输出提交一个 Job，各用独立的幂等键。 |
 | 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
 | 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
@@ -141,7 +141,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `bfl/flux-pro-1.1-ultra` | `aspect_ratio` | 21:9 到 9:21 之间任意比例；默认 `16:9`。 | 5 种比例；默认 `1:1`。`2K` 表示 Ultra 固定的约 4 MP 尺寸。 |
 | `prodia/flux-fast-schnell` | 尺寸、`steps`、`style_preset` | 每边 256–1920 像素，1–4 步，17 种风格预设。 | 只有 `1K` 的 `1:1`（1024×1024）；步数和风格预设不可用。 |
 
-### Kling 与 MiniMax
+### Kling、MiniMax、ElevenLabs 与 Suno
 
 | 模型 | 参数或功能 | 官方 API | Yir |
 | --- | --- | --- | --- |
@@ -156,6 +156,12 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `minimax/minimax-h3-max` | 参考生视频、`prompt_expansion_mode` | 支持。 | 不可用。 |
 | `minimax/music-2.6` | `audio_setting`（`sample_rate`、`bitrate`、`format`） | 可配置。 | 不可用。输出固定为 MP3，结果文件返回实测 `duration_ms`。 |
 | `minimax/music-2.6` | 自带 `lyrics` 同时开启 `lyrics_optimizer` | 可同时传。 | 不允许。`lyrics_optimizer: true` 时须省略 `lyrics`；否则人声音乐必须提供 `lyrics`。 |
+| `minimax/music-3` | `lyrics`、`is_instrumental`、`lyrics_optimizer` | 纯音乐或自动写词时歌词可省略。 | `lyrics` 必填，不支持纯音乐和自动写词。上游时长上限固定为 300 秒，随歌词结束。输出为 WAV。 |
+| `elevenlabs/music-v2`、`elevenlabs/music-v2.5` | `music_length_ms` | 3 秒到 10 分钟；省略时由模型决定。 | `duration` 取 `30`、`60`、`120`、`180`、`240` 或 `300` 秒，默认 `60`。 |
+| `elevenlabs/music-v2`、`elevenlabs/music-v2.5` | `composition_plan`（自定义歌词与段落） | 可用。 | 不可用，也不接收 `lyrics`。人声用 `lyrics_optimizer: true` 由提示词写词，或用 `instrumental: true`。 |
+| `elevenlabs/sound-effects-v2` | `duration_seconds` | 0.5–30 秒；省略时由模型决定。 | `1` 到 `22` 的整数秒，默认 `5`。 |
+| `elevenlabs/sound-effects-v2` | `loop`、`prompt_influence` | 可用。 | 不可用。 |
+| `suno/suno-v6` | 官方 API | Suno 没有官方 API。 | 经第三方渠道非官方接入。只支持基础生成，不支持续写、翻唱或分轨。每次生成两首。 |
 
 ### xAI Grok Imagine
 

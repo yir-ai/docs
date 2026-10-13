@@ -1,0 +1,18 @@
+## 歌词
+
+ElevenLabs 音乐不接收 `input.lyrics`。按以下两种组合之一请求：
+
+| 目标 | `instrumental` | `lyrics_optimizer` |
+| --- | --- | --- |
+| 根据提示词自动写词并生成歌曲 | `false` | `true` |
+| 纯音乐 | `true` | `false` |
+
+传 `input.lyrics`，或两个开关都不开，会返回 `400 YIR_INVALID_REQUEST`。风格、情绪和歌词构思都写在提示词里（最多 4,100 个字符）。
+
+## 时长与输出
+
+`duration` 设置曲目时长（秒）：`30`、`60`、`120`、`180`、`240` 或 `300`（默认 `60`）。每个 Job 在 `result.files` 中返回一个 MP3 文件（`media_type: "audio/mpeg"`），`duration_ms` 为实测时长。
+
+## 价格
+
+通过 FAL 执行，每输出分钟 0.60 美元，按整分钟向上取整：30 秒和 60 秒都是 0.60 美元，300 秒为 3.00 美元。报价按请求的 `duration` 显示价格；最终费用按渠道实际计费金额结算。ElevenLabs 官方 API 刊例价为每分钟 0.15 美元。

@@ -1,24 +1,43 @@
 ---
 title: 音乐生成
-description: 使用 Yir Standard API 根据提示词和歌词生成歌曲，或生成纯音乐。
+description: 使用 Yir Standard API 生成歌曲、纯音乐和音效。
 ---
 
-音乐 Job 提交到 `POST /v1/music/generations`。音乐遵循与图片、视频相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)、[路由](/zh/docs/concepts/routing)和 [Webhook](/zh/docs/production/webhooks) 规则。每个 Job 生成一首曲目。
+音乐 Job 提交到 `POST /v1/music/generations`。音乐遵循与图片、视频相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)、[路由](/zh/docs/concepts/routing)和 [Webhook](/zh/docs/production/webhooks) 规则。音效使用同一组接口。每个 Job 返回模型单次请求生成的全部曲目：多数模型一首，Suno 两首。
 
 ## 请求字段
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `model` | 是 | 音乐模型，例如 `minimax/music-2.6`。见[模型与参数](/zh/docs/models)。 |
-| `input` | 是 | `{ "type": "text", "prompt": ..., "lyrics": ... }`。`prompt` 描述风格、情绪和使用场景（最多 2,000 个字符）。`lyrics` 最多 3,500 个字符，各行用 `\n` 分隔。 |
-| `parameters` | 否 | `instrumental`（默认 `false`）、`lyrics_optimizer`（默认 `false`）和 `n`（固定为 `1`）。 |
+| `model` | 是 | 音乐或音效模型，例如 `minimax/music-2.6`。见[模型与参数](/zh/docs/models)。 |
+| `input` | 是 | `{ "type": "text", "prompt": ..., "lyrics": ... }`。`prompt` 描述风格、情绪和使用场景，或描述声音。`lyrics` 各行用 `\n` 分隔。长度上限因模型而异。 |
+| `parameters` | 否 | 只接受模型合同声明的参数：`instrumental` 和 `lyrics_optimizer`（默认 `false`）、按时长计价模型的 `duration`，以及 `n`（`1`，Suno 为 `2`）。 |
 | `max_cost` | 否 | 可选，Job 的美元费用上限，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
 | `routing` | 否 | 见[路由](/zh/docs/concepts/routing)。 |
 | `webhook_url` | 否 | 接收终态 Job 的 HTTPS 地址。 |
 
-人声音乐必须提供 `lyrics`。设置 `lyrics_optimizer: true` 并省略 `lyrics`，模型会根据提示词自动写词（另收费用，报价中可见）；设置 `instrumental: true` 并省略两者，则生成不含人声的曲目。其他组合返回 `400 YIR_INVALID_REQUEST`。模型规则与价格见 [MiniMax Music 2.6](/zh/docs/models/minimax/music-2-6)。
+人声音乐必须提供 `lyrics`。设置 `lyrics_optimizer: true` 并省略 `lyrics`，模型会根据提示词自动写词；设置 `instrumental: true` 并省略两者，则生成不含人声的曲目。其他组合返回 `400 YIR_INVALID_REQUEST`。各模型支持的选项不同：
 
-不支持控制时长、速度或调性，曲目长度由模型决定。
+| 模型 | 歌词 | 时长 | 每个 Job 曲目数 |
+| --- | --- | --- | --- |
+| [MiniMax Music 2.6](/zh/docs/models/minimax/music-2-6) | 自带歌词、自动写词或纯音乐 | 由模型决定 | 1 |
+| [MiniMax Music 3](/zh/docs/models/minimax/music-3) | 必须自带歌词 | 随歌词结束，最长 300 秒 | 1 |
+| [ElevenLabs Music v2](/zh/docs/models/elevenlabs/music-v2) 与 [v2.5](/zh/docs/models/elevenlabs/music-v2-5) | 自动写词或纯音乐，不接收自带歌词 | `duration`：30–300 秒，默认 60 | 1 |
+| [Suno v6](/zh/docs/models/suno/suno-v6) | 自带歌词、自动写词或纯音乐 | 由模型决定 | 2 |
+
+Suno 没有官方 API，Yir 经第三方渠道非官方接入 Suno v6。不支持控制速度或调性。价格与计费规则见各模型页。
+
+## 音效
+
+[ElevenLabs Sound Effects v2](/zh/docs/models/elevenlabs/sound-effects-v2) 通过同一组接口生成短音效。只传 `input.prompt`（最多 450 个字符），可选 `parameters.duration`，为 1 到 22 的整数秒（默认 5）；传歌词、`instrumental` 或 `lyrics_optimizer` 会被拒绝。
+
+```json
+{
+  "model": "elevenlabs/sound-effects-v2",
+  "input": { "type": "text", "prompt": "A heavy wooden door creaking open in an empty stone hall" },
+  "parameters": { "duration": 5 }
+}
+```
 
 ## 报价、提交与获取结果
 
@@ -77,4 +96,4 @@ curl --location --output track.mp3 "$(jq -r '.result.files[0].url' job.json)"
 
 ## 结果
 
-成功的 Job 在 `result.files` 中返回一个 MP3 文件，`media_type` 为 `"audio/mpeg"`，`duration_ms` 为实测时长。URL 是短期签名链接，请把文件复制到自己的存储。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
+成功的 Job 在 `result.files` 中返回音频，每首曲目一个文件（Suno 为两个），各自带实测 `duration_ms`。多数模型交付 MP3（`media_type: "audio/mpeg"`），MiniMax Music 3 交付 WAV（`audio/wav`）。URL 是短期签名链接，请把文件复制到自己的存储。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。

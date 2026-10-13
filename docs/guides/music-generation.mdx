@@ -1,24 +1,43 @@
 ---
 title: Music generation
-description: Generate a song from a prompt and lyrics, or an instrumental track, with the Yir Standard API.
+description: Generate songs, instrumentals and sound effects with the Yir Standard API.
 ---
 
-Submit music Jobs to `POST /v1/music/generations`. Music Jobs follow the same [lifecycle](/docs/concepts/task-lifecycle), [billing](/docs/concepts/billing), [routing](/docs/concepts/routing), and [Webhooks](/docs/production/webhooks) as images and videos. Each Job returns one track.
+Submit music Jobs to `POST /v1/music/generations`. Music Jobs follow the same [lifecycle](/docs/concepts/task-lifecycle), [billing](/docs/concepts/billing), [routing](/docs/concepts/routing), and [Webhooks](/docs/production/webhooks) as images and videos. Sound effects use the same endpoints. Each Job returns the tracks the model makes per request: one for most models, two for Suno.
 
 ## Request fields
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `model` | Yes | A music model such as `minimax/music-2.6`. See [models and parameters](/docs/models). |
-| `input` | Yes | `{ "type": "text", "prompt": ..., "lyrics": ... }`. `prompt` describes style, mood and scenario (up to 2,000 characters). `lyrics` is up to 3,500 characters, lines separated by `\n`. |
-| `parameters` | No | `instrumental` (default `false`), `lyrics_optimizer` (default `false`), and `n` (always `1`). |
+| `model` | Yes | A music or sound-effect model such as `minimax/music-2.6`. See [models and parameters](/docs/models). |
+| `input` | Yes | `{ "type": "text", "prompt": ..., "lyrics": ... }`. `prompt` describes style, mood and scenario, or the sound. `lyrics` uses lines separated by `\n`. Length limits are per model. |
+| `parameters` | No | Only what the model's contract declares: `instrumental` and `lyrics_optimizer` (default `false`), `duration` for length-priced models, and `n` (`1`, or `2` for Suno). |
 | `max_cost` | No | Optional cap on the Job's charge in USD. See [billing](/docs/concepts/billing#set-a-spending-limit). |
 | `routing` | No | See [routing](/docs/concepts/routing). |
 | `webhook_url` | No | HTTPS URL that receives the terminal Job. |
 
-Vocal music needs `lyrics`. Set `lyrics_optimizer: true` and omit `lyrics` to have the model write them from the prompt (an extra charge shown in the quote), or set `instrumental: true` and omit both for a track without vocals. Other combinations fail with `400 YIR_INVALID_REQUEST`. See [MiniMax Music 2.6](/docs/models/minimax/music-2-6) for the model's rules and price.
+Vocal music needs `lyrics`. Set `lyrics_optimizer: true` and omit `lyrics` to have the model write them from the prompt, or set `instrumental: true` and omit both for a track without vocals. Other combinations fail with `400 YIR_INVALID_REQUEST`. Not every model takes every option:
 
-There is no duration, tempo or key control: the model decides the length.
+| Model | Lyrics | Length | Tracks per Job |
+| --- | --- | --- | --- |
+| [MiniMax Music 2.6](/docs/models/minimax/music-2-6) | Own lyrics, auto lyrics or instrumental | Model decides | 1 |
+| [MiniMax Music 3](/docs/models/minimax/music-3) | Own lyrics required | Ends with the lyrics, up to 300 s | 1 |
+| [ElevenLabs Music v2](/docs/models/elevenlabs/music-v2) and [v2.5](/docs/models/elevenlabs/music-v2-5) | Auto lyrics or instrumental; no own lyrics | `duration`: 30 to 300 s, default 60 | 1 |
+| [Suno v6](/docs/models/suno/suno-v6) | Own lyrics, auto lyrics or instrumental | Model decides | 2 |
+
+Suno has no official API; Yir accesses Suno v6 unofficially through third-party channels. There is no tempo or key control. Prices and billing rules are on each model page.
+
+## Sound effects
+
+[ElevenLabs Sound Effects v2](/docs/models/elevenlabs/sound-effects-v2) makes short sound effects through the same endpoints. Send only `input.prompt` (up to 450 characters) and optionally `parameters.duration`, a whole number of seconds from 1 to 22 (default 5); lyrics, `instrumental` and `lyrics_optimizer` are rejected.
+
+```json
+{
+  "model": "elevenlabs/sound-effects-v2",
+  "input": { "type": "text", "prompt": "A heavy wooden door creaking open in an empty stone hall" },
+  "parameters": { "duration": 5 }
+}
+```
 
 ## Quote, submit and collect
 
@@ -77,4 +96,4 @@ curl --location --output track.mp3 "$(jq -r '.result.files[0].url' job.json)"
 
 ## Results
 
-A successful Job returns one MP3 file in `result.files` with `media_type: "audio/mpeg"` and its measured length in `duration_ms`. The URL is a short-lived signed link; copy the file to your own storage. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).
+A successful Job returns its audio in `result.files`, one file per track (two for Suno), each with its measured length in `duration_ms`. Most models deliver MP3 (`media_type: "audio/mpeg"`); MiniMax Music 3 delivers WAV (`audio/wav`). The URL is a short-lived signed link; copy the file to your own storage. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).

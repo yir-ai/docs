@@ -20,7 +20,7 @@ description: "MiniMax music model for full songs with vocals or instrumentals fr
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
 | `instrumental` | Instrumental: Generate music without vocals. input.lyrics and lyrics_optimizer must be omitted. | `false`, `true` | `false` | No |
-| `lyrics_optimizer` | Auto lyrics: Write lyrics from the prompt. Omit input.lyrics; adds a lyrics-writing charge. | `false`, `true` | `false` | No |
+| `lyrics_optimizer` | Auto lyrics: Write lyrics from the prompt. Omit input.lyrics; some models add a lyrics-writing charge (see the quote). | `false`, `true` | `false` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples

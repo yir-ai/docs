@@ -1,0 +1,11 @@
+## Lyrics
+
+Music 3 makes vocal songs from your own lyrics: `input.lyrics` is required (up to 3,500 characters, lines separated by `\n`, structure tags such as `[Verse]` and `[Chorus]` allowed) and the prompt is up to 2,000 characters. There is no `instrumental` or `lyrics_optimizer`.
+
+## Length and output
+
+There is no duration parameter. The song ends with the lyrics, up to 300 seconds. Each Job returns one WAV file (`media_type: "audio/wav"`) in `result.files`, with its measured length in `duration_ms`.
+
+## Price
+
+Served through FAL at US$0.002 per output second. The quote estimates the 300-second cap, US$0.60; the final charge is the amount the channel actually billed for the delivered length, so a 2-minute song costs about US$0.24. MiniMax's official Music-3.0 API lists US$0.15 per track but is closed to new users.

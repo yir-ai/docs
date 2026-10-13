@@ -122,6 +122,12 @@ const muParams = M(mu).operations.flatMap(o => o.parameters.map(p => p.name))
 check('music-2.6 text only, no audio_setting parameters', eq(modes(mu), ['text']) && sameSet(muParams, ['instrumental', 'lyrics_optimizer', 'n']), [modes(mu), muParams])
 check('music-2.6 instrumental and lyrics_optimizer default false', def(mu, 'instrumental') === false && def(mu, 'lyrics_optimizer') === false, [def(mu, 'instrumental'), def(mu, 'lyrics_optimizer')])
 check('music-2.6 lyrics_optimizer requires omitting lyrics', /Omit input\.lyrics/.test(P(mu, 'lyrics_optimizer')?.locales.en.description ?? ''), P(mu, 'lyrics_optimizer')?.locales.en.description)
+const mu3 = 'minimax/music-3'
+check('music-3 no instrumental or lyrics_optimizer', sameSet(M(mu3).operations.flatMap(o => o.parameters.map(p => p.name)), ['n']), M(mu3).operations.flatMap(o => o.parameters.map(p => p.name)))
+for (const el of ['elevenlabs/music-v2', 'elevenlabs/music-v2.5']) check(`${el} duration 30/60/120/180/240/300 default 60`, sameSet(vals(el, 'duration'), [30, 60, 120, 180, 240, 300]) && def(el, 'duration') === 60, vals(el, 'duration'))
+const sfx = 'elevenlabs/sound-effects-v2'
+check('sound-effects-v2 duration 1-22 default 5, no lyrics switches', P(sfx, 'duration')?.minimum === 1 && P(sfx, 'duration')?.maximum === 22 && def(sfx, 'duration') === 5 && sameSet(M(sfx).operations.flatMap(o => o.parameters.map(p => p.name)), ['duration', 'n']), P(sfx, 'duration'))
+check('suno-v6 n fixed at 2', eq(vals('suno/suno-v6', 'n'), [2]), vals('suno/suno-v6', 'n'))
 // xAI
 const gi = 'spacexai/grok-imagine-image'
 check('grok-image ratios 1:1/16:9/9:16/3:2/2:3 default 1:1', sameSet(vals(gi, 'aspect_ratio'), ['1:1', '16:9', '9:16', '3:2', '2:3']) && def(gi, 'aspect_ratio') === '1:1', vals(gi, 'aspect_ratio'))
@@ -161,7 +167,7 @@ test('rules for every model hold across the contract', () => {
   const roles = new Set(['reference_image', 'first_frame', 'last_frame', 'reference_video', 'reference_audio'])
   for (const model of c.models) {
     for (const op of model.operations) {
-      assert.deepEqual(op.parameters.find(p => p.name === 'n')?.values, [1], `${model.id}: n is always 1`)
+      assert.deepEqual(op.parameters.find(p => p.name === 'n')?.values, model.id === 'suno/suno-v6' ? [2] : [1], `${model.id}: n is 1 (Suno v6: 2)`)
       for (const constraint of Object.values(op.input_constraints)) {
         for (const role of constraint.allowed_reference_roles) assert.ok(roles.has(role), `${model.id}: ${role} is not a documented reference role`)
       }

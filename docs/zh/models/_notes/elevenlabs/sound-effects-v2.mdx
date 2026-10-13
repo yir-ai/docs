@@ -1,0 +1,11 @@
+## 请求
+
+音效使用音乐接口（`POST /v1/music/quotes` 与 `POST /v1/music/generations`），操作为 `generate_sound_effect`。在 `input.prompt` 中描述声音（最多 450 个字符）。不接收 `input.lyrics`、`instrumental` 或 `lyrics_optimizer`。
+
+## 时长与输出
+
+`duration` 为 `1` 到 `22` 的整数秒（默认 `5`）。每个 Job 在 `result.files` 中返回一个 MP3 文件（`media_type: "audio/mpeg"`），`duration_ms` 为实测时长。
+
+## 价格
+
+通过 FAL 执行，每输出秒 0.002 美元，与 ElevenLabs 官方 API 价格相同：默认 5 秒为 0.01 美元，22 秒为 0.044 美元。最终费用按渠道实际计费金额结算。
