@@ -69,6 +69,22 @@ node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --
 
 Results are saved to `./yir-output` by default. Each result gets a `.json` sidecar with its prompt, parameters, channel, Job ID, and charge. Run `node ~/.claude/skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.
 
+## Migrate code from fal
+
+Ask the agent to move existing fal calls to Yir ("Move the fal calls in this project to Yir and show me what changes"). For each call the skill translates the fal request into the equivalent Yir request and lists every difference before touching your code:
+
+- fal defaults your code never set are written out, so the output stays the same (for example Seedance audio stays on).
+- `num_images` above 1 becomes one Job per output.
+- Options Yir cannot match exactly, such as fal's automatic duration or fal-only settings, are listed for you to decide; nothing is approximated silently.
+
+The agent shows the changes and the quoted price per Job, and edits code only after you agree. You can also translate one request yourself; `--quote` prices it without creating a Job:
+
+```sh
+node ~/.claude/skills/yir/scripts/from-fal.mjs bytedance/seedance-2.5/image-to-video --json '{"prompt":"a paper boat","image_url":"https://example.com/a.png","duration":"5"}' --quote
+```
+
+`--list` shows which fal endpoints map to a Yir model.
+
 ## Generate many assets at once
 
 For a landing page, deck, or article, ask the agent for the whole set ("the hero, three feature images and a 5-second demo clip, under $2"). The skill writes a plan file and runs it as one batch:

@@ -69,6 +69,22 @@ node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --
 
 结果默认保存到 `./yir-output`，每个结果旁附一个 `.json` 文件，记录提示词、参数、渠道、Job ID 和费用。运行 `node ~/.claude/skills/yir/scripts/yir.mjs --help` 查看全部命令，包括 `models`、`quote` 和 `job <id> --wait --download`。
 
+## 从 fal 迁移代码
+
+让 Agent 把现有的 fal 调用换成 Yir（“把这个项目里的 fal 调用换成 Yir，告诉我有什么变化”）。Skill 会逐个把 fal 请求翻译成等价的 Yir 请求，并在改代码前列出全部差异：
+
+- 代码没设置、由 fal 默认生效的参数会被显式写出，产出保持不变（例如 Seedance 保持有声）。
+- `num_images` 大于 1 时，每个输出对应一个 Job。
+- Yir 无法完全对应的选项（如 fal 的自动时长、fal 专有设置）会列出来由你决定，不做悄悄的近似。
+
+Agent 会先给出变化和每个 Job 的报价，你确认后才修改代码。也可以自己翻译单个请求，`--quote` 只报价、不创建 Job：
+
+```sh
+node ~/.claude/skills/yir/scripts/from-fal.mjs bytedance/seedance-2.5/image-to-video --json '{"prompt":"a paper boat","image_url":"https://example.com/a.png","duration":"5"}' --quote
+```
+
+`--list` 列出哪些 fal 端点有对应的 Yir 模型。
+
 ## 批量生成素材
 
 做落地页、演示文稿或文章时，可以直接要一整套（“主图、三张功能图和一段 5 秒演示视频，总价不超过 $2”）。Skill 会写出计划文件，作为一个批次运行：
