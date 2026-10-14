@@ -15,4 +15,9 @@ Sending `input.lyrics`, or neither switch, is rejected with `400 YIR_INVALID_REQ
 
 ## Price
 
-Served through FAL at US$0.60 per output minute, rounded up to whole minutes: 30 and 60 seconds cost US$0.60, 300 seconds US$3.00. The quote shows the price for the requested `duration`; the final charge is the amount the channel actually billed. ElevenLabs' official API lists US$0.15 per minute.
+Two channels serve this model:
+
+- **ElevenLabs official**: US$0.0025 per output second (US$0.15 per minute, the official API price), so 30 seconds cost US$0.075 and 300 seconds US$0.75. Default routing picks it because it is cheaper.
+- **FAL**: US$0.60 per output minute, rounded up to whole minutes: 30 and 60 seconds cost US$0.60, 300 seconds US$3.00.
+
+The quote shows the price for the requested `duration`; the final charge is the amount the channel actually billed. Pin a channel with `routing.only` (`"official"` or `"fal"`).
