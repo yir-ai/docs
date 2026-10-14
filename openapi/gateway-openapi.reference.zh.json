@@ -1719,6 +1719,11 @@
                 },
                 "url": {
                   "$ref": "#/components/schemas/InputURL"
+                },
+                "subject": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$",
+                  "description": "在输入约束声明了 subject_references 的模型上，把多张 reference_image 照片归为同一个角色，提示词中用 @<subject> 引用。只要有一个参考素材带 subject，所有参考素材都必须是带 subject 的 reference_image。"
                 }
               },
               "oneOf": [
@@ -3912,6 +3917,70 @@
                 "reference_video",
                 "reference_audio"
               ]
+            }
+          },
+          "subject_references": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "当 reference_image 照片可按 references[].subject 分组（照片角色参考）时出现。带 subject 的请求使用这些限制；非空的取值列表会替换该模式下操作参数的取值。",
+            "required": [
+              "min_images_per_subject",
+              "max_images_per_subject",
+              "max_subjects"
+            ],
+            "properties": {
+              "min_images_per_subject": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_images_per_subject": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_subjects": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "resolutions": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "aspect_ratios": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "default_aspect_ratio": {
+                "type": "string"
+              },
+              "allowed_durations": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "min_duration_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_duration_seconds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "allowed_audios": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "boolean"
+                }
+              }
             }
           }
         }
