@@ -107,7 +107,7 @@ description: 使用 Yir Standard API 从文本、首尾帧，或图片、视频�
 
 视频价格取决于时长、分辨率、音频和参考素材，因此请先用 `POST /v1/videos/quotes` 对完整请求报价。包含视频或音频参考的报价会使用其实测时长。检查 `supply.available`。报价是估价，最终费用以实际成本为准；需要封顶时，在提交中携带 `max_cost`。
 
-APIMart Kling Motion Control 可直接使用普通请求，无需额外计费选项。渠道可用但缺少可靠估价时，报价可能没有总价；此时不能设置 `max_cost`。见[报价与计费](/zh/docs/concepts/billing)。
+Kling Motion Control（`reference_image` + `reference_video`）按参考视频实测时长计价，按整秒向下取整；请求里的 `duration` 不影响价格。上传参考视频并传入其 `file_id`，报价才有金额；参考视频是 URL 时报价没有金额，带 `max_cost` 的请求会被拒绝。见[报价与计费](/zh/docs/concepts/billing)。
 
 ## 结果
 

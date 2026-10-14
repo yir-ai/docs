@@ -85,7 +85,7 @@ If your balance cannot cover a charge at settlement, the balance becomes negativ
 
 ## Channels without an advance estimate
 
-New requests settle from actual channel bills by default; no billing mode selection is needed. Channels such as APIMart Kling Motion Control can participate in ordinary requests even without a reliable pre-generation estimate. You do not need to select a channel just to enable billing.
+New requests settle from actual channel bills by default; no billing mode selection is needed. Some channels can participate in ordinary requests even without a reliable pre-generation estimate. You do not need to select a channel just to enable billing.
 
 A quote can return `supply.available: true` with `primary.amount: null` and no `expected_amount`. An unknown price is neither zero nor a spending ceiling. Routes without a reliable estimate cannot accept `max_cost`; choose a channel with an estimate when you need a cap.
 
