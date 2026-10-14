@@ -152,7 +152,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `minimax/hailuo-2.3`, `minimax/hailuo-2.3-fast` | `prompt_optimizer`, `fast_pretreatment` | Available. | Not available. `1080p` is available only with 6-second videos, as with MiniMax. |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` (MiniMax's H3 Max default is `768P`) and 5 s. |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `aspect_ratio` with a first frame | Any value is treated as `adaptive`. | Only `adaptive` is accepted. |
-| `minimax/minimax-h3-max` | Reference to video, `prompt_expansion_mode` | Available. | Not available. |
+| `minimax/minimax-h3-max` | `prompt_expansion_mode` | Available. | Not available. |
 | `minimax/music-2.6` | `audio_setting` (`sample_rate`, `bitrate`, `format`) | Configurable. | Not available. Output is always MP3; the result file reports its measured `duration_ms`. |
 | `minimax/music-2.6` | Own `lyrics` with `lyrics_optimizer` | Can be sent together. | Not allowed. `lyrics_optimizer: true` requires omitting `lyrics`; vocal music otherwise requires `lyrics`. |
 | `minimax/music-3` | `lyrics`, `is_instrumental`, `lyrics_optimizer` | Lyrics optional with instrumental or auto-lyrics modes. | `lyrics` is required; instrumental and auto lyrics are not available. Length is capped at 300 s upstream and ends with the lyrics. Output is WAV. |

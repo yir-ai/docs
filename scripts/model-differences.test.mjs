@@ -116,7 +116,7 @@ check('kling-3.0 duration 3/5/10/15', sameSet(vals('klingai/kling-3.0', 'duratio
 check('minimax-h3 defaults 768P / 6s', def('minimax/minimax-h3', 'resolution') === '768P' && def('minimax/minimax-h3', 'duration') === 6, [def('minimax/minimax-h3', 'resolution'), def('minimax/minimax-h3', 'duration')])
 check('minimax-h3-max defaults 480p / 5s', String(def('minimax/minimax-h3-max', 'resolution')).toLowerCase() === '480p' && def('minimax/minimax-h3-max', 'duration') === 5, [def('minimax/minimax-h3-max', 'resolution'), def('minimax/minimax-h3-max', 'duration')])
 for (const h of ['minimax-h3', 'minimax-h3-max']) check(`${h} first frame aspect only adaptive`, sameSet(vals('minimax/' + h, 'aspect_ratio', 'image') ?? [], ['adaptive']), vals('minimax/' + h, 'aspect_ratio', 'image'))
-check('minimax-h3-max no reference mode', !modes('minimax/minimax-h3-max').includes('reference'), modes('minimax/minimax-h3-max'))
+check('minimax-h3-max has reference mode', modes('minimax/minimax-h3-max').includes('reference'), modes('minimax/minimax-h3-max'))
 const mu = 'minimax/music-2.6'
 const muParams = M(mu).operations.flatMap(o => o.parameters.map(p => p.name))
 check('music-2.6 text only, no audio_setting parameters', eq(modes(mu), ['text']) && sameSet(muParams, ['instrumental', 'lyrics_optimizer', 'n']), [modes(mu), muParams])
