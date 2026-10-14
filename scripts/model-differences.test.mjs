@@ -167,7 +167,7 @@ test('rules for every model hold across the contract', () => {
   const roles = new Set(['reference_image', 'first_frame', 'last_frame', 'reference_video', 'reference_audio'])
   for (const model of c.models) {
     for (const op of model.operations) {
-      assert.deepEqual(op.parameters.find(p => p.name === 'n')?.values, model.id === 'suno/suno-v6' ? [2] : [1], `${model.id}: n is 1 (Suno v6: 2)`)
+      assert.deepEqual(op.parameters.find(p => p.name === 'n')?.values, model.id.startsWith('suno/') ? [2] : [1], `${model.id}: n is 1 (Suno v6 family: 2)`)
       for (const constraint of Object.values(op.input_constraints)) {
         for (const role of constraint.allowed_reference_roles) assert.ok(roles.has(role), `${model.id}: ${role} is not a documented reference role`)
       }

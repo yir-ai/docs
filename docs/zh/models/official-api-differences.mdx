@@ -14,7 +14,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)和[音乐生成](/zh/docs/guides/music-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
-| 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 为 `1`；`suno/suno-v6` 例外，每次固定生成两首（`n: 2`）。每个输出提交一个 Job，各用独立的幂等键。 |
+| 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 为 `1`；Suno v6 系列（`suno/suno-v6`、`suno/suno-v6-wild`、`suno/suno-v6-mini`）例外，每次固定生成两首（`n: 2`）。每个输出提交一个 Job，各用独立的幂等键。 |
 | 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
 | 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
@@ -161,7 +161,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `elevenlabs/music-v2`、`elevenlabs/music-v2.5` | `composition_plan`（自定义歌词与段落） | 可用。 | 不可用，也不接收 `lyrics`。人声用 `lyrics_optimizer: true` 由提示词写词，或用 `instrumental: true`。 |
 | `elevenlabs/sound-effects-v2` | `duration_seconds` | 0.5–30 秒；省略时由模型决定。 | `1` 到 `22` 的整数秒，默认 `5`。 |
 | `elevenlabs/sound-effects-v2` | `loop`、`prompt_influence` | 可用。 | 不可用。 |
-| `suno/suno-v6` | 官方 API | Suno 没有官方 API。 | 经第三方渠道非官方接入。只支持基础生成，不支持续写、翻唱或分轨。每次生成两首。 |
+| `suno/suno-v6`、`suno/suno-v6-wild`、`suno/suno-v6-mini` | 官方 API | Suno 没有官方 API。 | 经第三方渠道非官方接入。只支持基础生成，不支持续写、翻唱或分轨。每次生成两首。 |
 
 ### xAI Grok Imagine
 

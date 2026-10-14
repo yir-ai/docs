@@ -1,0 +1,25 @@
+:::warning
+**Unofficial access.** Suno has no official API. Yir accesses Suno v6 Mini unofficially through third-party channels, so availability and behavior can change without notice.
+:::
+
+Suno v6 Mini is the efficient member of the v6 family (the version Suno uses for its free tier); parameters, channels and prices are the same as Suno v6, and it may return shorter tracks.
+
+## Lyrics
+
+Choose one of three combinations:
+
+| Goal | `input.lyrics` | `instrumental` | `lyrics_optimizer` |
+| --- | --- | --- | --- |
+| Song with your own lyrics | Required | `false` | `false` |
+| Song with lyrics written from the prompt | Omit | `false` | `true` |
+| Instrumental | Omit | `true` | `false` |
+
+Other combinations are rejected with `400 YIR_INVALID_REQUEST`. The prompt describes the style (up to 1,000 characters); lyrics are up to 5,000 characters. Only basic generation is available: no extend, cover or stems.
+
+## Output
+
+Every request makes two tracks: `n` is fixed at `2`, and a successful Job returns two MP3 files (`media_type: "audio/mpeg"`) in `result.files`, each with its measured `duration_ms`. There is no duration parameter.
+
+## Price
+
+Priced per request (two tracks): US$0.06 on KIE and US$0.05 on APIMart. The final charge is the amount the channel actually billed.

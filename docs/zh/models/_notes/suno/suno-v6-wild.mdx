@@ -1,0 +1,25 @@
+:::warning
+**非官方接入。** Suno 没有官方 API。Yir 经第三方渠道非官方接入 Suno v6 Wild，可用性与行为可能随时变化，不另行通知。
+:::
+
+Suno v6 Wild 是 v6 系列中偏实验风格的版本；参数、渠道与价格同 Suno v6。
+
+## 歌词
+
+按以下三种组合之一请求：
+
+| 目标 | `input.lyrics` | `instrumental` | `lyrics_optimizer` |
+| --- | --- | --- | --- |
+| 用自己的歌词生成歌曲 | 必填 | `false` | `false` |
+| 根据提示词自动写词并生成歌曲 | 不传 | `false` | `true` |
+| 纯音乐 | 不传 | `true` | `false` |
+
+其他组合会返回 `400 YIR_INVALID_REQUEST`。提示词描述风格（最多 1,000 个字符），歌词最多 5,000 个字符。只支持基础生成，不支持续写、翻唱或分轨。
+
+## 输出
+
+每次请求生成两首：`n` 固定为 `2`，成功的 Job 在 `result.files` 中返回两个 MP3 文件（`media_type: "audio/mpeg"`），各自带实测 `duration_ms`。没有时长参数。
+
+## 价格
+
+按次计价（每次两首）：KIE 渠道 0.06 美元，APIMart 渠道 0.05 美元。最终费用按渠道实际计费金额结算。
