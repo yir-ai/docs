@@ -89,7 +89,6 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `bytedance/seedance-1.5-pro`、`-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
 | `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `1080p`。 |
 | `bytedance/seedance-2.0-fast` | `duration` | 4–15 之间任意整数。 | `5`、`10` 或 `15`。 |
-| `bytedance/seedance-2.0-mini` | `duration` | 4–15 之间任意整数。 | `5` 或 `10`。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | 参考素材 | 最多 9 张图、3 段视频、3 段音频。 | 合计最多 3 个。没有 `adaptive` 比例。 |
 | `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生：`480p`、`720p`、`1080p`（1080p 仅官方渠道）；图片／参考：`480p` 或 `720p`。默认仍为 `720p`。 |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`，首帧与首尾帧只支持该值。 | 名为 `auto`。首帧与首尾帧只接受 `auto`，也是默认值。 |
@@ -173,8 +172,8 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 种比例加 `auto`（默认）；编辑时跟随输入图。 | 7 种比例，默认 `1:1`。编辑可传 `auto`，需显式设置才会跟随输入图。 |
 | `spacexai/grok-imagine-image-2.0` | 编辑参考图 | 最多 5 张。 | 最多 3 张。 |
 | `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 固定取值列表，默认 `6`。 |
-| `spacexai/grok-imagine-video` | 音频 | 默认开启。 | 只有无声（`generate_audio: false`）。 |
-| `spacexai/grok-imagine-video` | `aspect_ratio` | 含 `4:3`、`3:4`；有输入图时默认跟随其比例。 | 没有 `4:3`、`3:4`；默认 `16:9`。 |
+| `spacexai/grok-imagine-video` | 音频 | 默认开启。 | 固定开启（`generate_audio: true`），原生音频无法关闭；传 `generate_audio: false` 会被忽略并返回参数通知。 |
+| `spacexai/grok-imagine-video` | `aspect_ratio` | 含 `4:3`、`3:4`；有输入图时默认跟随其比例。 | 文生：没有 `4:3`、`3:4`，默认 `16:9`。图生：只有 `auto`，跟随输入图；传其他比例会被忽略并返回参数通知。 |
 | `spacexai/grok-imagine-video` | 视频编辑、延长、参考图 | 支持。 | 不可用。 |
 
 ### 其他图片模型

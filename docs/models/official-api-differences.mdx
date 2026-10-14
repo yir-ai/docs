@@ -89,7 +89,6 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 | `bytedance/seedance-1.5-pro`, `-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Only on `bytedance/seedance-2.0`. |
 | `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `1080p`. |
 | `bytedance/seedance-2.0-fast` | `duration` | Any integer from 4 to 15. | `5`, `10` or `15`. |
-| `bytedance/seedance-2.0-mini` | `duration` | Any integer from 4 to 15. | `5` or `10`. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | References | Up to 9 images, 3 videos and 3 audio clips. | Up to 3 references in total. No `adaptive` ratio. |
 | `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | Text: `480p`, `720p`, `1080p` (1080p requires the official channel). Image/reference: `480p` or `720p`. Default remains `720p`. |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`, the only option with a first frame or first and last frames. | Named `auto`. With a first frame or first and last frames, only `auto` is accepted and it is the default. |
@@ -173,8 +172,8 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 ratios plus `auto` (default); edits follow the input image. | 7 ratios, default `1:1`. Edits accept `auto`; set it explicitly to follow the input. |
 | `spacexai/grok-imagine-image-2.0` | Edit references | Up to 5 images. | Up to 3. |
 | `spacexai/grok-imagine-video` | `duration` | Any integer from 1 to 15; default 8. | A fixed list; default `6`. |
-| `spacexai/grok-imagine-video` | Audio | On by default. | Silent only (`generate_audio: false`). |
-| `spacexai/grok-imagine-video` | `aspect_ratio` | Includes `4:3` and `3:4`; with an input image, defaults to its ratio. | No `4:3` or `3:4`; default `16:9`. |
+| `spacexai/grok-imagine-video` | Audio | On by default. | Always on (`generate_audio: true`); native audio cannot be turned off, and `generate_audio: false` is ignored with a parameter notice. |
+| `spacexai/grok-imagine-video` | `aspect_ratio` | Includes `4:3` and `3:4`; with an input image, defaults to its ratio. | Text input: no `4:3` or `3:4`; default `16:9`. Image input: `auto` only, following the input image; other ratios are ignored with a parameter notice. |
 | `spacexai/grok-imagine-video` | Video edit, extension, reference images | Available. | Not available. |
 
 ### Other image models

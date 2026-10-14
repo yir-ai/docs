@@ -72,7 +72,7 @@ const withLastFrame = c.models.filter(m => m.operations.some(o => o.parameters.s
 check('return_last_frame only on seedance-2.0', eq(withLastFrame, ['bytedance/seedance-2.0']), withLastFrame)
 check('seedance-2.0 resolution max 1080p', sameSet(vals('bytedance/seedance-2.0', 'resolution'), ['480p', '720p', '1080p']), vals('bytedance/seedance-2.0', 'resolution'))
 check('seedance-2.0-fast duration 5/10/15', sameSet(vals('bytedance/seedance-2.0-fast', 'duration'), [5, 10, 15]), vals('bytedance/seedance-2.0-fast', 'duration'))
-check('seedance-2.0-mini duration 5/10', sameSet(vals('bytedance/seedance-2.0-mini', 'duration'), [5, 10]), vals('bytedance/seedance-2.0-mini', 'duration'))
+check('seedance-2.0-mini duration 4-15', P('bytedance/seedance-2.0-mini', 'duration')?.minimum === 4 && P('bytedance/seedance-2.0-mini', 'duration')?.maximum === 15, P('bytedance/seedance-2.0-mini', 'duration'))
 for (const s of ['seedance-2.0-fast', 'seedance-2.0-mini']) {
   const id = 'bytedance/' + s
   check(`${s} up to 3 references`, C(id, 'reference')?.max_references === 3, C(id, 'reference')?.max_references)
@@ -141,7 +141,8 @@ check('grok-2.0 edits accept auto', vals(g2, 'aspect_ratio', 'image')?.includes(
 check('grok-2.0 edit up to 3 refs', C(g2, 'image')?.max_references === 3, C(g2, 'image')?.max_references)
 const gv = 'spacexai/grok-imagine-video'
 check('grok-video default duration 6', def(gv, 'duration') === 6, def(gv, 'duration'))
-check('grok-video silent only', sameSet(vals(gv, 'generate_audio'), [false]), vals(gv, 'generate_audio'))
+check('grok-video audio always on', sameSet(vals(gv, 'generate_audio'), [true]) && sameSet(vals(gv, 'generate_audio', 'image'), [true]), [vals(gv, 'generate_audio'), vals(gv, 'generate_audio', 'image')])
+check('grok-video image input aspect auto only', sameSet(vals(gv, 'aspect_ratio', 'image'), ['auto']) && def(gv, 'aspect_ratio', 'image') === 'auto', vals(gv, 'aspect_ratio', 'image'))
 check('grok-video no 4:3/3:4, default 16:9', !vals(gv, 'aspect_ratio').includes('4:3') && !vals(gv, 'aspect_ratio').includes('3:4') && def(gv, 'aspect_ratio') === '16:9', vals(gv, 'aspect_ratio'))
 // Other image
 for (const g of ['gpt-image-1', 'gpt-image-1.5']) check(`${g} aspect 1:1/2:3/3:2 default 1:1`, sameSet(vals('openai/' + g, 'aspect_ratio'), ['1:1', '2:3', '3:2']) && def('openai/' + g, 'aspect_ratio') === '1:1', vals('openai/' + g, 'aspect_ratio'))
