@@ -15,7 +15,7 @@ description: "ByteDance lightweight video model for low latency and quick previe
 | --- | --- | --- |
 | `text` Text only | — | — |
 | `image` Image input | 1 to 2 | `first_frame` 1<br />`last_frame` 0 to 1 |
-| `reference` Reference media | 1 to 3 | `reference_image`, `reference_video`, `reference_audio`<br />At least one `reference_image`, `reference_video` |
+| `reference` Reference media | 1 to 15 | `reference_audio` 0 to 3<br />`reference_image` 0 to 9<br />`reference_video` 0 to 3<br />At least one `reference_image`, `reference_video` |
 
 ## Parameters
 

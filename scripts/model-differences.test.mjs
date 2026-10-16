@@ -71,11 +71,11 @@ check('seedance-1.5-pro no adaptive', !vals('bytedance/seedance-1.5-pro', 'aspec
 const withLastFrame = c.models.filter(m => m.operations.some(o => o.parameters.some(p => p.name === 'return_last_frame'))).map(m => m.id)
 check('return_last_frame only on seedance-2.0', eq(withLastFrame, ['bytedance/seedance-2.0']), withLastFrame)
 check('seedance-2.0 resolution max 1080p', sameSet(vals('bytedance/seedance-2.0', 'resolution'), ['480p', '720p', '1080p']), vals('bytedance/seedance-2.0', 'resolution'))
-check('seedance-2.0-fast duration 5/10/15', sameSet(vals('bytedance/seedance-2.0-fast', 'duration'), [5, 10, 15]), vals('bytedance/seedance-2.0-fast', 'duration'))
-check('seedance-2.0-mini duration 4-15', P('bytedance/seedance-2.0-mini', 'duration')?.minimum === 4 && P('bytedance/seedance-2.0-mini', 'duration')?.maximum === 15, P('bytedance/seedance-2.0-mini', 'duration'))
 for (const s of ['seedance-2.0-fast', 'seedance-2.0-mini']) {
   const id = 'bytedance/' + s
-  check(`${s} up to 3 references`, C(id, 'reference')?.max_references === 3, C(id, 'reference')?.max_references)
+  check(`${s} duration 4-15`, P(id, 'duration')?.minimum === 4 && P(id, 'duration')?.maximum === 15 && !P(id, 'duration')?.values, P(id, 'duration'))
+  const roles = C(id, 'reference')?.reference_counts_by_role
+  check(`${s} references 9 images, 3 videos, 3 audio`, roles?.reference_image?.maximum === 9 && roles?.reference_video?.maximum === 3 && roles?.reference_audio?.maximum === 3, roles)
   check(`${s} no adaptive`, !vals(id, 'aspect_ratio').includes('adaptive'), vals(id, 'aspect_ratio'))
 }
 check('seedream-4.5 up to 10 refs', C('bytedance/seedream-4.5', 'image')?.max_references === 10, C('bytedance/seedream-4.5', 'image')?.max_references)
