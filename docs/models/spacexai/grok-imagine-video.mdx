@@ -15,14 +15,16 @@ description: "xAI Grok creative video model with imaginative storytelling"
 | --- | --- | --- |
 | `text` Text only | — | — |
 | `image` Image input | 1 | `first_frame` |
+| `reference` Reference media | 2 to 7 | `reference_image` |
 
 ## Parameters
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `duration` | Duration: Output video duration in seconds. | `6`, `10`, `15`, `30` | `6` | No |
+| `duration` | Duration: Output video duration in seconds. Only in `text`, `image`. | `6`, `10`, `15`, `30` | `6` | No |
+| `duration` | Duration: Output video duration in seconds. Only in `reference`. | `6` to `10` | `8` | No |
 | `resolution` | Resolution: Output resolution. | `480p`, `720p` | `480p` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9`, `9:16`, `1:1`, `3:2`, `2:3` | `16:9` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`, `reference`. | `16:9`, `9:16`, `1:1`, `3:2`, `2:3` | `16:9` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `auto` | `auto` | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
@@ -67,6 +69,31 @@ description: "xAI Grok creative video model with imaginative storytelling"
     "duration": 6,
     "resolution": "480p",
     "aspect_ratio": "auto",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`reference` input:
+
+```json
+{
+  "model": "spacexai/grok-imagine-video",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "480p",
+    "aspect_ratio": "16:9",
     "generate_audio": true,
     "n": 1
   }

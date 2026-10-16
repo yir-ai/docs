@@ -14,18 +14,20 @@ description: "快手可灵经典高稳定性视频生成模型"
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
+| `image` 图片输入 | 1 | `first_frame` 1 |
 | `reference` 参考素材 | 2 | `reference_image`、`reference_video` |
 
 ## 参数
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `duration` | 时长：输出视频的秒数。 仅 `text` 模式。 | `5`、`10` | `5` | 否 |
+| `duration` | 时长：输出视频的秒数。 仅 `text`、`image` 模式。 | `5`、`10` | `5` | 否 |
 | `duration` | 时长：输出视频的秒数。 仅 `reference` 模式。 | `3`–`30` | `5` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 | `720p`、`1080p` | `720p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `16:9`、`9:16`、`1:1` | `16:9` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `reference` 模式。 | `auto` | `auto` | 否 |
-| `generate_audio` | 生成音频：随视频生成原生音频。 | `false` | `false` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image`、`reference` 模式。 | `auto` | `auto` | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 仅 `text`、`image` 模式。 | `false`、`true` | `false` | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 仅 `reference` 模式。 | `false` | `false` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
 ## 示例
@@ -43,6 +45,31 @@ description: "快手可灵经典高稳定性视频生成模型"
     "duration": 5,
     "resolution": "720p",
     "aspect_ratio": "16:9",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "klingai/kling-2.6",
+  "input": {
+    "type": "image",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "first_frame",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "auto",
     "generate_audio": false,
     "n": 1
   }

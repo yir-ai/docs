@@ -51,8 +51,8 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | --- | --- | --- |
 | `duration` | 可选；Google 文档描述的时长约为 3–10 秒。 | 只接受 `4`、`6`、`8`、`10` 秒。省略时为 `4` 秒，这是 Yir 的默认值，不是 Google 的。不提供自动时长，因为报价需要确定的时长。 |
 | `resolution` | `360p`、`720p`、`1080p`、`4k`。 | `720p`、`1080p`、`4K`，没有 `360p`。 |
-| 尾帧 | 支持首尾帧插值。 | 不可用；`image` 模式只接受 `first_frame`。 |
-| 参考图 | 可用多张参考图。 | 最多 3 个 `reference_image`。 |
+| 尾帧 | 支持首尾帧插值。 | `image` 模式接受 `first_frame`，可选再加 `last_frame`。首尾帧只走 KIE 渠道。 |
+| 参考图 | 可用多张参考图。 | 最多 7 个 `reference_image`；超过 3 张只走 KIE 渠道。 |
 | 参考视频、编辑、延长 | 支持。 | 不可用。 |
 
 迁移时：显式设置一个支持的 `duration`；其他取值会被拒绝，不会就近取整。
@@ -74,7 +74,8 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | `google/nano-banana-2.1` | 网页与图片搜索、`thinking_level`、视频输入 | 支持。 | 不可用。 |
 | `google/nano-banana-pro` | Google 搜索 Grounding | 支持。 | 不可用（该模型不提供 `web_search`）。 |
 | `google/nano-banana-pro` | `aspect_ratio` | Vertex AI 另列出 `1:4`、`4:1`、`1:8`、`8:1`、`9:21`。 | 10 种标准比例加 `auto`。 |
-| `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 尾帧、参考图、视频延长 | 支持。 | 不可用；`image` 模式只接受 `first_frame`。 |
+| `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 尾帧 | 支持。 | `image` 模式接受 `first_frame`，可选再加 `last_frame`，价格与首帧图生相同。首尾帧只走 APIMart 渠道，其 Ext 版只支持 8 秒有声。 |
+| `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 参考图、视频延长 | 支持。 | 不可用。 |
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | `personGeneration`、`resizeMode` | 支持。 | 不可用。 |
 
 `google/veo-3.1-generate-001` 的首帧 `image` 模式仅在 Google 官方渠道允许省略 `input.prompt` 或传空白文字。其他模式、Veo 3.1 Fast 和其他渠道仍要求提示词。输入合同通过 `prompt_optional` 声明此能力，Yir 不自动编造替代提示词。首批范围依据 [Vercel Veo 3.1 模型说明](https://vercel.com/ai-gateway/models/veo-3.1-generate-001)。
@@ -87,11 +88,11 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | --- | --- | --- | --- |
 | `bytedance/seedance-1.5-pro` | `aspect_ratio` | 含 `adaptive`（跟随首帧）。 | 只有固定比例。 |
 | `bytedance/seedance-1.5-pro`、`-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
-| `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `1080p`。 |
+| `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版与 KIE 渠道。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | `aspect_ratio` | 包含 `adaptive`。 | 只有固定比例。 |
-| `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生：`480p`、`720p`、`1080p`（1080p 仅官方渠道）；图片／参考：`480p` 或 `720p`。默认仍为 `720p`。 |
+| `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生、图片、参考均可用 `480p`、`720p`、`1080p`。默认仍为 `720p`。 |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`，首帧与首尾帧只支持该值。 | 名为 `auto`。首帧与首尾帧只接受 `auto`，也是默认值。 |
-| `bytedance/seedance-2.5` | 视频编辑（`omni_reference_task_type`）、纯音频参考、`output_format: mov` | 支持。 | 不提供显式任务类型或 MOV 参数。视频编辑可使用参考视频、`duration: "auto"` 和 `aspect_ratio: "auto"`；仍不支持纯音频参考。 |
+| `bytedance/seedance-2.5` | 视频编辑（`omni_reference_task_type`）、纯音频参考、`output_format: mov` | 支持。 | 不提供显式任务类型或 MOV 参数。视频编辑可使用参考视频、`duration: "auto"` 和 `aspect_ratio: "auto"`。纯音频参考（最多 10 段 `reference_audio`）只走 APIMart 渠道。 |
 | `bytedance/seedream-4.5` | 参考图 | 最多 14 张。 | 最多 10 张。`9:21` 仅在有参考图时可用。 |
 | `bytedance/seedream-4.5`、`-5.0`、`-5.0-pro` | 组图（`sequential_image_generation`、`max_images`） | 每次最多 15 张。 | 每个 Job 一张。 |
 | `bytedance/seedream-4.5`、`-5.0`、`-5.0-pro` | 宽高比 | 1:16 到 16:1 之间任意比例。 | 固定比例列表。 |
@@ -104,8 +105,9 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 
 | 模型 | 参数或功能 | 阿里巴巴 API | Yir |
 | --- | --- | --- | --- |
-| `alibaba/happyhorse-1.1` | `duration` | 3–15 之间任意整数。 | `5` 或 `10`。 |
-| `alibaba/happyhorse-1.1` | `resolution`、`aspect_ratio` | `480P` 到 `1080P`；文生视频 9 种比例。 | `720p` 或 `1080p`；文生视频只有 `16:9`。 |
+| `alibaba/happyhorse-1.1` | `duration` | 3–15 之间任意整数。 | 3–15 之间任意整数，默认 `5`。 |
+| `alibaba/happyhorse-1.1` | `resolution`、`aspect_ratio` | `480P` 到 `1080P`；文生与参考生视频 9 种比例。 | `720p` 或 `1080p`；文生视频只有 `16:9`；参考生视频可选 `16:9`、`9:16`、`1:1`、`4:3`、`3:4`。 |
+| `alibaba/happyhorse-1.1` | 参考生视频 | 1–9 张参考图。 | 1–9 个 `reference_image`，只走 APIMart 渠道；默认值随阿里巴巴（`1080p`、`16:9`、5 秒）。 |
 | `alibaba/qwen-image-2.1` | 尺寸 | 面积 512² 到 2048² 任意，比例 1:8 到 8:1。 | `1K` 或 `2K`，7 种比例。 |
 | `alibaba/qwen-image-3.0-pro` | 图片编辑 | 1–3 张输入图。 | 只支持文生图；5 种比例。 |
 | `alibaba/wan-2.6` | `duration` | 2–15 秒（有参考素材时 2–10 秒）。 | 5–15 秒；有参考素材时 `5` 或 `10`。 |
@@ -115,10 +117,11 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `alibaba/wan-2.7` | `reference_voice`（参考生视频）、`audio_url`（文生视频） | 支持。 | 不可用。 |
 | `alibaba/wan-2.7-image`、`-image-pro` | 图片编辑 | 0–9 张输入图。 | 只支持文生图。 |
 | `alibaba/wan-2.7-image`、`-image-pro` | 组图、`color_palette`、`bbox_list`、自定义尺寸 | 支持。 | 不可用。`wan-2.7-image` 默认 `1K` 而非 `2K`。 |
-| `alibaba/wan-3.0` | `duration` | 2–30 之间任意整数，或 `-1` 由模型决定。 | `2`、`3`、`4`、`5`、`10` 或 `15`。 |
+| `alibaba/wan-3.0` | `duration` | 2–30 之间任意整数，或 `-1` 由模型决定。 | 2–30 之间任意整数；不提供由模型决定的时长，因为报价需要确定的时长。 |
 | `alibaba/wan-3.0` | `aspect_ratio` | 含 `21:9`；默认 `adaptive`。 | 没有 `21:9`；默认 `16:9`（可选 `adaptive`）。 |
 | `alibaba/wan-3.0` | 音频 | 默认开启。 | `generate_audio` 默认 `false`。 |
-| `alibaba/wan-3.0` | 参考视频与音频、文档或链接输入 | 支持。 | 不可用；只接受参考图。 |
+| `alibaba/wan-3.0` | 参考视频与音频 | 支持。 | 最多 10 个 `reference_image`、5 个 `reference_video`、5 个 `reference_audio`。参考视频合计不超过 15 秒，输入加输出不超过 30 秒；价格按输入视频秒数加输出秒数计。 |
+| `alibaba/wan-3.0` | 文档或链接输入 | 支持。 | 不可用。 |
 | `alibaba/z-image-turbo` | 尺寸 | 默认 `1024*1536`（2:3）；另有 `7:9`、`9:7`、`9:21`、`21:9`。 | 默认 `1K`、`1:1`；7 种比例。 |
 
 ### Black Forest Labs FLUX 与 Prodia
@@ -143,15 +146,16 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 
 | 模型 | 参数或功能 | 官方 API | Yir |
 | --- | --- | --- | --- |
-| `klingai/kling-2.6` | 图生视频、原生音频、音色 | 支持。 | 不可用。只有文生视频（无声）和动作控制。首尾帧请用 Kling 3.0。 |
+| `klingai/kling-2.6` | 图生视频、原生音频 | 支持。 | 支持首帧图生视频（`aspect_ratio: "auto"`）。`generate_audio` 默认 `false`；音频须用 `1080p`，因为可灵 720p 的 `std` 档没有音频。首尾帧请用 Kling 3.0。 |
+| `klingai/kling-2.6` | 音色 | 支持。 | 不可用。 |
 | `klingai/kling-2.6`、`klingai/kling-3.0` | 动作控制的 `character_orientation`、保留原声 | 可选 `image` 或 `video`；默认保留参考视频的声音。 | 朝向固定跟随视频；不提供保留原声。 |
-| `klingai/kling-3.0` | `duration` | 3–15 之间任意整数。 | `3`、`5`、`10` 或 `15`。 |
 | `klingai/kling-3.0` | `multi_shot`、主体元素、音色 | 支持。 | 不可用。 |
 | `klingai/kling-3.0` | Kling 3.0 Omni（多图参考、视频编辑） | 独立端点。 | 未提供。 |
 | `minimax/hailuo-2.3`、`minimax/hailuo-2.3-fast` | `prompt_optimizer`、`fast_pretreatment` | 支持。 | 不可用。与 MiniMax 一致，`1080p` 只能配 6 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 为 `480p`（MiniMax 的 H3 Max 默认 `768P`）、5 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | 有首帧时的 `aspect_ratio` | 任何取值都按 `adaptive` 处理。 | 只接受 `adaptive`。 |
 | `minimax/minimax-h3-max` | `prompt_expansion_mode` | 支持。 | 不可用。 |
+| `minimax/minimax-h3-max` | 参考视频与音频 | 支持。 | 最多 3 个 `reference_video`、3 个 `reference_audio`，参考素材合计 15 个；音频须搭配图或视频。参考视频只走 APIMart 渠道，按实测秒数计价。 |
 | `minimax/music-2.6` | `audio_setting`（`sample_rate`、`bitrate`、`format`） | 可配置。 | 不可用。输出固定为 MP3，结果文件返回实测 `duration_ms`。 |
 | `minimax/music-2.6` | 自带 `lyrics` 同时开启 `lyrics_optimizer` | 可同时传。 | 不允许。`lyrics_optimizer: true` 时须省略 `lyrics`；否则人声音乐必须提供 `lyrics`。 |
 | `minimax/music-3` | `lyrics`、`is_instrumental`、`lyrics_optimizer` | 纯音乐或自动写词时歌词可省略。 | `lyrics` 必填，不支持纯音乐和自动写词。上游时长上限固定为 300 秒，随歌词结束。输出为 WAV。 |
@@ -170,10 +174,11 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `spacexai/grok-imagine-image-2.0` | `quality` | `low`、`medium`、`auto`（默认）。 | `low` 或 `medium`，默认 `low`；没有 `auto`。编辑时不可用。 |
 | `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 种比例加 `auto`（默认）；编辑时跟随输入图。 | 7 种比例，默认 `1:1`。编辑可传 `auto`，需显式设置才会跟随输入图。 |
 | `spacexai/grok-imagine-image-2.0` | 编辑参考图 | 最多 5 张。 | 最多 3 张。 |
-| `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 固定取值列表，默认 `6`。 |
+| `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 文生与图生：`6`、`10`、`15` 或 `30`，默认 `6`。`30` 秒由 APIMart 渠道提供，超出 xAI 的 1–15 秒范围。参考图：6–10 之间任意整数，默认 `8`。 |
 | `spacexai/grok-imagine-video` | 音频 | 默认开启。 | 固定开启（`generate_audio: true`），原生音频无法关闭；传 `generate_audio: false` 会被忽略并返回参数通知。 |
 | `spacexai/grok-imagine-video` | `aspect_ratio` | 含 `4:3`、`3:4`；有输入图时默认跟随其比例。 | 文生：没有 `4:3`、`3:4`，默认 `16:9`。图生：只有 `auto`，跟随输入图；传其他比例会被忽略并返回参数通知。 |
-| `spacexai/grok-imagine-video` | 视频编辑、延长、参考图 | 支持。 | 不可用。 |
+| `spacexai/grok-imagine-video` | 参考图 | 最多 7 张。 | 2–7 个 `reference_image`，`480p` 或 `720p`，只走 KIE 渠道。 |
+| `spacexai/grok-imagine-video` | 视频编辑、延长 | 支持。 | 不可用。 |
 
 ### 其他图片模型
 

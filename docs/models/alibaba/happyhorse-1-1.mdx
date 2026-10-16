@@ -15,15 +15,18 @@ description: "Alibaba HappyHorse 1.1 generates videos with native audio from tex
 | --- | --- | --- |
 | `text` Text only | — | — |
 | `image` Image input | 1 | `first_frame` |
+| `reference` Reference media | 1 to 9 | `reference_image` 1 to 9 |
 
 ## Parameters
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `duration` | Duration: Output video duration in seconds. | `5`, `10` | `5` | No |
-| `resolution` | Resolution: Output resolution. | `720p`, `1080p` | `720p` | No |
+| `duration` | Duration: Output video duration in seconds. | `3` to `15` | `5` | No |
+| `resolution` | Resolution: Output resolution. Only in `text`, `image`. | `720p`, `1080p` | `720p` | No |
+| `resolution` | Resolution: Output resolution. Only in `reference`. | `720p`, `1080p` | `1080p` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9` | `16:9` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `adaptive` | `adaptive` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | `16:9` | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
@@ -67,6 +70,31 @@ description: "Alibaba HappyHorse 1.1 generates videos with native audio from tex
     "duration": 5,
     "resolution": "720p",
     "aspect_ratio": "adaptive",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`reference` input:
+
+```json
+{
+  "model": "alibaba/happyhorse-1.1",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
     "generate_audio": true,
     "n": 1
   }

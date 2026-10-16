@@ -15,15 +15,18 @@ description: "阿里巴巴 HappyHorse 1.1 原生有声视频模型，支持文�
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
 | `image` 图片输入 | 1 | `first_frame` |
+| `reference` 参考素材 | 1–9 | `reference_image` 1–9 |
 
 ## 参数
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `duration` | 时长：输出视频的秒数。 | `5`、`10` | `5` | 否 |
-| `resolution` | 分辨率：输出内容的分辨率。 | `720p`、`1080p` | `720p` | 否 |
+| `duration` | 时长：输出视频的秒数。 | `3`–`15` | `5` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `text`、`image` 模式。 | `720p`、`1080p` | `720p` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `reference` 模式。 | `720p`、`1080p` | `1080p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `16:9` | `16:9` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `adaptive` | `adaptive` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `reference` 模式。 | `16:9`、`9:16`、`1:1`、`4:3`、`3:4` | `16:9` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 | `true` | `true` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
@@ -67,6 +70,31 @@ description: "阿里巴巴 HappyHorse 1.1 原生有声视频模型，支持文�
     "duration": 5,
     "resolution": "720p",
     "aspect_ratio": "adaptive",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`reference` 输入：
+
+```json
+{
+  "model": "alibaba/happyhorse-1.1",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
     "generate_audio": true,
     "n": 1
   }

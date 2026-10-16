@@ -15,7 +15,7 @@ description: "字节跳动次世代视频生成模型，最高支持 30 秒超�
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
 | `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
-| `reference` 参考素材 | 1–50 | `reference_image` 0–30<br />`reference_video` 0–10<br />至少包含 `reference_image`、`reference_video` 之一 |
+| `reference` 参考素材 | 1–50 | `reference_audio` 0–10<br />`reference_image` 0–30<br />`reference_video` 0–10 |
 
 ## 参数
 
@@ -23,8 +23,7 @@ description: "字节跳动次世代视频生成模型，最高支持 30 秒超�
 | --- | --- | --- | --- | --- |
 | `duration` | 时长：输出视频的秒数。 仅 `text`、`image` 模式。 | `4`–`30` | `4` | 否 |
 | `duration` | 时长：输出视频的秒数。带参考视频时可传 "auto"，编辑类任务时长跟随输入视频，aspect_ratio 须同为 auto。 仅 `reference` 模式。 | `4`–`30`、`auto` | `4` | 否 |
-| `resolution` | 分辨率：输出内容的分辨率。 仅 `text` 模式。 | `480p`、`720p`、`1080p` | `720p` | 否 |
-| `resolution` | 分辨率：输出内容的分辨率。 仅 `image`、`reference` 模式。 | `480p`、`720p` | `720p` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p`、`1080p` | `720p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text`、`reference` 模式。 | `auto`、`21:9`、`16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `16:9` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
 | `size` | 精确尺寸：精确输出像素，仅选择明确支持的渠道；与分辨率档位或画幅冲突时拒绝。 仅 `text` 模式。 | `1920x1080` | 不设置 | 否 |

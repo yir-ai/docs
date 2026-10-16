@@ -29,8 +29,8 @@ const go = 'google/gemini-omni-1.1-flash'
 check('omni duration 4/6/8/10', sameSet(vals(go, 'duration'), [4, 6, 8, 10]), vals(go, 'duration'))
 check('omni duration default 4', def(go, 'duration') === 4, def(go, 'duration'))
 check('omni resolution 720p/1080p/4K', sameSet(vals(go, 'resolution'), ['720p', '1080p', '4K']), vals(go, 'resolution'))
-check('omni image mode first_frame only', sameSet(C(go, 'image')?.allowed_reference_roles, ['first_frame']), C(go, 'image')?.allowed_reference_roles)
-check('omni up to 3 reference_image', C(go, 'reference')?.max_references === 3 && sameSet(C(go, 'reference')?.allowed_reference_roles, ['reference_image']), C(go, 'reference'))
+check('omni image mode first_frame plus optional last_frame', sameSet(C(go, 'image')?.allowed_reference_roles, ['first_frame', 'last_frame']), C(go, 'image')?.allowed_reference_roles)
+check('omni up to 7 reference_image', C(go, 'reference')?.max_references === 7 && sameSet(C(go, 'reference')?.allowed_reference_roles, ['reference_image']), C(go, 'reference'))
 // Other Google
 check('gemini-2.5-flash-image aspect default 1:1, no auto', def('google/gemini-2.5-flash-image', 'aspect_ratio') === '1:1' && !vals('google/gemini-2.5-flash-image', 'aspect_ratio').includes('auto'), vals('google/gemini-2.5-flash-image', 'aspect_ratio'))
 const fl = 'google/gemini-3.1-flash-lite-image'
@@ -45,7 +45,7 @@ const nbp = 'google/nano-banana-pro'
 check('nano-banana-pro no web_search', !P(nbp, 'web_search'), !!P(nbp, 'web_search'))
 check('nano-banana-pro 10 ratios + auto', vals(nbp, 'aspect_ratio').length === 11 && vals(nbp, 'aspect_ratio').includes('auto'), vals(nbp, 'aspect_ratio'))
 for (const v of ['google/veo-3.1-generate-001', 'google/veo-3.1-fast-generate-001']) {
-  check(`${v} image mode first_frame only`, sameSet(C(v, 'image')?.allowed_reference_roles, ['first_frame']), C(v, 'image')?.allowed_reference_roles)
+  check(`${v} image mode first_frame plus optional last_frame`, sameSet(C(v, 'image')?.allowed_reference_roles, ['first_frame', 'last_frame']), C(v, 'image')?.allowed_reference_roles)
   check(`${v} no reference mode`, !modes(v).includes('reference'), modes(v))
 }
 // Seedance defaults
@@ -65,12 +65,12 @@ for (const mode of ['text', 'image']) check('seedance-2.5 ' + mode + ' duration 
 check('seedance-2.5 generate_audio default false', def(s25, 'generate_audio') === false, def(s25, 'generate_audio'))
 check('seedance-2.5 first frame: only auto, default auto', sameSet(vals(s25, 'aspect_ratio', 'image'), ['auto']) && def(s25, 'aspect_ratio', 'image') === 'auto', [vals(s25, 'aspect_ratio', 'image'), def(s25, 'aspect_ratio', 'image')])
 check('seedance-2.5 text resolution includes 1080p', sameSet(vals(s25, 'resolution'), ['480p', '720p', '1080p']), vals(s25, 'resolution'))
-for (const mode of ['image', 'reference']) check('seedance-2.5 ' + mode + ' resolution unchanged', sameSet(vals(s25, 'resolution', mode), ['480p', '720p']), vals(s25, 'resolution', mode))
-check('seedance-2.5 references need image or video', !!C(s25, 'reference')?.required_any_reference_roles, C(s25, 'reference')?.required_any_reference_roles)
+for (const mode of ['text', 'image', 'reference']) check('seedance-2.5 ' + mode + ' resolution 480p/720p/1080p', sameSet(vals(s25, 'resolution', mode), ['480p', '720p', '1080p']), vals(s25, 'resolution', mode))
+check('seedance-2.5 audio-only references allowed, up to 10 audio', !C(s25, 'reference')?.required_any_reference_roles && C(s25, 'reference')?.reference_counts_by_role?.reference_audio?.maximum === 10, C(s25, 'reference'))
 check('seedance-1.5-pro no adaptive', !vals('bytedance/seedance-1.5-pro', 'aspect_ratio').includes('adaptive'), vals('bytedance/seedance-1.5-pro', 'aspect_ratio'))
 const withLastFrame = c.models.filter(m => m.operations.some(o => o.parameters.some(p => p.name === 'return_last_frame'))).map(m => m.id)
 check('return_last_frame only on seedance-2.0', eq(withLastFrame, ['bytedance/seedance-2.0']), withLastFrame)
-check('seedance-2.0 resolution max 1080p', sameSet(vals('bytedance/seedance-2.0', 'resolution'), ['480p', '720p', '1080p']), vals('bytedance/seedance-2.0', 'resolution'))
+check('seedance-2.0 resolution up to 4K', sameSet(vals('bytedance/seedance-2.0', 'resolution'), ['480p', '720p', '1080p', '4K']), vals('bytedance/seedance-2.0', 'resolution'))
 for (const s of ['seedance-2.0-fast', 'seedance-2.0-mini']) {
   const id = 'bytedance/' + s
   check(`${s} duration 4-15`, P(id, 'duration')?.minimum === 4 && P(id, 'duration')?.maximum === 15 && !P(id, 'duration')?.values, P(id, 'duration'))
@@ -85,7 +85,8 @@ check('seedream-5.0-pro resolution 1K/2K default 1K', sameSet(vals('bytedance/se
 for (const a of ['wan-2.6', 'wan-2.7', 'wan-3.0', 'happyhorse-1.1']) check(`${a} resolution default 720p`, def('alibaba/' + a, 'resolution') === '720p', def('alibaba/' + a, 'resolution'))
 for (const q of ['qwen-image-2.1', 'qwen-image-3.0-pro']) check(`${q} default 1K 1:1`, def('alibaba/' + q, 'resolution') === '1K' && def('alibaba/' + q, 'aspect_ratio') === '1:1', [def('alibaba/' + q, 'resolution'), def('alibaba/' + q, 'aspect_ratio')])
 const hh = 'alibaba/happyhorse-1.1'
-check('happyhorse duration 5/10', sameSet(vals(hh, 'duration'), [5, 10]), vals(hh, 'duration'))
+check('happyhorse duration 3..15 default 5', P(hh, 'duration')?.minimum === 3 && P(hh, 'duration')?.maximum === 15 && def(hh, 'duration') === 5, P(hh, 'duration'))
+check('happyhorse reference: 1-9 images, 5 ratios, default 1080p', C(hh, 'reference')?.max_references === 9 && sameSet(vals(hh, 'aspect_ratio', 'reference'), ['16:9', '9:16', '1:1', '4:3', '3:4']) && def(hh, 'resolution', 'reference') === '1080p', [C(hh, 'reference'), vals(hh, 'aspect_ratio', 'reference'), def(hh, 'resolution', 'reference')])
 check('happyhorse res 720p/1080p, text 16:9 only', sameSet(vals(hh, 'resolution'), ['720p', '1080p']) && sameSet(vals(hh, 'aspect_ratio'), ['16:9']), [vals(hh, 'resolution'), vals(hh, 'aspect_ratio')])
 check('qwen-image-2.1 1K/2K with 7 ratios', sameSet(vals('alibaba/qwen-image-2.1', 'resolution'), ['1K', '2K']) && vals('alibaba/qwen-image-2.1', 'aspect_ratio').length === 7, [vals('alibaba/qwen-image-2.1', 'resolution'), vals('alibaba/qwen-image-2.1', 'aspect_ratio')?.length])
 check('qwen-image-3.0-pro text only, 5 ratios', eq(modes('alibaba/qwen-image-3.0-pro'), ['text']) && vals('alibaba/qwen-image-3.0-pro', 'aspect_ratio').length === 5, [modes('alibaba/qwen-image-3.0-pro'), vals('alibaba/qwen-image-3.0-pro', 'aspect_ratio')])
@@ -97,10 +98,10 @@ check('wan-2.7 image, text and reference', eq(modes('alibaba/wan-2.7'), ['image'
 for (const w of ['wan-2.7-image', 'wan-2.7-image-pro']) check(`${w} text only`, eq(modes('alibaba/' + w), ['text']), modes('alibaba/' + w))
 check('wan-2.7-image default 1K', def('alibaba/wan-2.7-image', 'resolution') === '1K', def('alibaba/wan-2.7-image', 'resolution'))
 const w30 = 'alibaba/wan-3.0'
-check('wan-3.0 duration 2/3/4/5/10/15', sameSet(vals(w30, 'duration'), [2, 3, 4, 5, 10, 15]), vals(w30, 'duration'))
+check('wan-3.0 duration 2..30', P(w30, 'duration')?.minimum === 2 && P(w30, 'duration')?.maximum === 30, P(w30, 'duration'))
 check('wan-3.0 no 21:9, default 16:9, adaptive available', !vals(w30, 'aspect_ratio').includes('21:9') && def(w30, 'aspect_ratio') === '16:9' && vals(w30, 'aspect_ratio').includes('adaptive'), [vals(w30, 'aspect_ratio'), def(w30, 'aspect_ratio')])
 check('wan-3.0 generate_audio default false', def(w30, 'generate_audio') === false, def(w30, 'generate_audio'))
-check('wan-3.0 references images only', sameSet(C(w30, 'reference')?.allowed_reference_roles ?? [], ['reference_image']), C(w30, 'reference')?.allowed_reference_roles)
+check('wan-3.0 references: images, videos and audio', sameSet(C(w30, 'reference')?.allowed_reference_roles ?? [], ['reference_image', 'reference_video', 'reference_audio']), C(w30, 'reference')?.allowed_reference_roles)
 check('z-image-turbo default 1K 1:1, 7 ratios', def('alibaba/z-image-turbo', 'resolution') === '1K' && def('alibaba/z-image-turbo', 'aspect_ratio') === '1:1' && vals('alibaba/z-image-turbo', 'aspect_ratio').length === 7, vals('alibaba/z-image-turbo', 'aspect_ratio'))
 // BFL / Prodia
 check('flux-2-flex text only', eq(modes('bfl/flux-2-flex'), ['text']), modes('bfl/flux-2-flex'))
@@ -111,8 +112,9 @@ check('flux-pro-1.1 text only', eq(modes('bfl/flux-pro-1.1'), ['text']), modes('
 check('flux-pro-1.1-ultra 5 ratios default 1:1, has 2K', vals('bfl/flux-pro-1.1-ultra', 'aspect_ratio').length === 5 && def('bfl/flux-pro-1.1-ultra', 'aspect_ratio') === '1:1' && vals('bfl/flux-pro-1.1-ultra', 'resolution').includes('2K'), [vals('bfl/flux-pro-1.1-ultra', 'aspect_ratio'), vals('bfl/flux-pro-1.1-ultra', 'resolution')])
 check('prodia 1K 1:1 only', sameSet(vals('prodia/flux-fast-schnell', 'resolution'), ['1K']) && sameSet(vals('prodia/flux-fast-schnell', 'aspect_ratio'), ['1:1']), [vals('prodia/flux-fast-schnell', 'resolution'), vals('prodia/flux-fast-schnell', 'aspect_ratio')])
 // Kling / MiniMax
-check('kling-2.6 no image mode', !modes('klingai/kling-2.6').includes('image'), modes('klingai/kling-2.6'))
-check('kling-3.0 duration 3/5/10/15', sameSet(vals('klingai/kling-3.0', 'duration'), [3, 5, 10, 15]), vals('klingai/kling-3.0', 'duration'))
+check('kling-2.6 first-frame image mode, aspect auto', sameSet(C('klingai/kling-2.6', 'image')?.allowed_reference_roles, ['first_frame']) && sameSet(vals('klingai/kling-2.6', 'aspect_ratio', 'image'), ['auto']), [C('klingai/kling-2.6', 'image'), vals('klingai/kling-2.6', 'aspect_ratio', 'image')])
+check('kling-2.6 generate_audio default false', def('klingai/kling-2.6', 'generate_audio') === false && vals('klingai/kling-2.6', 'generate_audio')?.includes(true), [vals('klingai/kling-2.6', 'generate_audio'), def('klingai/kling-2.6', 'generate_audio')])
+check('kling-3.0 duration 3..15', P('klingai/kling-3.0', 'duration')?.minimum === 3 && P('klingai/kling-3.0', 'duration')?.maximum === 15, P('klingai/kling-3.0', 'duration'))
 check('minimax-h3 defaults 768P / 6s', def('minimax/minimax-h3', 'resolution') === '768P' && def('minimax/minimax-h3', 'duration') === 6, [def('minimax/minimax-h3', 'resolution'), def('minimax/minimax-h3', 'duration')])
 check('minimax-h3-max defaults 480p / 5s', String(def('minimax/minimax-h3-max', 'resolution')).toLowerCase() === '480p' && def('minimax/minimax-h3-max', 'duration') === 5, [def('minimax/minimax-h3-max', 'resolution'), def('minimax/minimax-h3-max', 'duration')])
 for (const h of ['minimax-h3', 'minimax-h3-max']) check(`${h} first frame aspect only adaptive`, sameSet(vals('minimax/' + h, 'aspect_ratio', 'image') ?? [], ['adaptive']), vals('minimax/' + h, 'aspect_ratio', 'image'))
@@ -141,6 +143,8 @@ check('grok-2.0 edits accept auto', vals(g2, 'aspect_ratio', 'image')?.includes(
 check('grok-2.0 edit up to 3 refs', C(g2, 'image')?.max_references === 3, C(g2, 'image')?.max_references)
 const gv = 'spacexai/grok-imagine-video'
 check('grok-video default duration 6', def(gv, 'duration') === 6, def(gv, 'duration'))
+check('grok-video text durations 6/10/15/30', sameSet(vals(gv, 'duration'), [6, 10, 15, 30]), vals(gv, 'duration'))
+check('grok-video reference 2-7 images, 6..10 s default 8', C(gv, 'reference')?.min_references === 2 && C(gv, 'reference')?.max_references === 7 && def(gv, 'duration', 'reference') === 8, [C(gv, 'reference'), P(gv, 'duration', 'reference')])
 check('grok-video audio always on', sameSet(vals(gv, 'generate_audio'), [true]) && sameSet(vals(gv, 'generate_audio', 'image'), [true]), [vals(gv, 'generate_audio'), vals(gv, 'generate_audio', 'image')])
 check('grok-video image input aspect auto only', sameSet(vals(gv, 'aspect_ratio', 'image'), ['auto']) && def(gv, 'aspect_ratio', 'image') === 'auto', vals(gv, 'aspect_ratio', 'image'))
 check('grok-video no 4:3/3:4, default 16:9', !vals(gv, 'aspect_ratio').includes('4:3') && !vals(gv, 'aspect_ratio').includes('3:4') && def(gv, 'aspect_ratio') === '16:9', vals(gv, 'aspect_ratio'))

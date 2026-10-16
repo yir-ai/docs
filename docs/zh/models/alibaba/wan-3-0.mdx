@@ -15,13 +15,13 @@ description: "阿里巴巴万象全新一代高清晰度视频生成大模型，
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
 | `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
-| `reference` 参考素材 | 1–10 | `reference_image` |
+| `reference` 参考素材 | 1–20 | `reference_audio` 0–5<br />`reference_image` 0–10<br />`reference_video` 0–5 |
 
 ## 参数
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `duration` | 时长：输出视频的秒数。 | `2`、`3`、`4`、`5`、`10`、`15` | `5` | 否 |
+| `duration` | 时长：输出视频的秒数。 | `2`–`30` | `5` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p`、`1080p` | `720p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 | `adaptive`、`16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `16:9` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 | `false`、`true` | `false` | 否 |
