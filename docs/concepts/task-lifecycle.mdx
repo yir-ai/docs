@@ -9,8 +9,8 @@ Every generation request creates one **Job**. The Job keeps the same ID from sub
 
 | Status | Meaning | Terminal |
 | --- | --- | --- |
-| `queued` | Accepted and waiting to start. | No |
-| `running` | A provider attempt is in progress. Fallback attempts also happen in this state. | No |
+| `queued` | Accepted; Yir has not handed it to a provider channel yet (usually a few seconds). | No |
+| `running` | A provider channel has accepted the Job and is generating it, including any time in that channel's own queue. Fallback attempts also happen in this state. | No |
 | `delivering` | The provider returned a result; Yir is copying it to its own storage. | No |
 | `succeeded` | The result is delivered and available under `result`. | Yes |
 | `failed` | No attempt produced a deliverable result. See `error.code`. | Yes |
