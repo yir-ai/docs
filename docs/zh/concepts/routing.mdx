@@ -31,6 +31,8 @@ Yir 上的一个模型可能由多个**渠道**提供：模型厂商的官方 AP
 
 不支持自定义顺序（`order`）。无效的路由参数返回 `400 YIR_INVALID_ROUTING_OVERRIDE`。
 
+**提示：不要用 `only` 控制费用。** `only` 之外的渠道不参与切换：白名单里的渠道都失败或不可用时，Job 直接失败，即使其他渠道能完成。要限制单个 Job 的费用，用 `max_cost`，并为备选渠道留出余量（见[报价与计费](/zh/docs/concepts/billing)）；要避开改动了输出的渠道，用 `fidelity`。`only` 适合定点测试，或业务必须限定渠道的场景。
+
 ## 渠道 ID 与 official 别名
 
 渠道 ID 是小写标识，例如 `openai`、`google`、`fal`、`kie`。[模型市场](https://yir.ai/zh/models)的模型详情页列出了每个模型可用的渠道和版本。

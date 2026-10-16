@@ -31,6 +31,8 @@ You influence this with the optional `routing` object on quote and generation re
 
 Custom ordering (`order`) is not supported. Invalid routing values fail with `400 YIR_INVALID_ROUTING_OVERRIDE`.
 
+**Tip: don't use `only` to control cost.** Channels outside `only` never take part in fallback, so when every listed channel fails or is unavailable, the Job fails even if another channel could finish it. To cap what a Job can cost, set `max_cost` and leave room for a fallback channel (see [quotes and billing](/docs/concepts/billing)). To avoid channels that alter the output, use `fidelity`. Use `only` for targeted tests, or when your use case requires specific channels.
+
 ## Channel IDs and the official alias
 
 Channel IDs are lowercase identifiers such as `openai`, `google`, `fal`, or `kie`. Model detail pages in [Model Market](https://yir.ai/models) list the channels and variants that serve each model.
