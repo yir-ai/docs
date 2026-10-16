@@ -101,7 +101,7 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 
 ### Alibaba Wan, Qwen-Image, HappyHorse and Z-Image
 
-Where Alibaba defaults to `1080P` (Wan 2.6, Wan 2.7, Wan 3.0, HappyHorse 1.1) Yir defaults to `720p`, and where Alibaba lets the model choose the image size (Qwen-Image), Yir defaults to `1K` at `1:1`. Alibaba's `prompt_extend`, `negative_prompt`, `seed` and `watermark` are not available.
+Where Alibaba defaults to `1080P` (Wan 2.6, Wan 2.7, Wan 3.0, HappyHorse 1.1) Yir defaults to `720p` (Wan 2.7 image to video keeps `1080p`), and where Alibaba lets the model choose the image size (Qwen-Image), Yir defaults to `1K` at `1:1`. Alibaba's `prompt_extend`, `negative_prompt`, `seed` and `watermark` are not available.
 
 | Model | Parameter or feature | Alibaba API | Yir |
 | --- | --- | --- | --- |
@@ -112,8 +112,8 @@ Where Alibaba defaults to `1080P` (Wan 2.6, Wan 2.7, Wan 3.0, HappyHorse 1.1) Yi
 | `alibaba/wan-2.6` | `duration` | 2 to 15 seconds (2 to 10 with references). | 5 to 15 seconds; `5` or `10` with references. |
 | `alibaba/wan-2.6` | `resolution`, `aspect_ratio` | Text to video also offers `480P`, `4:3` and `3:4`. | `720p` or `1080p`; text to video is `16:9`, `9:16` or `1:1`. |
 | `alibaba/wan-2.6` | `shot_type`, `audio_url` | Available. | Not available. |
-| `alibaba/wan-2.7` | Image to video (first frame, first and last frame, continuation) | Available. | Not available; text and reference modes only. |
-| `alibaba/wan-2.7` | `reference_voice`, `audio_url` | Available. | Not available. |
+| `alibaba/wan-2.7` | Image to video (first frame, first and last frame, continuation) | Available, with optional `driving_audio`. | First frame or first and last frame, with optional driving audio as `reference_audio`; continuation (`first_clip`) is not available. |
+| `alibaba/wan-2.7` | `reference_voice` (reference to video), `audio_url` (text to video) | Available. | Not available. |
 | `alibaba/wan-2.7-image`, `-image-pro` | Image editing | 0 to 9 input images. | Text to image only. |
 | `alibaba/wan-2.7-image`, `-image-pro` | Image sets, `color_palette`, `bbox_list`, custom sizes | Available. | Not available. `wan-2.7-image` defaults to `1K` instead of `2K`. |
 | `alibaba/wan-3.0` | `duration` | Any integer from 2 to 30, or `-1` for model-chosen. | `2`, `3`, `4`, `5`, `10` or `15`. |

@@ -1,0 +1,5 @@
+## Lip sync with a driving audio
+
+In `image` input, add one `reference_audio` next to `first_frame` (and optionally `last_frame`). The model uses it as the driving audio: mouth movement and motion follow the track, and it becomes the output soundtrack. Without it, the model generates its own music and sound effects.
+
+Use wav or mp3, 2 to 30 seconds, up to 15 MB. Audio longer than `duration` is cut to the video length; if it is shorter, the rest of the video is silent. The output aspect ratio follows the first frame, so `aspect_ratio` only accepts `adaptive`. The driving audio is not billed separately.

@@ -93,7 +93,7 @@ const w26 = 'alibaba/wan-2.6'
 check('wan-2.6 duration 5..15 (text)', Math.min(...(vals(w26, 'duration') ?? [P(w26, 'duration').minimum])) === 5 && Math.max(...(vals(w26, 'duration') ?? [P(w26, 'duration').maximum])) === 15, [vals(w26, 'duration'), P(w26, 'duration').minimum, P(w26, 'duration').maximum])
 check('wan-2.6 references: 5 or 10', sameSet(vals(w26, 'duration', 'reference'), [5, 10]), vals(w26, 'duration', 'reference'))
 check('wan-2.6 res 720p/1080p; text 16:9/9:16/1:1', sameSet(vals(w26, 'resolution'), ['720p', '1080p']) && sameSet(vals(w26, 'aspect_ratio'), ['16:9', '9:16', '1:1']), [vals(w26, 'resolution'), vals(w26, 'aspect_ratio')])
-check('wan-2.7 text and reference only', eq(modes('alibaba/wan-2.7'), ['reference', 'text']), modes('alibaba/wan-2.7'))
+check('wan-2.7 image, text and reference', eq(modes('alibaba/wan-2.7'), ['image', 'reference', 'text']), modes('alibaba/wan-2.7'))
 for (const w of ['wan-2.7-image', 'wan-2.7-image-pro']) check(`${w} text only`, eq(modes('alibaba/' + w), ['text']), modes('alibaba/' + w))
 check('wan-2.7-image default 1K', def('alibaba/wan-2.7-image', 'resolution') === '1K', def('alibaba/wan-2.7-image', 'resolution'))
 const w30 = 'alibaba/wan-3.0'

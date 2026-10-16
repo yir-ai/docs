@@ -101,7 +101,7 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 
 ### 阿里巴巴 Wan、Qwen-Image、HappyHorse 与 Z-Image
 
-阿里巴巴默认 `1080P` 的模型（Wan 2.6、Wan 2.7、Wan 3.0、HappyHorse 1.1），Yir 默认 `720p`；阿里巴巴由模型决定图片尺寸的（Qwen-Image），Yir 默认 `1K`、`1:1`。阿里巴巴的 `prompt_extend`、`negative_prompt`、`seed` 和 `watermark` 不可用。
+阿里巴巴默认 `1080P` 的模型（Wan 2.6、Wan 2.7、Wan 3.0、HappyHorse 1.1），Yir 默认 `720p`（Wan 2.7 图生视频仍为 `1080p`）；阿里巴巴由模型决定图片尺寸的（Qwen-Image），Yir 默认 `1K`、`1:1`。阿里巴巴的 `prompt_extend`、`negative_prompt`、`seed` 和 `watermark` 不可用。
 
 | 模型 | 参数或功能 | 阿里巴巴 API | Yir |
 | --- | --- | --- | --- |
@@ -112,8 +112,8 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `alibaba/wan-2.6` | `duration` | 2–15 秒（有参考素材时 2–10 秒）。 | 5–15 秒；有参考素材时 `5` 或 `10`。 |
 | `alibaba/wan-2.6` | `resolution`、`aspect_ratio` | 文生视频另有 `480P`、`4:3`、`3:4`。 | `720p` 或 `1080p`；文生视频为 `16:9`、`9:16` 或 `1:1`。 |
 | `alibaba/wan-2.6` | `shot_type`、`audio_url` | 支持。 | 不可用。 |
-| `alibaba/wan-2.7` | 图生视频（首帧、首尾帧、续写） | 支持。 | 不可用；只有文生视频和参考生视频。 |
-| `alibaba/wan-2.7` | `reference_voice`、`audio_url` | 支持。 | 不可用。 |
+| `alibaba/wan-2.7` | 图生视频（首帧、首尾帧、续写） | 支持，可带 `driving_audio`。 | 支持首帧或首尾帧，可用 `reference_audio` 传驱动音频；续写（`first_clip`）不可用。 |
+| `alibaba/wan-2.7` | `reference_voice`（参考生视频）、`audio_url`（文生视频） | 支持。 | 不可用。 |
 | `alibaba/wan-2.7-image`、`-image-pro` | 图片编辑 | 0–9 张输入图。 | 只支持文生图。 |
 | `alibaba/wan-2.7-image`、`-image-pro` | 组图、`color_palette`、`bbox_list`、自定义尺寸 | 支持。 | 不可用。`wan-2.7-image` 默认 `1K` 而非 `2K`。 |
 | `alibaba/wan-3.0` | `duration` | 2–30 之间任意整数，或 `-1` 由模型决定。 | `2`、`3`、`4`、`5`、`10` 或 `15`。 |
