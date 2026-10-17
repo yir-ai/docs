@@ -25,7 +25,7 @@ You influence this with the optional `routing` object on quote and generation re
 | `preference` | `cost`, `speed` | `cost` (default) orders channels by estimated price, lowest first. `speed` orders channels by their observed upstream generation time (median over recent Jobs); channels with too few recent Jobs come after, ordered by price. `balanced` is still accepted as a deprecated alias of `cost`. Defaults to the key's Routing Profile. |
 | `only` | 1–16 channel IDs | Unordered allowlist. Selection and fallback stay inside it. A single entry pins one channel, which is useful for testing. |
 | `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
-| `fallback` | `true`, `false` | `false` allows only one provider attempt. Defaults to the key's Routing Profile. |
+| `fallback` | `true`, `false` | `false` allows only one provider attempt, except after an unbilled content rejection (see [below](#content-rejections)). Defaults to the key's Routing Profile. |
 | `fidelity` | `original`, `genuine`, `any` | Minimum faithfulness of the channel's output to the model's native output. See [Fidelity](#fidelity). Defaults to the key's Routing Profile. |
 | `accelerate` | `true`, `false` | Moves an image attempt that stalls far past its channel's usual completion time to the next route. See [Acceleration](#acceleration). Defaults to the key's Routing Profile. |
 
@@ -96,6 +96,10 @@ Yir moves to another channel after the current attempt is **confirmed failed**, 
 - your `max_cost`, when set: channels whose estimate exceeds what remains of it after earlier attempts' charges are skipped.
 
 Channels skipped before submission do not count as attempts. An official reference price in a quote does not guarantee that the official channel will run.
+
+### Content rejections
+
+Channels moderate content differently, so a prompt one channel rejects may pass on another. When a channel rejects the prompt or references for content safety **and does not bill the attempt**, Yir tries up to two more channels, even with `fallback: false`. These attempts stay inside `only`, `variants`, the key's Routing Profile and `max_cost`, do not count toward the three-attempt limit, and never retry the channel that rejected. You pay only for the attempt that delivers. If no channel accepts it, or none remains, the Job fails with `YIR_CONTENT_REJECTED`. A rejection the channel already billed (output it generated and then blocked), or one from Yir's own check of reference images, ends the Job without switching.
 
 **Warning: a tight `max_cost` can interrupt delivery during failover.** Even after a Job is accepted, a failed channel may need to be replaced by a more expensive one. If its estimate exceeds the remaining budget after earlier billed attempts, Yir skips it; if no eligible fallback fits, the Job fails with `YIR_BUDGET_EXCEEDED` and may deliver no result. When delivery continuity is more important than a per-Job spending cap, omit this optional field; otherwise leave room for more expensive fallback channels and earlier attempts' charges. Omitting it removes the per-Job cap, so actual charges can exceed the quote; account balance and other limits still apply.
 
