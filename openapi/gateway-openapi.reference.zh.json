@@ -3408,7 +3408,9 @@
             "type": "string",
             "enum": [
               "channel_parameter_unsupported",
-              "quality_requires_official_channel"
+              "quality_requires_official_channel",
+              "parameter_fixed_by_model",
+              "duplicate_reference"
             ]
           },
           "message": {
