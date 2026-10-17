@@ -40,6 +40,9 @@ const TEXT = {
     parameters: 'Parameters', param: 'Parameter', desc: 'Description', values: 'Values', def: 'Default', req: 'Required',
     yes: 'Yes', no: 'No', notSet: 'Not set', range: (a, b) => `${a} to ${b}`, onlyIn: m => `Only in ${m}.`,
     examples: 'Examples', example: mode => `\`${mode}\` input:`,
+    // Search titles target "<model> API documentation"; pricing searches belong to the yir.ai model pages.
+    seoTitle: name => `${name} API Documentation: Parameters & Examples`,
+    seoDescription: (name, id, desc) => `${name} API documentation: model ID ${id}, input modes, parameters, defaults and request examples. ${desc}`,
     contract: id => `The authoritative contract is \`GET /v1/models/${id}?view=contract\`. A valid parameter does not mean every channel can run it, so [quote](/docs/concepts/billing#get-a-quote) the complete request. Prices and channels are listed in [Model Market](https://yir.ai/models).`,
     index: 'All models', model: 'Model', type: 'Type', types: { generate_image: 'Image', generate_video: 'Video', generate_music: 'Music', generate_sound_effect: 'Sound effect' },
     sep: ', ', colon: ': ',
@@ -55,6 +58,8 @@ const TEXT = {
     parameters: '参数', param: '参数', desc: '说明', values: '取值', def: '默认值', req: '必填',
     yes: '是', no: '否', notSet: '不设置', range: (a, b) => `${a}–${b}`, onlyIn: m => `仅 ${m} 模式。`,
     examples: '示例', example: mode => `\`${mode}\` 输入：`,
+    seoTitle: name => `${name} API 文档：参数与调用示例`,
+    seoDescription: (name, id, desc) => `${name} API 文档：模型 ID ${id}、输入模式、参数取值与默认值，附请求示例。${desc}`,
     contract: id => `完整合同以 \`GET /v1/models/${id}?view=contract\` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。`,
     index: '全部模型', model: '模型', type: '类型', types: { generate_image: '图片', generate_video: '视频', generate_music: '音乐', generate_sound_effect: '音效' },
     sep: '、', colon: '：',
@@ -143,6 +148,9 @@ function exampleRequest(model, view, mode) {
   return { model: model.id, input, parameters }
 }
 
+/** Ends a contract description with sentence punctuation so it reads after the lead-in. */
+const sentence = (text, lang) => /[.。!！?？]$/.test(text) ? text : `${text}${lang === 'zh' ? '。' : '.'}`
+
 export function renderPage(model, lang, notesFile) {
   const t = TEXT[lang]
   const locale = LOCALES[lang]
@@ -153,6 +161,9 @@ export function renderPage(model, lang, notesFile) {
     '---',
     `title: ${JSON.stringify(text.label)}`,
     `description: ${JSON.stringify(text.description)}`,
+    'seo:',
+    `  title: ${JSON.stringify(t.seoTitle(text.label))}`,
+    `  description: ${JSON.stringify(t.seoDescription(text.label, model.id, sentence(text.description, lang)))}`,
     '---',
     '',
     `{/* ${t.generated} ${notesFile ? notesFile.replace(/^\//, 'docs/') : `docs${locale.notesRoot}/`} */}`,
