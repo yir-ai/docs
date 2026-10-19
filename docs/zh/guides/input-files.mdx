@@ -33,7 +33,7 @@ description: 用 Files API 上传参考图片、视频和音频，或直接传�
     把文件元数据发送到 `POST /v1/files`。携带 `Idempotency-Key` Header，重试时会返回同一份计划。
   </Step>
   <Step title="上传内容">
-    按 `part_number` 顺序，把对应字节段 `PUT` 到 `upload.parts` 中每个分片的 `url`。不要向这些地址发送 Yir API Key。
+    文件不超过 64 MiB 时只有一个分片，把整个文件 `PUT` 到 `upload.parts[0].url` 即可；更大的文件按 `part_number` 顺序，把对应字节段 `PUT` 到每个分片的 `url`。不要向这些地址发送 Yir API Key。
   </Step>
   <Step title="完成文件">
     用空 JSON 请求体调用 `POST /v1/files/{id}/complete`，文件进入 `processing`。轮询 `GET /v1/files/{id}`，等到 `ready` 后再引用；遇到 `failed` 或 `expired` 时停止等待。
@@ -75,13 +75,13 @@ curl https://gateway.yir.ai/v1/files \
 
 批量中只要有一个条目无效，整批请求都会被拒绝。
 
-### 2. 上传每个分片
+### 2. 上传内容
 
 ```bash
 curl --request PUT --upload-file first-frame.png "$PART_URL"
 ```
 
-多分片计划需按列出的 `size` 把文件切成连续字节段，并在 `upload.expires_at` 之前完成上传。
+图片和多数短视频只有这一个分片，一次 `PUT` 就完成上传。超过 64 MiB 的文件会拆成多个分片，需按列出的 `size` 把文件切成连续字节段依次上传。所有分片都要在 `upload.expires_at` 之前传完。
 
 ### 3. 完成
 

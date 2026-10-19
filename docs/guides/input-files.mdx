@@ -33,7 +33,7 @@ Files are temporary. They expire at `expires_at`, and checking their status does
     Send file metadata to `POST /v1/files`. Add an `Idempotency-Key` header so a retried request returns the same plan.
   </Step>
   <Step title="Upload the bytes">
-    For each entry in `upload.parts`, `PUT` the matching byte range to its `url`, in `part_number` order. Do not send your Yir API Key to these URLs.
+    Files up to 64 MiB get a single part: `PUT` the whole file to `upload.parts[0].url`. For larger files, `PUT` each byte range to its part `url` in `part_number` order. Do not send your Yir API Key to these URLs.
   </Step>
   <Step title="Complete the file">
     Call `POST /v1/files/{id}/complete` with an empty JSON body. The file enters `processing`. Poll `GET /v1/files/{id}` until `ready`; stop on `failed` or `expired`.
@@ -75,13 +75,13 @@ curl https://gateway.yir.ai/v1/files \
 
 If any entry in a batch is invalid, the whole batch is rejected.
 
-### 2. Upload each part
+### 2. Upload the content
 
 ```bash
 curl --request PUT --upload-file first-frame.png "$PART_URL"
 ```
 
-For multi-part plans, split the file into consecutive ranges with the listed `size` values. Upload before `upload.expires_at`.
+Images and most short videos get this single part, so one `PUT` uploads the file. Files over 64 MiB are split into several parts: cut the file into consecutive ranges with the listed `size` values and upload each one. Finish all parts before `upload.expires_at`.
 
 ### 3. Complete
 
