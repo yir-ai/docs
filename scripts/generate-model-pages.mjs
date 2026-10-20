@@ -18,7 +18,7 @@ const LOCALES = {
 
 // Creator ID → sidebar group title.
 const CREATORS = {
-  alibaba: 'Alibaba', bfl: 'Black Forest Labs', bytedance: 'ByteDance', elevenlabs: 'ElevenLabs', google: 'Google', klingai: 'Kling AI',
+  alibaba: 'Alibaba', bfl: 'Black Forest Labs', bytedance: 'ByteDance', elevenlabs: 'ElevenLabs', google: 'Google', heygen: 'HeyGen', klingai: 'Kling AI',
   meta: 'Meta', minimax: 'MiniMax', openai: 'OpenAI', prodia: 'Prodia', recraft: 'Recraft', reve: 'Reve', spacexai: 'xAI', suno: 'Suno',
 }
 
