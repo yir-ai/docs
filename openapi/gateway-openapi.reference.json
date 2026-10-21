@@ -433,7 +433,7 @@
       "post": {
         "operationId": "quoteMusicGeneration",
         "summary": "Quote a music job",
-        "description": "Estimates the price and checks available supply for a music or sound-effect generation request. Creates no job and charges nothing.",
+        "description": "Estimates the price and checks available supply for a music, sound-effect or text-to-speech request. Text-to-speech is quoted per character of input.prompt. Creates no job and charges nothing.",
         "tags": [
           "Music"
         ],
@@ -498,7 +498,7 @@
       "post": {
         "operationId": "submitMusicGeneration",
         "summary": "Submit a music job",
-        "description": "Generates one song or instrumental track as an audio file. The model decides the track length, reported on the result file as duration_ms; prompts do not guarantee a duration or tempo.",
+        "description": "Generates one song, instrumental track, sound effect or text-to-speech narration as an audio file. For text-to-speech models (operation generate_speech) input.prompt is the text to read aloud in parameters.voice. The model decides the length, reported on the result file as duration_ms; prompts do not guarantee a duration or tempo.",
         "tags": [
           "Music"
         ],
@@ -1937,9 +1937,9 @@
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 4100,
+            "maxLength": 10000,
             "pattern": "\\S",
-            "description": "Style, mood and scenario of the music, or the description of a sound effect. The per-model limit is in the model contract (for example 2000 for MiniMax, 1000 for Suno, 450 for ElevenLabs sound effects)."
+            "description": "Style, mood and scenario of the music, the description of a sound effect, or for text-to-speech models the exact text to read aloud (billed per character, spaces, punctuation and audio tags included). The per-model limit is in the model contract (for example 2000 for MiniMax music, 1000 for Suno, 450 for ElevenLabs sound effects, 5000 for ElevenLabs v3 and 10000 for MiniMax Speech)."
           },
           "lyrics": {
             "type": "string",
@@ -1953,7 +1953,7 @@
       "StandardMusicParameters": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Optional music and sound-effect parameters; omitted fields take the model's defaults, and a model accepts only the parameters its contract declares. There is no tempo or key control; delivered audio reports its measured duration.",
+        "description": "Optional music, sound-effect and text-to-speech parameters; omitted fields take the model's defaults, and a model accepts only the parameters its contract declares. There is no tempo or key control; delivered audio reports its measured duration.",
         "properties": {
           "duration": {
             "type": "integer",
@@ -1978,6 +1978,13 @@
               2
             ],
             "description": "Tracks per Job. Most models make one; Suno always makes two per request."
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _().\\-]{0,127}$",
+            "description": "Text-to-speech models only: a preset voice ID of the model (for example a MiniMax system voice such as Chinese (Mandarin)_News_Anchor or an ElevenLabs voice ID). Omit for the model default; the voice does not change the price."
           }
         }
       },
@@ -2128,6 +2135,22 @@
                       "$ref": "#/components/schemas/StandardMusicQuoteRequest"
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "operation",
+                    "request"
+                  ],
+                  "properties": {
+                    "operation": {
+                      "const": "generate_speech"
+                    },
+                    "request": {
+                      "$ref": "#/components/schemas/StandardMusicQuoteRequest"
+                    }
+                  }
                 }
               ]
             }
@@ -2268,7 +2291,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_mode": {
@@ -2478,7 +2502,7 @@
         "required": [
           "n"
         ],
-        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration, a silent video model carries no generate_audio, a music echo carries instrumental and lyrics_optimizer (plus duration for length-priced models) but no resolution or aspect_ratio, and a sound-effect echo carries n and duration. Image and video echoes always include resolution and aspect_ratio. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
+        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration, a silent video model carries no generate_audio, a music echo carries instrumental and lyrics_optimizer (plus duration for length-priced models) but no resolution or aspect_ratio, a sound-effect echo carries n and duration, and a text-to-speech echo carries n and voice. Image and video echoes always include resolution and aspect_ratio. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
         "properties": {
           "size": {
             "type": "string",
@@ -2529,6 +2553,11 @@
           "lyrics_optimizer": {
             "type": "boolean",
             "description": "Music only: lyrics written from the prompt."
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Text-to-speech only: the resolved preset voice ID."
           },
           "n": {
             "type": "integer",
@@ -3441,7 +3470,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_mode": {
@@ -3559,7 +3589,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_mode": {
@@ -3794,7 +3825,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_modes": {

@@ -433,7 +433,7 @@
       "post": {
         "operationId": "quoteMusicGeneration",
         "summary": "音乐报价",
-        "description": "估算音乐或音效生成请求的价格并检查可用渠道。不创建 Job，不收费。",
+        "description": "估算音乐、音效或文字转语音请求的价格并检查可用渠道。文字转语音按 input.prompt 的字符数报价。不创建 Job，不收费。",
         "tags": [
           "Music"
         ],
@@ -498,7 +498,7 @@
       "post": {
         "operationId": "submitMusicGeneration",
         "summary": "提交音乐 Job",
-        "description": "生成一首歌曲或纯音乐，以音频文件交付。曲目长度由模型决定，并在结果文件的 duration_ms 中返回；提示词不保证时长或节奏。",
+        "description": "生成一首歌曲、纯音乐、音效或一段文字转语音朗读，以音频文件交付。文字转语音模型（操作 generate_speech）用 parameters.voice 的音色朗读 input.prompt。时长由模型决定，并在结果文件的 duration_ms 中返回；提示词不保证时长或节奏。",
         "tags": [
           "Music"
         ],
@@ -1937,9 +1937,9 @@
           "prompt": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 4100,
+            "maxLength": 10000,
             "pattern": "\\S",
-            "description": "音乐的风格、情绪和使用场景，或音效的描述。各模型的长度上限见模型合同（例如 MiniMax 为 2000，Suno 为 1000，ElevenLabs 音效为 450）。"
+            "description": "音乐的风格、情绪和使用场景，音效的描述，或文字转语音模型要朗读的原文（按字符计费，空格、标点和音频标签都计入）。各模型的长度上限见模型合同（例如 MiniMax 音乐为 2000，Suno 为 1000，ElevenLabs 音效为 450，ElevenLabs v3 为 5000，MiniMax Speech 为 10000）。"
           },
           "lyrics": {
             "type": "string",
@@ -1953,7 +1953,7 @@
       "StandardMusicParameters": {
         "type": "object",
         "additionalProperties": false,
-        "description": "可选的音乐与音效参数，省略的字段取模型默认值；模型只接受其合同声明的参数。不支持控制速度或调性；交付音频会返回实测时长。",
+        "description": "可选的音乐、音效与文字转语音参数，省略的字段取模型默认值；模型只接受其合同声明的参数。不支持控制速度或调性；交付音频会返回实测时长。",
         "properties": {
           "duration": {
             "type": "integer",
@@ -1978,6 +1978,13 @@
               2
             ],
             "description": "每个 Job 的曲目数。多数模型生成一首；Suno 每次请求固定生成两首。"
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _().\\-]{0,127}$",
+            "description": "仅文字转语音模型：模型的预设音色 ID（例如 MiniMax 系统音色 Chinese (Mandarin)_News_Anchor，或 ElevenLabs 音色 ID）。省略时用模型默认音色；音色不影响价格。"
           }
         }
       },
@@ -2128,6 +2135,22 @@
                       "$ref": "#/components/schemas/StandardMusicQuoteRequest"
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "operation",
+                    "request"
+                  ],
+                  "properties": {
+                    "operation": {
+                      "const": "generate_speech"
+                    },
+                    "request": {
+                      "$ref": "#/components/schemas/StandardMusicQuoteRequest"
+                    }
+                  }
                 }
               ]
             }
@@ -2268,7 +2291,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_mode": {
@@ -2478,7 +2502,7 @@
         "required": [
           "n"
         ],
-        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio，音乐回显有 instrumental 和 lyrics_optimizer（按时长计价的模型另有 duration），但没有 resolution 和 aspect_ratio，音效回显有 n 和 duration。图片和视频回显始终包含 resolution 和 aspect_ratio。这里只记录通用参数；模型专属参数按合同名回显。",
+        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio，音乐回显有 instrumental 和 lyrics_optimizer（按时长计价的模型另有 duration），但没有 resolution 和 aspect_ratio，音效回显有 n 和 duration，文字转语音回显有 n 和 voice。图片和视频回显始终包含 resolution 和 aspect_ratio。这里只记录通用参数；模型专属参数按合同名回显。",
         "properties": {
           "size": {
             "type": "string",
@@ -2529,6 +2553,11 @@
           "lyrics_optimizer": {
             "type": "boolean",
             "description": "仅音乐：根据提示词自动写词。"
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1,
+            "description": "仅文字转语音：解析后的预设音色 ID。"
           },
           "n": {
             "type": "integer",
@@ -3441,7 +3470,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_mode": {
@@ -3559,7 +3589,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_mode": {
@@ -3794,7 +3825,8 @@
               "generate_image",
               "generate_video",
               "generate_music",
-              "generate_sound_effect"
+              "generate_sound_effect",
+              "generate_speech"
             ]
           },
           "input_modes": {
