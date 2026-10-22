@@ -78,7 +78,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 参考图、视频延长 | 支持。 | 不可用。 |
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | `personGeneration`、`resizeMode` | 支持。 | 不可用。 |
 
-`google/veo-3.1-generate-001` 的首帧 `image` 模式仅在 Google 官方渠道允许省略 `input.prompt` 或传空白文字。其他模式、Veo 3.1 Fast 和其他渠道仍要求提示词。输入合同通过 `prompt_optional` 声明此能力，Yir 不自动编造替代提示词。首批范围依据 [Vercel Veo 3.1 模型说明](https://vercel.com/ai-gateway/models/veo-3.1-generate-001)。
+`google/veo-3.1-generate-001` 的首帧 `image` 模式仅在 Google 官方渠道允许省略 `input.prompt` 或传空白文字。其他模式、Veo 3.1 Fast 和其他渠道仍要求提示词。输入合同通过 `prompt_optional` 声明此能力，Yir 不自动编造替代提示词。首批范围依据 [Google Veo 3.1 模型说明](https://cloud.google.com/vertex-ai/generative-ai/docs/models/veo/3-1-generate)。
 
 ### 字节跳动 Seedance 与 Seedream
 
