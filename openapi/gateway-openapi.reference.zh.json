@@ -1723,7 +1723,7 @@
                 "subject": {
                   "type": "string",
                   "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$",
-                  "description": "在输入约束声明了 subject_references 的模型上，把多张 reference_image 照片归为同一个角色，提示词中用 @<subject> 引用。只要有一个参考素材带 subject，所有参考素材都必须是带 subject 的 reference_image。"
+                  "description": "在输入约束声明了 subject_references 的模型上，把同名参考素材归为一个主体，提示词中用 @<subject> 引用。同名 reference_image 照片组成一个角色；声明了 max_videos_per_subject 时，同名 reference_video 组成视频角色（不再带照片）；声明了 max_audios_per_subject 时，同名 reference_audio 是该角色的音色，只有 reference_audio 的名字是独立音色。除非 subject_references.mixed 为 true，否则此时所有参考素材都必须是带 subject 的 reference_image。"
                 }
               },
               "oneOf": [
@@ -3956,7 +3956,7 @@
           "subject_references": {
             "type": "object",
             "additionalProperties": false,
-            "description": "当 reference_image 照片可按 references[].subject 分组（照片角色参考）时出现。带 subject 的请求使用这些限制；非空的取值列表会替换该模式下操作参数的取值。",
+            "description": "当 reference_image 照片可按 references[].subject 分组（照片角色参考）时出现。带 subject 的请求使用这些限制；非空的取值列表会替换该模式下操作参数的取值。mixed 为 true 时，主体可与未分组参考素材同时使用，操作参数取值不变，min/max_references 按“未分组参考素材数 + 主体数”计，角色数量限制只计未分组参考素材。",
             "required": [
               "min_images_per_subject",
               "max_images_per_subject",
@@ -3973,7 +3973,32 @@
               },
               "max_subjects": {
                 "type": "integer",
-                "minimum": 1
+                "minimum": 1,
+                "description": "带照片的主体数量上限。"
+              },
+              "mixed": {
+                "type": "boolean",
+                "description": "同一请求中主体可与未分组参考素材同时使用。"
+              },
+              "max_audios_per_subject": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "每个主体可带的 reference_audio（该角色的音色）数量；缺省表示主体只收照片。"
+              },
+              "max_audio_only_subjects": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "只有 reference_audio 的主体（独立音色）数量上限。"
+              },
+              "max_videos_per_subject": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "每个主体可带的 reference_video（视频角色，此时不带照片）数量；缺省表示不支持视频主体。"
+              },
+              "max_video_subjects": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "由 reference_video 组成的主体数量上限。"
               },
               "resolutions": {
                 "type": "array",
