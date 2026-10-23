@@ -59,8 +59,8 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | 端点 | 每个 Key、每个端点的上限 |
 | --- | --- |
 | 读取：`GET` Job、Job 状态、文件、文件内容、模型、余额 | 每分钟 6,000 次 |
-| 报价：`POST /v1/images/quotes`、`/v1/videos/quotes`、`/v1/music/quotes`、`/v1/quotes` | 每分钟 1,500 次 |
-| 写入：`POST /v1/images/generations`、`/v1/videos/generations`、`/v1/music/generations`、`/v1/files`、`/v1/files/{id}/complete`、`/v1/jobs/{id}/cancel` | 每分钟 600 次 |
+| 报价：`POST /v1/images/quotes`、`/v1/videos/quotes`、`/v1/audio/quotes`（及旧名 `/v1/music/quotes`）、`/v1/quotes` | 每分钟 1,500 次 |
+| 写入：`POST /v1/images/generations`、`/v1/videos/generations`、`/v1/audio/generations`（及旧名 `/v1/music/generations`）、`/v1/files`、`/v1/files/{id}/complete`、`/v1/jobs/{id}/cancel` | 每分钟 600 次 |
 
 按固定的一分钟窗口计数。超出上限时返回 `429` 与 `YIR_RATE_LIMITED`（`retryable: true`，`action: retry_later`），并带以秒为单位的 `Retry-After` 响应头；不会创建任何资源，也不收费。进行中 Job 过多导致的 `429` 不带 `Retry-After`。触发上限时先检查客户端是否有循环；正常流量确实需要更高上限请联系支持。
 

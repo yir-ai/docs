@@ -10,7 +10,7 @@ seo:
 
 | Model ID | Alias | Endpoint |
 | --- | --- | --- |
-| `minimax/speech-2.8-hd` | `speech-2.8-hd` |  |
+| `minimax/speech-2.8-hd` | `speech-2.8-hd` | [Audio generation](/docs/guides/music-generation#text-to-speech) |
 
 ## Input modes
 
@@ -33,7 +33,8 @@ seo:
 {
   "model": "minimax/speech-2.8-hd",
   "input": {
-    "type": "text"
+    "type": "text",
+    "prompt": "Good morning. The city is still waking up."
   },
   "parameters": {
     "voice": "English_expressive_narrator",

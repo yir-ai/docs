@@ -10,7 +10,7 @@ seo:
 
 | 模型 ID | 别名 | 接口 |
 | --- | --- | --- |
-| `elevenlabs/eleven-v3` | `eleven-v3`、`eleven_v3` |  |
+| `elevenlabs/eleven-v3` | `eleven-v3`、`eleven_v3` | [音频生成](/zh/docs/guides/music-generation#文字转语音) |
 
 ## 输入模式
 
@@ -33,7 +33,8 @@ seo:
 {
   "model": "elevenlabs/eleven-v3",
   "input": {
-    "type": "text"
+    "type": "text",
+    "prompt": "Good morning. The city is still waking up."
   },
   "parameters": {
     "voice": "JBFqnCBsd6RMkjVDRZzb",

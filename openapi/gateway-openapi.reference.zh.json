@@ -3,7 +3,7 @@
   "info": {
     "title": "Yir Standard 异步 AIGC API",
     "version": "1.0.0-preview",
-    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片、视频和音乐生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
+    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片、视频和音频（音乐、音效、语音）生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
   },
   "servers": [
     {
@@ -24,7 +24,7 @@
       "name": "Videos"
     },
     {
-      "name": "Music"
+      "name": "Audio"
     },
     {
       "name": "Files"
@@ -223,11 +223,11 @@
       "post": {
         "operationId": "quoteBatch",
         "summary": "批量报价（最多 20 个）",
-        "description": "基于同一价格快照，为最多 20 个图片、视频或音乐请求报价。每个请求按对应单个报价接口的相同规则评估。无效请求只在自己的结果项中返回错误；价格数据或基础设施故障会使整个调用失败。本接口不列举模型规格，也不推断不同模型之间的等效画质。",
+        "description": "基于同一价格快照，为最多 20 个图片、视频或音频请求报价。每个请求按对应单个报价接口的相同规则评估。无效请求只在自己的结果项中返回错误；价格数据或基础设施故障会使整个调用失败。本接口不列举模型规格，也不推断不同模型之间的等效画质。",
         "tags": [
           "Images",
           "Videos",
-          "Music"
+          "Audio"
         ],
         "security": [
           {
@@ -429,13 +429,152 @@
         }
       }
     },
+    "/v1/audio/quotes": {
+      "post": {
+        "operationId": "quoteAudioGeneration",
+        "summary": "音频报价",
+        "description": "估算音乐、音效或文字转语音请求的价格并检查可用渠道。文字转语音按 input.prompt 的字符数报价。不创建 Job，不收费。",
+        "tags": [
+          "Audio"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMusicQuoteRequest"
+              },
+              "example": {
+                "model": "minimax/music-2.6",
+                "input": {
+                  "type": "text",
+                  "prompt": "A warm acoustic folk ballad with fingerpicked guitar",
+                  "lyrics": "[Verse]\nWalking down a dusty road\n[Chorus]\nEvery step a story told"
+                },
+                "parameters": {
+                  "instrumental": false,
+                  "lyrics_optimizer": false,
+                  "n": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "当前参考报价",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/audio/generations": {
+      "post": {
+        "operationId": "submitAudioGeneration",
+        "summary": "提交音频 Job",
+        "description": "生成一首歌曲、纯音乐、音效或一段文字转语音朗读，以音频文件交付。POST /v1/music/generations 是本接口的旧名。文字转语音模型（操作 generate_speech）用 parameters.voice 的音色朗读 input.prompt。时长由模型决定，并在结果文件的 duration_ms 中返回；提示词不保证时长或节奏。",
+        "tags": [
+          "Audio"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/YirReferral"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandardMusicGenerationRequest"
+              },
+              "example": {
+                "model": "minimax/music-2.6",
+                "input": {
+                  "type": "text",
+                  "prompt": "A calm lo-fi hip hop instrumental with mellow piano chords"
+                },
+                "parameters": {
+                  "instrumental": true,
+                  "n": 1
+                },
+                "webhook_url": "https://example.com/webhooks/yir"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "$ref": "#/components/responses/JobAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/InsufficientBalance"
+          },
+          "403": {
+            "$ref": "#/components/responses/SpendLimitExceeded"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
     "/v1/music/quotes": {
       "post": {
         "operationId": "quoteMusicGeneration",
-        "summary": "音乐报价",
-        "description": "估算音乐、音效或文字转语音请求的价格并检查可用渠道。文字转语音按 input.prompt 的字符数报价。不创建 Job，不收费。",
+        "summary": "音频报价（旧路径）",
+        "description": "POST /v1/audio/quotes 的旧名，永久保留，请求、响应与报价完全相同。新代码请调用 /v1/audio/quotes。",
         "tags": [
-          "Music"
+          "Audio"
         ],
         "security": [
           {
@@ -497,10 +636,10 @@
     "/v1/music/generations": {
       "post": {
         "operationId": "submitMusicGeneration",
-        "summary": "提交音乐 Job",
-        "description": "生成一首歌曲、纯音乐、音效或一段文字转语音朗读，以音频文件交付。文字转语音模型（操作 generate_speech）用 parameters.voice 的音色朗读 input.prompt。时长由模型决定，并在结果文件的 duration_ms 中返回；提示词不保证时长或节奏。",
+        "summary": "提交音频 Job（旧路径）",
+        "description": "POST /v1/audio/generations 的旧名，永久保留，请求、响应与计费完全相同；同一 Idempotency-Key 在两条路径间互相重放。新代码请调用 /v1/audio/generations。",
         "tags": [
-          "Music"
+          "Audio"
         ],
         "security": [
           {

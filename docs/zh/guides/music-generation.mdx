@@ -1,15 +1,15 @@
 ---
-title: 音乐生成
-description: 使用 Yir Standard API 生成歌曲、纯音乐和音效。
+title: 音频生成
+description: 使用 Yir Standard API 生成歌曲、纯音乐、音效和文字转语音。
 ---
 
-音乐 Job 提交到 `POST /v1/music/generations`。音乐遵循与图片、视频相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)、[路由](/zh/docs/concepts/routing)和 [Webhook](/zh/docs/production/webhooks) 规则。音效使用同一组接口。每个 Job 返回模型单次请求生成的全部曲目：多数模型一首，Suno 两首。
+音频 Job（音乐、音效与文字转语音）提交到 `POST /v1/audio/generations`，报价用 `POST /v1/audio/quotes`。`/v1/music/generations` 与 `/v1/music/quotes` 是这组接口的旧名，永久可用，行为完全相同。音频遵循与图片、视频相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)、[路由](/zh/docs/concepts/routing)和 [Webhook](/zh/docs/production/webhooks) 规则。每个 Job 返回模型单次请求生成的全部曲目：多数模型一首，Suno 两首。
 
 ## 请求字段
 
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
-| `model` | 是 | 音乐或音效模型，例如 `minimax/music-2.6`。见[模型与参数](/zh/docs/models)。 |
+| `model` | 是 | 音乐、音效或文字转语音模型，例如 `minimax/music-2.6`。见[模型与参数](/zh/docs/models)。 |
 | `input` | 是 | `{ "type": "text", "prompt": ..., "lyrics": ... }`。`prompt` 描述风格、情绪和使用场景，或描述声音。`lyrics` 各行用 `\n` 分隔。长度上限因模型而异。 |
 | `parameters` | 否 | 只接受模型合同声明的参数：`instrumental` 和 `lyrics_optimizer`（默认 `false`）、按时长计价模型的 `duration`，以及 `n`（`1`，Suno 为 `2`）。 |
 | `max_cost` | 否 | 可选，Job 的美元费用上限，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
@@ -39,12 +39,24 @@ Suno 没有官方 API，Yir 经第三方渠道非官方接入 Suno v6 系列。�
 }
 ```
 
+## 文字转语音
+
+[MiniMax Speech 2.8 HD](/zh/docs/models/minimax/speech-2-8-hd)（最多 10000 字符）与 [ElevenLabs v3](/zh/docs/models/elevenlabs/eleven-v3)（最多 5000 字符）朗读 `input.prompt`。`parameters` 只接受 `n`（`1`）与 `voice`（模型的预设音色 ID，省略则用模型默认音色），音色不影响价格；传歌词、`instrumental`、`lyrics_optimizer` 或 `duration` 会被拒绝。文字转语音按提示词字符数计价，空格、标点与音频标签都计入，报价的 operation 为 `generate_speech`。Job 交付一个 MP3。
+
+```json
+{
+  "model": "minimax/speech-2.8-hd",
+  "input": { "type": "text", "prompt": "清晨六点，城市还没有完全醒来。" },
+  "parameters": { "voice": "Chinese (Mandarin)_News_Anchor" }
+}
+```
+
 ## 报价、提交与获取结果
 
 用相同的请求体（不含 `max_cost` 和 `webhook_url`）报价，并检查 `supply.available`：
 
 ```bash
-curl https://gateway.yir.ai/v1/music/quotes \
+curl https://gateway.yir.ai/v1/audio/quotes \
   --header "Authorization: Bearer $YIR_API_KEY" \
   --header "Content-Type: application/json" \
   --data '{
@@ -60,10 +72,10 @@ curl https://gateway.yir.ai/v1/music/quotes \
 带上 `Idempotency-Key` 提交：
 
 ```bash
-curl https://gateway.yir.ai/v1/music/generations \
+curl https://gateway.yir.ai/v1/audio/generations \
   --header "Authorization: Bearer $YIR_API_KEY" \
   --header "Content-Type: application/json" \
-  --header "Idempotency-Key: music-$(date +%s)" \
+  --header "Idempotency-Key: audio-$(date +%s)" \
   --data '{
     "model": "minimax/music-2.6",
     "input": {
@@ -96,4 +108,4 @@ curl --location --output track.mp3 "$(jq -r '.result.files[0].url' job.json)"
 
 ## 结果
 
-成功的 Job 在 `result.files` 中返回音频，每首曲目一个文件（Suno 为两个），各自带实测 `duration_ms`。多数模型交付 MP3（`media_type: "audio/mpeg"`），MiniMax Music 3 交付 WAV（`audio/wav`）。URL 是短期签名链接，请把文件复制到自己的存储。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
+成功的 Job 在 `result.files` 中返回音频，每首曲目一个文件（Suno 为两个），各自带实测 `duration_ms`。多数模型（含文字转语音）交付 MP3（`media_type: "audio/mpeg"`），MiniMax Music 3 交付 WAV（`audio/wav`）。URL 是短期签名链接，请把文件复制到自己的存储。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。

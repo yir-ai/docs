@@ -63,6 +63,8 @@ const reviewedOperations = [
   'POST /v1/images/generations',
   'POST /v1/videos/quotes',
   'POST /v1/videos/generations',
+  'POST /v1/audio/quotes',
+  'POST /v1/audio/generations',
   'POST /v1/music/quotes',
   'POST /v1/music/generations',
   'POST /v1/files',

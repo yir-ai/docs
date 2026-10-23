@@ -13,7 +13,7 @@ Send the same body you would submit to a quote endpoint:
 | --- | --- |
 | One image request | `POST /v1/images/quotes` |
 | One video request | `POST /v1/videos/quotes` |
-| One music request | `POST /v1/music/quotes` |
+| One audio request (music, sound effect or speech) | `POST /v1/audio/quotes` (legacy name `/v1/music/quotes`) |
 | Up to 20 image, video or music requests | `POST /v1/quotes` |
 
 Quotes validate the model, input, and parameters exactly like a submission, but create no Job, move no funds, and do not lock prices. They reject `max_cost` and `webhook_url`, which belong to submission only.

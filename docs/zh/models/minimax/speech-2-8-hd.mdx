@@ -10,7 +10,7 @@ seo:
 
 | 模型 ID | 别名 | 接口 |
 | --- | --- | --- |
-| `minimax/speech-2.8-hd` | `speech-2.8-hd` |  |
+| `minimax/speech-2.8-hd` | `speech-2.8-hd` | [音频生成](/zh/docs/guides/music-generation#文字转语音) |
 
 ## 输入模式
 
@@ -33,7 +33,8 @@ seo:
 {
   "model": "minimax/speech-2.8-hd",
   "input": {
-    "type": "text"
+    "type": "text",
+    "prompt": "Good morning. The city is still waking up."
   },
   "parameters": {
     "voice": "English_expressive_narrator",
