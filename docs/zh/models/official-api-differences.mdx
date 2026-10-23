@@ -153,6 +153,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `klingai/kling-3.0` | Kling 3.0 Omni（多图参考、视频编辑） | 独立端点。 | 未提供。 |
 | `minimax/hailuo-2.3`、`minimax/hailuo-2.3-fast` | `prompt_optimizer`、`fast_pretreatment` | 支持。 | 不可用。与 MiniMax 一致，`1080p` 只能配 6 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 为 `480p`（MiniMax 的 H3 Max 默认 `768P`）、5 秒。 |
+| `minimax/minimax-h3` | `resolution` | `768P` 或 `2K`。 | 另支持 `480p`、`1080p`，只由秘塔渠道承接（没有备用渠道）。需要 MiniMax 原厂的 480p 请用 `minimax/minimax-h3-max`。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | 有首帧时的 `aspect_ratio` | 任何取值都按 `adaptive` 处理。 | 只接受 `adaptive`。 |
 | `minimax/minimax-h3-max` | `prompt_expansion_mode` | 支持。 | 不可用。 |
 | `minimax/minimax-h3-max` | 参考视频与音频 | 支持。 | 最多 3 个 `reference_video`、3 个 `reference_audio`，参考素材合计 15 个；音频须搭配图或视频。参考视频只走 APIMart 渠道，按实测秒数计价。 |

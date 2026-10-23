@@ -153,6 +153,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `klingai/kling-3.0` | Kling 3.0 Omni (multi-image reference, video editing) | A separate endpoint. | Not offered. |
 | `minimax/hailuo-2.3`, `minimax/hailuo-2.3-fast` | `prompt_optimizer`, `fast_pretreatment` | Available. | Not available. `1080p` is available only with 6-second videos, as with MiniMax. |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` (MiniMax's H3 Max default is `768P`) and 5 s. |
+| `minimax/minimax-h3` | `resolution` | `768P` or `2K`. | Also `480p` and `1080p`, served by the Metaso channel only (no fallback channel). For 480p from MiniMax itself, use `minimax/minimax-h3-max`. |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `aspect_ratio` with a first frame | Any value is treated as `adaptive`. | Only `adaptive` is accepted. |
 | `minimax/minimax-h3-max` | `prompt_expansion_mode` | Available. | Not available. |
 | `minimax/minimax-h3-max` | Reference videos and audio | Available. | Up to 3 `reference_video` and 3 `reference_audio` references, 15 in total; audio needs an image or video. Reference videos run on the APIMart channel only and are priced by their measured seconds. |
