@@ -64,3 +64,28 @@ test('renders numeric duration ranges with additional string values in both lang
     assert.ok(row.includes(' | `5` |'))
   }
 })
+
+test('renders subject grouping, voices and mixed rules from subject_references', () => {
+  const subjects = structuredClone(model)
+  subjects.operations[0].input_modes.push('reference')
+  subjects.operations[0].input_constraints.reference = {
+    min_references: 1, max_references: 15, allowed_reference_roles: ['reference_image', 'reference_audio'],
+    reference_counts_by_role: { reference_audio: { minimum: 0, maximum: 0 }, reference_image: { minimum: 0, maximum: 10 } },
+    subject_references: { min_images_per_subject: 2, max_images_per_subject: 4, max_subjects: 7, mixed: true, max_audios_per_subject: 1, max_audio_only_subjects: 3, max_videos_per_subject: 1, max_video_subjects: 3 },
+  }
+  const page = renderPage(subjects, 'en', null)
+  assert.match(page, /`reference_audio` only in subjects<br \/>`reference_image` 0 to 10/)
+  assert.match(page, /### Subject references \(`reference`\)/)
+  assert.match(page, /- Photo subjects: up to 7, each with 2 to 4 `reference_image`/)
+  assert.match(page, /- Video subjects: up to 3, each with 1 `reference_video`/)
+  assert.match(page, /standalone voices/)
+  assert.match(page, /combined with ungrouped references/)
+  assert.doesNotMatch(page, /With subjects, these values apply/)
+
+  subjects.operations[0].input_constraints.reference.subject_references = { min_images_per_subject: 2, max_images_per_subject: 4, max_subjects: 3, resolutions: ['720p', '4K'], min_duration_seconds: 3, max_duration_seconds: 15 }
+  const zh = renderPage(subjects, 'zh', null)
+  assert.match(zh, /所有参考素材都必须是带 subject 的 `reference_image`/)
+  assert.match(zh, /- 分辨率：`720p`、`4K`/)
+  assert.match(zh, /- 时长：3–15 秒/)
+  assert.doesNotMatch(zh, /视频主体|音色/)
+})

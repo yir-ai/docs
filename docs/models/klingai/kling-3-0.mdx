@@ -20,6 +20,20 @@ seo:
 | `image` Image input | 1 to 2 | `first_frame` 1<br />`last_frame` 0 to 1 |
 | `reference` Reference media | 2 | `reference_image`, `reference_video` |
 
+### Subject references (`reference`)
+
+Give references the same `references[].subject` name to group them into one subject, and refer to it in the prompt as `@<subject>`.
+
+- Photo subjects: up to 3, each with 2 to 4 `reference_image`
+- With subjects, every reference must be a `reference_image` with a subject.
+
+With subjects, these values apply:
+
+- resolution: `720p`, `1080p`, `4K`
+- aspect ratio: `16:9`, `9:16`, `1:1` (default `16:9`)
+- duration: 3 to 15 s
+- generate audio: `false`, `true`
+
 ## Parameters
 
 | Parameter | Description | Values | Default | Required |

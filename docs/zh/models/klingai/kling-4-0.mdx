@@ -18,7 +18,16 @@ seo:
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
 | `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
-| `reference` 参考素材 | 1–15 | `reference_audio` 0<br />`reference_image` 0–10<br />`reference_video` 0–5 |
+| `reference` 参考素材 | 1–15 | `reference_audio` 仅用于主体<br />`reference_image` 0–10<br />`reference_video` 0–5 |
+
+### 主体参考（`reference`）
+
+给参考素材设置相同的 `references[].subject` 名称即可归为一个主体，提示词中用 `@<subject>` 引用。
+
+- 照片主体：最多 7 个，每个 2–4 张 `reference_image`
+- 视频主体：最多 3 个，每个 1 个 `reference_video`，不带照片
+- 音色：每个主体可加 1 个 `reference_audio` 作为其音色；只有 `reference_audio` 的主体是独立音色，最多 3 个
+- 主体可与未分组参考素材同时使用；参考数量按“未分组参考素材数 + 主体数”计，角色数量限制只计未分组参考素材。
 
 ## 参数
 

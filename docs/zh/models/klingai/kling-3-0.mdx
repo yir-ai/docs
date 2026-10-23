@@ -20,6 +20,20 @@ seo:
 | `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
 | `reference` 参考素材 | 2 | `reference_image`、`reference_video` |
 
+### 主体参考（`reference`）
+
+给参考素材设置相同的 `references[].subject` 名称即可归为一个主体，提示词中用 `@<subject>` 引用。
+
+- 照片主体：最多 3 个，每个 2–4 张 `reference_image`
+- 使用主体时，所有参考素材都必须是带 subject 的 `reference_image`。
+
+使用主体时，以下取值生效：
+
+- 分辨率：`720p`、`1080p`、`4K`
+- 画幅：`16:9`、`9:16`、`1:1`（默认 `16:9`）
+- 时长：3–15 秒
+- 生成音频：`false`、`true`
+
 ## 参数
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |

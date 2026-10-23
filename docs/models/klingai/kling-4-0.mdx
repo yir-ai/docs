@@ -18,7 +18,16 @@ seo:
 | --- | --- | --- |
 | `text` Text only | — | — |
 | `image` Image input | 1 to 2 | `first_frame` 1<br />`last_frame` 0 to 1 |
-| `reference` Reference media | 1 to 15 | `reference_audio` 0<br />`reference_image` 0 to 10<br />`reference_video` 0 to 5 |
+| `reference` Reference media | 1 to 15 | `reference_audio` only in subjects<br />`reference_image` 0 to 10<br />`reference_video` 0 to 5 |
+
+### Subject references (`reference`)
+
+Give references the same `references[].subject` name to group them into one subject, and refer to it in the prompt as `@<subject>`.
+
+- Photo subjects: up to 7, each with 2 to 4 `reference_image`
+- Video subjects: up to 3, each with 1 `reference_video` and no photos
+- Voice: a subject may add 1 `reference_audio` as its voice; up to 3 subjects with only `reference_audio` are standalone voices
+- Subjects can be combined with ungrouped references; the reference count covers ungrouped references plus subjects, and role limits apply to ungrouped references only.
 
 ## Parameters
 

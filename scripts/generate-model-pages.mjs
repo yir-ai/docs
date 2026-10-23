@@ -46,6 +46,18 @@ const TEXT = {
     contract: id => `The authoritative contract is \`GET /v1/models/${id}?view=contract\`. A valid parameter does not mean every channel can run it, so [quote](/docs/concepts/billing#get-a-quote) the complete request. Prices and channels are listed in [Model Market](https://yir.ai/models).`,
     index: 'All models', model: 'Model', type: 'Type', types: { generate_image: 'Image', generate_video: 'Video', generate_music: 'Music', generate_sound_effect: 'Sound effect' },
     sep: ', ', colon: ': ',
+    subjectOnly: 'only in subjects',
+    subjects: {
+      title: mode => `Subject references (\`${mode}\`)`,
+      intro: 'Give references the same `references[].subject` name to group them into one subject, and refer to it in the prompt as `@<subject>`.',
+      photos: (max, images) => `Photo subjects: up to ${max}, each with ${images} \`reference_image\``,
+      videos: (max, videos) => `Video subjects: up to ${max}, each with ${videos} \`reference_video\` and no photos`,
+      voices: (perSubject, audioOnly) => `Voice: a subject may add ${perSubject} \`reference_audio\` as its voice${audioOnly ? `; up to ${audioOnly} subjects with only \`reference_audio\` are standalone voices` : ''}`,
+      mixed: 'Subjects can be combined with ungrouped references; the reference count covers ungrouped references plus subjects, and role limits apply to ungrouped references only.',
+      exclusive: 'With subjects, every reference must be a `reference_image` with a subject.',
+      overrides: 'With subjects, these values apply:',
+      resolution: 'resolution', aspectRatio: 'aspect ratio', duration: 'duration', audio: 'generate audio', seconds: s => `${s} s`, defaultValue: v => ` (default ${v})`,
+    },
   },
   zh: {
     generated: '由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在',
@@ -63,6 +75,18 @@ const TEXT = {
     contract: id => `完整合同以 \`GET /v1/models/${id}?view=contract\` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。`,
     index: '全部模型', model: '模型', type: '类型', types: { generate_image: '图片', generate_video: '视频', generate_music: '音乐', generate_sound_effect: '音效' },
     sep: '、', colon: '：',
+    subjectOnly: '仅用于主体',
+    subjects: {
+      title: mode => `主体参考（\`${mode}\`）`,
+      intro: '给参考素材设置相同的 `references[].subject` 名称即可归为一个主体，提示词中用 `@<subject>` 引用。',
+      photos: (max, images) => `照片主体：最多 ${max} 个，每个 ${images} 张 \`reference_image\``,
+      videos: (max, videos) => `视频主体：最多 ${max} 个，每个 ${videos} 个 \`reference_video\`，不带照片`,
+      voices: (perSubject, audioOnly) => `音色：每个主体可加 ${perSubject} 个 \`reference_audio\` 作为其音色${audioOnly ? `；只有 \`reference_audio\` 的主体是独立音色，最多 ${audioOnly} 个` : ''}`,
+      mixed: '主体可与未分组参考素材同时使用；参考数量按“未分组参考素材数 + 主体数”计，角色数量限制只计未分组参考素材。',
+      exclusive: '使用主体时，所有参考素材都必须是带 subject 的 `reference_image`。',
+      overrides: '使用主体时，以下取值生效：',
+      resolution: '分辨率', aspectRatio: '画幅', duration: '时长', audio: '生成音频', seconds: s => `${s} 秒`, defaultValue: v => `（默认 ${v}）`,
+    },
   },
 }
 
@@ -109,7 +133,9 @@ function roleCell(constraint, t) {
   const lines = []
   if (constraint.reference_counts_by_role) {
     for (const [role, count] of Object.entries(constraint.reference_counts_by_role)) {
-      lines.push(`\`${role}\` ${count.minimum === count.maximum ? count.maximum : t.range(count.minimum, count.maximum)}`)
+      // A role capped at 0 next to subject_references is only accepted inside a subject (e.g. a subject's voice).
+      const amount = count.maximum === 0 && constraint.subject_references ? t.subjectOnly : count.minimum === count.maximum ? count.maximum : t.range(count.minimum, count.maximum)
+      lines.push(`\`${role}\` ${amount}`)
     }
   } else if (constraint.allowed_reference_roles?.length) {
     lines.push(constraint.allowed_reference_roles.map(role => `\`${role}\``).join(t.sep))
@@ -119,6 +145,26 @@ function roleCell(constraint, t) {
   }
   for (const [role, seconds] of Object.entries(constraint.max_duration_by_reference_role ?? {})) lines.push(t.maxDuration(role, seconds))
   return lines.join('<br />') || t.none
+}
+
+/** Subject grouping rules from input_constraints.<mode>.subject_references. */
+function subjectLines(mode, limits, t) {
+  const s = t.subjects
+  const count = (a, b) => a === b ? `${b}` : t.range(a, b)
+  const items = [s.photos(limits.max_subjects, count(limits.min_images_per_subject, limits.max_images_per_subject))]
+  if (limits.max_videos_per_subject) items.push(s.videos(limits.max_video_subjects, limits.max_videos_per_subject))
+  if (limits.max_audios_per_subject) items.push(s.voices(limits.max_audios_per_subject, limits.max_audio_only_subjects))
+  items.push(limits.mixed ? s.mixed : s.exclusive)
+  const values = list => list.map(code).join(t.sep)
+  const overrides = []
+  if (limits.resolutions?.length) overrides.push(`${s.resolution}${t.colon}${values(limits.resolutions)}`)
+  if (limits.aspect_ratios?.length) overrides.push(`${s.aspectRatio}${t.colon}${values(limits.aspect_ratios)}${limits.default_aspect_ratio ? s.defaultValue(code(limits.default_aspect_ratio)) : ''}`)
+  if (limits.allowed_durations?.length) overrides.push(`${s.duration}${t.colon}${values(limits.allowed_durations.map(d => s.seconds(d)))}`)
+  else if (limits.max_duration_seconds) overrides.push(`${s.duration}${t.colon}${s.seconds(t.range(limits.min_duration_seconds, limits.max_duration_seconds))}`)
+  if (limits.allowed_audios?.length) overrides.push(`${s.audio}${t.colon}${values(limits.allowed_audios)}`)
+  const lines = ['', `### ${s.title(mode)}`, '', s.intro, '', ...items.map(item => `- ${item}`)]
+  if (overrides.length) lines.push('', s.overrides, '', ...overrides.map(item => `- ${item}`))
+  return lines
 }
 
 function valuesCell(param, t) {
@@ -182,6 +228,9 @@ export function renderPage(model, lang, notesFile) {
     }
     const promptOptionalModes = view.modes.filter(mode => view.constraints[mode].prompt_optional === true)
     if (promptOptionalModes.length) lines.push('', `${t.optionalPrompt} ${promptOptionalModes.map(code).join(t.sep)}`)
+    for (const mode of view.modes) {
+      if (view.constraints[mode].subject_references) lines.push(...subjectLines(mode, view.constraints[mode].subject_references, t))
+    }
     lines.push('', `## ${t.parameters}`, '', `| ${t.param} | ${t.desc} | ${t.values} | ${t.def} | ${t.req} |`, '| --- | --- | --- | --- | --- |')
     for (const [name, slot] of view.params) {
       for (const { param, modes } of slot.values()) {
