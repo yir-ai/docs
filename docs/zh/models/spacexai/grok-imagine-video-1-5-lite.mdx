@@ -1,0 +1,79 @@
+---
+title: "Grok Imagine Video 1.5 Lite"
+description: "xAI Grok Imagine 视频 1.5 轻量版，每秒价格最低，文生与首帧图生带口型同步音频"
+seo:
+  title: "Grok Imagine Video 1.5 Lite API 文档：参数与调用示例"
+  description: "Grok Imagine Video 1.5 Lite API 文档：模型 ID spacexai/grok-imagine-video-1.5-lite、输入模式、参数取值与默认值，附请求示例。xAI Grok Imagine 视频 1.5 轻量版，每秒价格最低，文生与首帧图生带口型同步音频。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `spacexai/grok-imagine-video-1.5-lite` | `grok-imagine-video-1.5-lite` | [视频生成](/zh/docs/guides/video-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+| `image` 图片输入 | 1 | `first_frame` |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `duration` | 时长：输出视频的秒数。 | `1`–`15` | `8` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p` | `480p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`3:2`、`2:3` | `16:9` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 | `true` | `true` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "spacexai/grok-imagine-video-1.5-lite",
+  "input": {
+    "type": "text",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot"
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "480p",
+    "aspect_ratio": "16:9",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "spacexai/grok-imagine-video-1.5-lite",
+  "input": {
+    "type": "image",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "first_frame",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 8,
+    "resolution": "480p",
+    "aspect_ratio": "auto",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/spacexai/grok-imagine-video-1.5-lite?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
