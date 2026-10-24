@@ -1,7 +1,7 @@
 # Yir developer documentation
 
-Public source for [Yir developer documentation](https://yir.ai/docs) and its
-[Simplified Chinese edition](https://yir.ai/zh/docs). Built with Blume as a static site.
+Public source for [Yir developer documentation](https://yir.ai/docs?utm_source=github&utm_medium=repo&utm_campaign=docs) and its
+[Simplified Chinese edition](https://yir.ai/zh/docs?utm_source=github&utm_medium=repo&utm_campaign=docs). Built with Blume as a static site.
 
 ## Contribute
 
