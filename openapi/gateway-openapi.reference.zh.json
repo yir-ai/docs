@@ -1684,6 +1684,12 @@
           "parameters"
         ],
         "properties": {
+          "max_cost": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 max_cost。"
+          },
+          "webhook_url": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 webhook_url。"
+          },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },
@@ -1985,6 +1991,12 @@
           "parameters"
         ],
         "properties": {
+          "max_cost": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 max_cost。"
+          },
+          "webhook_url": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 webhook_url。"
+          },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },
@@ -2172,6 +2184,12 @@
           "input"
         ],
         "properties": {
+          "max_cost": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 max_cost。"
+          },
+          "webhook_url": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 webhook_url。"
+          },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },

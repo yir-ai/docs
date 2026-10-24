@@ -1684,6 +1684,12 @@
           "parameters"
         ],
         "properties": {
+          "max_cost": {
+            "description": "Submit-only. A quote ignores any value and reports max_cost in parameter_notices."
+          },
+          "webhook_url": {
+            "description": "Submit-only. A quote ignores any value and reports webhook_url in parameter_notices."
+          },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },
@@ -1985,6 +1991,12 @@
           "parameters"
         ],
         "properties": {
+          "max_cost": {
+            "description": "Submit-only. A quote ignores any value and reports max_cost in parameter_notices."
+          },
+          "webhook_url": {
+            "description": "Submit-only. A quote ignores any value and reports webhook_url in parameter_notices."
+          },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },
@@ -2172,6 +2184,12 @@
           "input"
         ],
         "properties": {
+          "max_cost": {
+            "description": "Submit-only. A quote ignores any value and reports max_cost in parameter_notices."
+          },
+          "webhook_url": {
+            "description": "Submit-only. A quote ignores any value and reports webhook_url in parameter_notices."
+          },
           "billing_mode": {
             "$ref": "#/components/schemas/ActualBillingMode"
           },
