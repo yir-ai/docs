@@ -1736,7 +1736,7 @@
             }
           }
         },
-        "description": "图片生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
+        "description": "图片生成请求合同。报价忽略仅用于提交的 webhook_url 和 max_cost，并在 parameter_notices 中说明。报价不创建 Job，不收费。"
       },
       "StandardVideoTextInput": {
         "type": "object",
@@ -2059,7 +2059,7 @@
             }
           }
         },
-        "description": "视频生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
+        "description": "视频生成请求合同。报价忽略仅用于提交的 webhook_url 和 max_cost，并在 parameter_notices 中说明。报价不创建 Job，不收费。"
       },
       "StandardMusicTextInput": {
         "type": "object",
@@ -2190,7 +2190,7 @@
             "$ref": "#/components/schemas/StandardMusicParameters"
           }
         },
-        "description": "音乐生成请求合同，但不含 webhook_url 和 max_cost。报价不创建 Job，不收费。"
+        "description": "音乐生成请求合同。报价忽略仅用于提交的 webhook_url 和 max_cost，并在 parameter_notices 中说明。报价不创建 Job，不收费。"
       },
       "MaxCost": {
         "type": "string",
@@ -3578,7 +3578,8 @@
               "channel_parameter_unsupported",
               "quality_requires_official_channel",
               "parameter_fixed_by_model",
-              "duplicate_reference"
+              "duplicate_reference",
+              "not_used_by_quote"
             ]
           },
           "message": {
