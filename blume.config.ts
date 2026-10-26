@@ -115,7 +115,8 @@ export default defineConfig({
     site: "https://yir.ai",
   },
   theme: {
-    accent: "green",
+    // Yir ink (DESIGN.md rate-card-ink); card icons and hover borders use it.
+    accent: { light: "#1d1d1f", dark: "#f5f5f7" },
     action: "#2f6f43",
     mode: "system",
     radius: "lg",
