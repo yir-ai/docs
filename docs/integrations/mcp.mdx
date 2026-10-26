@@ -1,0 +1,78 @@
+---
+title: MCP server
+description: Connect claude.ai, ChatGPT, Claude Desktop, Cursor, and other MCP clients to Yir to generate images, videos, and audio from chat.
+---
+
+Yir runs a remote [Model Context Protocol](https://modelcontextprotocol.io) server. Once connected, an AI assistant can list models, quote a request, generate images, videos, and audio, and fetch the results, all billed to your Yir wallet.
+
+| | |
+| --- | --- |
+| Server URL | `https://gateway.yir.ai/mcp` |
+| Transport | Streamable HTTP (stateless) |
+| Authentication | OAuth 2.1, or a Yir API Key as a Bearer token |
+
+Every tool calls the same Standard API, so models, routing, quotes, idempotency, and billing work exactly as with REST.
+
+## Which to use
+
+- **Chat apps** (claude.ai, ChatGPT, Claude Desktop) and editors such as Cursor: use the MCP server.
+- **Coding agents** that run local scripts (Claude Code, Codex): the [Agent Skill](/docs/integrations/agent-skill) also downloads results into your project and runs batches. Either works; you do not need both.
+
+## Connect with OAuth
+
+In clients that support remote MCP servers with OAuth, add a custom connector with the server URL `https://gateway.yir.ai/mcp`. In claude.ai and Claude Desktop this is under connector settings; in ChatGPT it requires developer mode.
+
+The client opens a Yir sign-in and consent page showing the client's name and where it will return. After you allow access, Yir creates a revocable API Key named `MCP · <client>` for that connection. Jobs it creates appear under that key in the Console, and its monthly limit applies.
+
+To disconnect, delete that key in Console → API Keys. The client loses access immediately.
+
+## Connect with an API Key
+
+Clients that let you set request headers can skip OAuth and send a Gateway API Key (`yir_sk_…`):
+
+```json
+{
+  "mcpServers": {
+    "yir": {
+      "url": "https://gateway.yir.ai/mcp",
+      "headers": { "Authorization": "Bearer yir_sk_..." }
+    }
+  }
+}
+```
+
+In Claude Code:
+
+```sh
+claude mcp add --transport http yir https://gateway.yir.ai/mcp --header "Authorization: Bearer $YIR_API_KEY"
+```
+
+Use a dedicated key so you can set its monthly limit and revoke it on its own. See [authentication](/docs/getting-started/authentication).
+
+## Tools
+
+| Tool | What it does |
+| --- | --- |
+| `list_models` | Lists models with their operations and input modes. Optional `type` (`image`, `video`, `audio`) and `query` filters. |
+| `get_model` | Returns one model's parameter contract and current prices per channel. |
+| `get_balance` | Returns the wallet balance in USD. |
+| `quote` | Estimates the cost of a request without creating a Job. Takes `type`, `model`, `input`, `parameters`, and optional `routing`. |
+| `generate` | Creates a billed Job and waits up to 40 seconds for it. Requires `request_id` and `max_cost` in addition to the quote fields. |
+| `get_job` | Returns a Job, optionally waiting up to 40 seconds (`wait_seconds`, 0–40) for it to finish. |
+| `cancel_job` | Requests a Job to stop. Work already sent upstream may still be billed. |
+| `upload_file` | Uploads a local reference file in two steps and returns a `file_id`. |
+
+`input` is the Standard input object `{type, prompt, references}`. A reference is `{role, url}` with an HTTPS URL, or `{role, file_id}` from `upload_file`. Parameter names are exactly those returned by `get_model`. See [image generation](/docs/guides/image-generation) and [video generation](/docs/guides/video-generation) for examples of each field.
+
+Tool results are the Standard API's JSON. Results are short-lived signed links, not file bytes. API errors are returned as tool errors with their `YIR_*` code; see [error codes](/docs/production/error-codes). A Job with `status: "failed"` is a successful lookup: read its `error` and `billing`.
+
+## Cost and retries
+
+- `generate` requires `max_cost`, a hard USD cap such as `"0.25"`. The server tells the assistant to `quote` first and confirm the amount with you before generating. There is no extra server-side confirmation step, so also keep tool approval turned on in your client for `generate`.
+- `request_id` makes retries safe: the same `request_id` with the same request returns the original Job instead of creating a new one; the same `request_id` with a different request is rejected.
+- Video and long audio usually outlast the 40-second wait. The assistant then calls `get_job` until the Job finishes.
+- Key monthly limits still apply and reject new Jobs once reached.
+
+## Limits
+
+Not available through MCP yet: batch quotes, listing past Jobs, Webhooks, and file bridging from chat attachments. Pass references as HTTPS URLs or upload them with `upload_file`. Browser-based MCP clients that need CORS are not supported.

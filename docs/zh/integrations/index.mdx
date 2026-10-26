@@ -1,6 +1,6 @@
 ---
 title: 选择接入方式
-description: 对比 Standard API、官方 SDK、Vercel AI SDK 与 OpenAI 兼容接口，按现有技术栈选择接入 Yir 的方式。
+description: 对比 Standard API、官方 SDK、Vercel AI SDK、OpenAI 兼容接口、Agent Skill 与 MCP 服务器，按现有技术栈选择接入 Yir 的方式。
 ---
 
 这些方式最终都调用同一个 Standard API，Job、路由和计费规则完全一致，区别只在调用方式和能用到的功能。
@@ -13,5 +13,6 @@ description: 对比 Standard API、官方 SDK、Vercel AI SDK 与 OpenAI 兼容�
 | AI SaaS 模板，自带 Provider 与积分 | [SaaS 模板](/zh/docs/integrations/saas-templates) | 把 Yir 接成一个 Provider，页面、积分和价格不变；模型控件来自合同。 |
 | 已按 OpenAI Images、Sora 或 new-api 对接 | [OpenAI 兼容与 new-api](/zh/docs/integrations/openai-compatibility) | 只换 Base URL 和 Key。同步等待结果，不支持 Webhook 和完整路由控制。 |
 | 在 Claude Code、Codex 等编程 Agent 里生成 | [Agent Skill](/zh/docs/integrations/agent-skill) | 用自然语言让 Agent 生成图片和视频，Skill 代为调用 Standard API。 |
+| 在 claude.ai、ChatGPT、Claude Desktop 或 Cursor 里生成 | [MCP 服务器](/zh/docs/integrations/mcp) | 用 OAuth 或 API Key 连接，助手在对话里报价、生成并返回结果链接。 |
 
 拿不准时，选 Standard API 或 SDK。所有方式都只用 Yir API Key 认证，见[身份认证](/zh/docs/getting-started/authentication)。

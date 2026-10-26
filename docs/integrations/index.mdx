@@ -1,6 +1,6 @@
 ---
 title: Choose an integration
-description: Compare the Standard API, the official SDKs, the Vercel AI SDK, and the OpenAI-compatible endpoints, and pick the one that fits your stack.
+description: Compare the Standard API, the official SDKs, the Vercel AI SDK, the OpenAI-compatible endpoints, the Agent Skill, and the MCP server, and pick the one that fits your stack.
 ---
 
 All of these options call the same Standard API, so Jobs, routing, and billing work the same way. They differ only in how you call Yir and which features you can reach.
@@ -13,5 +13,6 @@ All of these options call the same Standard API, so Jobs, routing, and billing w
 | AI SaaS template with its own providers and credits | [SaaS templates](/docs/integrations/saas-templates) | Add Yir as one provider and keep your pages, credits, and prices. Model controls come from the contract. |
 | Already integrated with OpenAI Images, Sora, or new-api | [OpenAI compatibility and new-api](/docs/integrations/openai-compatibility) | Change only the Base URL and key. Results are returned synchronously; Webhooks and full routing control are not available. |
 | Generating from a coding agent such as Claude Code or Codex | [Agent Skill](/docs/integrations/agent-skill) | Ask the agent for images and videos in plain language; the skill calls the Standard API for you. |
+| Generating from claude.ai, ChatGPT, Claude Desktop, or Cursor | [MCP server](/docs/integrations/mcp) | Connect with OAuth or an API Key; the assistant quotes, generates, and returns result links in chat. |
 
 If unsure, use the Standard API or an SDK. Every option authenticates with a Yir API Key only; see [authentication](/docs/getting-started/authentication).

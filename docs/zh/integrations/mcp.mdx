@@ -1,0 +1,78 @@
+---
+title: MCP 服务器
+description: 把 claude.ai、ChatGPT、Claude Desktop、Cursor 等 MCP 客户端连接到 Yir，在对话里生成图片、视频和音频。
+---
+
+Yir 提供远程 [Model Context Protocol](https://modelcontextprotocol.io) 服务器。连接后，AI 助手可以列出模型、报价、生成图片/视频/音频并取回结果，费用从你的 Yir 钱包扣除。
+
+| | |
+| --- | --- |
+| 服务器地址 | `https://gateway.yir.ai/mcp` |
+| 传输方式 | Streamable HTTP（无状态） |
+| 认证 | OAuth 2.1，或把 Yir API Key 作为 Bearer 令牌 |
+
+每个工具都调用同一个 Standard API，模型、路由、报价、幂等与计费和 REST 完全一致。
+
+## 选哪种方式
+
+- **对话应用**（claude.ai、ChatGPT、Claude Desktop）和 Cursor 等编辑器：用 MCP 服务器。
+- **能运行本地脚本的编程 Agent**（Claude Code、Codex）：[Agent Skill](/zh/docs/integrations/agent-skill) 还能把结果下载到项目里、批量生成。两者任选其一即可，不必同时装。
+
+## 用 OAuth 连接
+
+在支持远程 MCP 服务器与 OAuth 的客户端中，添加自定义连接器，服务器地址填 `https://gateway.yir.ai/mcp`。claude.ai 与 Claude Desktop 在连接器设置里添加；ChatGPT 需要开启开发者模式。
+
+客户端会打开 Yir 的登录与授权页，显示客户端名称和授权后返回的地址。允许后，Yir 为这次连接新建一条可撤销的 API Key `MCP · <客户端>`。它创建的 Job 在 Console 中归在这条 Key 下，也受这条 Key 的月度上限约束。
+
+要断开连接，在 Console → API Keys 删除这条 Key，客户端立即失去访问权限。
+
+## 用 API Key 连接
+
+能自定义请求头的客户端可以不走 OAuth，直接发送网关 API Key（`yir_sk_…`）：
+
+```json
+{
+  "mcpServers": {
+    "yir": {
+      "url": "https://gateway.yir.ai/mcp",
+      "headers": { "Authorization": "Bearer yir_sk_..." }
+    }
+  }
+}
+```
+
+在 Claude Code 中：
+
+```sh
+claude mcp add --transport http yir https://gateway.yir.ai/mcp --header "Authorization: Bearer $YIR_API_KEY"
+```
+
+建议单独建一条 Key，便于单独设置月度上限和撤销。见[身份认证](/zh/docs/getting-started/authentication)。
+
+## 工具
+
+| 工具 | 作用 |
+| --- | --- |
+| `list_models` | 列出模型及其操作与输入方式。可选 `type`（`image`、`video`、`audio`）与 `query` 筛选。 |
+| `get_model` | 返回单个模型的参数合同与各渠道当前价格。 |
+| `get_balance` | 返回钱包余额（美元）。 |
+| `quote` | 估算请求费用，不创建 Job。参数为 `type`、`model`、`input`、`parameters`，可选 `routing`。 |
+| `generate` | 创建计费 Job 并最多等待 40 秒。除报价字段外还必须提供 `request_id` 与 `max_cost`。 |
+| `get_job` | 返回 Job，可选等待最多 40 秒（`wait_seconds`，0–40）直到完成。 |
+| `cancel_job` | 请求停止 Job。已发往上游的部分仍可能计费。 |
+| `upload_file` | 分两步上传本地参考文件，返回 `file_id`。 |
+
+`input` 是 Standard 输入对象 `{type, prompt, references}`。参考素材写成 `{role, url}`（HTTPS 地址）或 `{role, file_id}`（来自 `upload_file`）。参数名与 `get_model` 返回的完全一致。各字段示例见[图片生成](/zh/docs/guides/image-generation)与[视频生成](/zh/docs/guides/video-generation)。
+
+工具结果就是 Standard API 返回的 JSON。结果是短期签名链接，不内联文件内容。API 错误以工具错误返回并保留 `YIR_*` 错误码，见[错误码](/zh/docs/production/error-codes)。`status: "failed"` 的 Job 属于查询成功，读它的 `error` 与 `billing` 即可。
+
+## 费用与重试
+
+- `generate` 必须带 `max_cost`，即本次的美元硬上限，如 `"0.25"`。服务器会要求助手先 `quote`、向你确认金额再生成。服务端没有额外的确认步骤，请在客户端里保持 `generate` 的工具调用需要确认。
+- `request_id` 保证重试安全：同一 `request_id`、同样的请求会返回原来的 Job，不会新建；同一 `request_id` 换了请求内容会被拒绝。
+- 视频和较长的音频通常超过 40 秒，助手会继续调用 `get_job` 直到完成。
+- Key 月度上限照常生效，达到后拒绝新 Job。
+
+## 限制
+
+MCP 暂不支持：批量报价、历史 Job 列表、Webhook、从对话附件直接传文件。参考素材请用 HTTPS 地址，或用 `upload_file` 上传。需要 CORS 的浏览器内 MCP 客户端暂不支持。
