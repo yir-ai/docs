@@ -3588,7 +3588,11 @@
           },
           "disposition": {
             "type": "string",
-            "const": "ignored"
+            "enum": [
+              "ignored",
+              "exceeded"
+            ],
+            "description": "ignored：该参数未生效。exceeded：交付结果超出请求（多出的结果按 n 截取、同画幅的更高分辨率，或 generate_audio 为 false 时仍带音轨），收费不超过报价。"
           },
           "reason": {
             "type": "string",
@@ -3597,7 +3601,10 @@
               "quality_requires_official_channel",
               "parameter_fixed_by_model",
               "duplicate_reference",
-              "not_used_by_quote"
+              "not_used_by_quote",
+              "output_count_exceeded",
+              "resolution_exceeded",
+              "audio_included"
             ]
           },
           "message": {

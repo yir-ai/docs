@@ -3588,7 +3588,11 @@
           },
           "disposition": {
             "type": "string",
-            "const": "ignored"
+            "enum": [
+              "ignored",
+              "exceeded"
+            ],
+            "description": "ignored: the parameter was not applied. exceeded: the delivered result exceeds the request (extra outputs trimmed to n, a higher resolution with the requested aspect ratio, or audio although generate_audio is false) and is charged no more than the quote."
           },
           "reason": {
             "type": "string",
@@ -3597,7 +3601,10 @@
               "quality_requires_official_channel",
               "parameter_fixed_by_model",
               "duplicate_reference",
-              "not_used_by_quote"
+              "not_used_by_quote",
+              "output_count_exceeded",
+              "resolution_exceeded",
+              "audio_included"
             ]
           },
           "message": {

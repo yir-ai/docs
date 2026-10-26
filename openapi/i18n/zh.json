@@ -150,5 +150,6 @@
   "Submit an audio job (legacy path)": "提交音频 Job（旧路径）",
   "Legacy name of POST /v1/audio/generations, kept permanently with the same request, response and billing; an Idempotency-Key used on one path replays on the other. New code should call /v1/audio/generations.": "POST /v1/audio/generations 的旧名，永久保留，请求、响应与计费完全相同；同一 Idempotency-Key 在两条路径间互相重放。新代码请调用 /v1/audio/generations。",
   "Submit-only. A quote ignores any value and reports max_cost in parameter_notices.": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 max_cost。",
-  "Submit-only. A quote ignores any value and reports webhook_url in parameter_notices.": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 webhook_url。"
+  "Submit-only. A quote ignores any value and reports webhook_url in parameter_notices.": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 webhook_url。",
+  "ignored: the parameter was not applied. exceeded: the delivered result exceeds the request (extra outputs trimmed to n, a higher resolution with the requested aspect ratio, or audio although generate_audio is false) and is charged no more than the quote.": "ignored：该参数未生效。exceeded：交付结果超出请求（多出的结果按 n 截取、同画幅的更高分辨率，或 generate_audio 为 false 时仍带音轨），收费不超过报价。"
 }
