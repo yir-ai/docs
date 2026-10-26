@@ -1795,8 +1795,10 @@
                   "type": "string",
                   "enum": [
                     "first_frame",
+                    "keyframe",
                     "last_frame"
-                  ]
+                  ],
+                  "description": "keyframe is a middle frame between first_frame and last_frame. Keyframes play in the order they appear in references and carry no timestamp; models that accept them declare the role and its count in their input contract."
                 },
                 "file_id": {
                   "$ref": "#/components/schemas/FileID"
@@ -4054,6 +4056,7 @@
               "type": "string",
               "enum": [
                 "first_frame",
+                "keyframe",
                 "last_frame",
                 "reference_image",
                 "reference_video",
@@ -4068,6 +4071,7 @@
               "type": "string",
               "enum": [
                 "first_frame",
+                "keyframe",
                 "last_frame",
                 "reference_image",
                 "reference_video",
@@ -4111,6 +4115,7 @@
               "type": "string",
               "enum": [
                 "first_frame",
+                "keyframe",
                 "last_frame",
                 "reference_image",
                 "reference_video",

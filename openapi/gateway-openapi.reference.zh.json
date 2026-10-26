@@ -1795,8 +1795,10 @@
                   "type": "string",
                   "enum": [
                     "first_frame",
+                    "keyframe",
                     "last_frame"
-                  ]
+                  ],
+                  "description": "keyframe 是首帧与尾帧之间的中间关键帧。关键帧按在 references 中出现的先后顺序排列，不带时间点；支持它的模型会在输入合同中声明该角色及数量。"
                 },
                 "file_id": {
                   "$ref": "#/components/schemas/FileID"
@@ -4054,6 +4056,7 @@
               "type": "string",
               "enum": [
                 "first_frame",
+                "keyframe",
                 "last_frame",
                 "reference_image",
                 "reference_video",
@@ -4068,6 +4071,7 @@
               "type": "string",
               "enum": [
                 "first_frame",
+                "keyframe",
                 "last_frame",
                 "reference_image",
                 "reference_video",
@@ -4111,6 +4115,7 @@
               "type": "string",
               "enum": [
                 "first_frame",
+                "keyframe",
                 "last_frame",
                 "reference_image",
                 "reference_video",

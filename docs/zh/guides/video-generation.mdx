@@ -10,12 +10,12 @@ description: 使用 Yir Standard API 从文本、首尾帧，或图片、视频�
 | `input.type` | 用途 | 参考角色 |
 | --- | --- | --- |
 | `text` | 文生视频 | 无 |
-| `image` | 从首帧开始生成，可选指定尾帧 | `first_frame`、`last_frame` |
+| `image` | 从首帧开始生成，可选经过有序关键帧并指定尾帧 | `first_frame`、`keyframe`、`last_frame` |
 | `reference` | 用多种素材引导视频 | `reference_image`、`reference_video`、`reference_audio` |
 
 每个图片、视频或音频参考用 `role` 加上 `file_id`（先通过 [Files API](/zh/docs/guides/input-files) 上传并等到 `ready`）或由 Yir 在提交时下载的公开 HTTPS `url` 引用。URL 限制见[输入文件](/zh/docs/guides/input-files#公开-url)。
 
-模型支持哪些输入方式、角色和数量由其合同决定。例如 Seedance 2.0 在 `image` 模式下接受一个 `first_frame` 和可选的 `last_frame`；在 `reference` 模式下最多接受 9 张图片、3 段视频和 3 段音频（至少一张图片或一段视频）。
+模型支持哪些输入方式、角色和数量由其合同决定。例如 Seedance 2.0 在 `image` 模式下接受一个 `first_frame` 和可选的 `last_frame`；在 `reference` 模式下最多接受 9 张图片、3 段视频和 3 段音频（至少一张图片或一段视频）。Kling 4.0 在 `image` 模式下还接受最多 8 个 `keyframe`，按在 `references` 中出现的先后顺序排列。
 
 ## 常用参数
 

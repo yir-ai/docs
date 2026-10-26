@@ -169,7 +169,7 @@ test('the Yir column of the official API differences page matches the model cont
 })
 
 test('rules for every model hold across the contract', () => {
-  const roles = new Set(['reference_image', 'first_frame', 'last_frame', 'reference_video', 'reference_audio'])
+  const roles = new Set(['reference_image', 'first_frame', 'keyframe', 'last_frame', 'reference_video', 'reference_audio'])
   for (const model of c.models) {
     for (const op of model.operations) {
       assert.deepEqual(op.parameters.find(p => p.name === 'n')?.values, model.id.startsWith('suno/') ? [2] : [1], `${model.id}: n is 1 (Suno v6 family: 2)`)
