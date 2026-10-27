@@ -20,7 +20,7 @@ Every tool calls the same Standard API, so models, routing, quotes, idempotency,
 
 ## Connect with OAuth
 
-In clients that support remote MCP servers with OAuth, add a custom connector with the server URL `https://gateway.yir.ai/mcp`. In claude.ai and Claude Desktop this is under connector settings; in ChatGPT it requires developer mode.
+In clients that support remote MCP servers with OAuth, add a custom connector with the server URL `https://gateway.yir.ai/mcp`. In claude.ai and Claude Desktop this is under connector settings. In ChatGPT, open the Plugins page, choose **Add → Add custom MCP server**, select OAuth, accept the risk notice, create it, then click **Connect Yir** and sign in. In chat, mention `@Yir` and ask for Yir to generate, or ChatGPT may use its built-in image tool instead.
 
 The client opens a Yir sign-in and consent page showing the client's name and where it will return. After you allow access, Yir creates a revocable API Key named `MCP · <client>` for that connection. Jobs it creates appear under that key in the Console, and its monthly limit applies.
 

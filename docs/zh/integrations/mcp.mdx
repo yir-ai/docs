@@ -20,7 +20,7 @@ Yir 提供远程 [Model Context Protocol](https://modelcontextprotocol.io) 服�
 
 ## 用 OAuth 连接
 
-在支持远程 MCP 服务器与 OAuth 的客户端中，添加自定义连接器，服务器地址填 `https://gateway.yir.ai/mcp`。claude.ai 与 Claude Desktop 在连接器设置里添加；ChatGPT 需要开启开发者模式。
+在支持远程 MCP 服务器与 OAuth 的客户端中，添加自定义连接器，服务器地址填 `https://gateway.yir.ai/mcp`。claude.ai 与 Claude Desktop 在连接器设置里添加。ChatGPT 在 Plugins 页点 **Add → Add custom MCP server**，认证选 OAuth，勾选风险确认后创建，再点 **Connect Yir** 登录授权；在对话里提需求时请 `@Yir` 并说明用 Yir 生成，否则 ChatGPT 可能改用自带的生图。
 
 客户端会打开 Yir 的登录与授权页，显示客户端名称和授权后返回的地址。允许后，Yir 为这次连接新建一条可撤销的 API Key `MCP · <客户端>`。它创建的 Job 在 Console 中归在这条 Key 下，也受这条 Key 的月度上限约束。
 
