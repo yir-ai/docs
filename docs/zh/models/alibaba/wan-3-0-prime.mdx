@@ -1,0 +1,104 @@
+---
+title: "Wan 3.0 Prime"
+description: "阿里巴巴万象 Wan 3.0 加速版，能力与标准版一致，生成速度显著更快"
+seo:
+  title: "Wan 3.0 Prime API 文档：参数与调用示例"
+  description: "Wan 3.0 Prime API 文档：模型 ID alibaba/wan-3.0-prime、输入模式、参数取值与默认值，附请求示例。阿里巴巴万象 Wan 3.0 加速版，能力与标准版一致，生成速度显著更快。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `alibaba/wan-3.0-prime` | `wan-3.0-prime`、`wan3.0-video-prime` | [视频生成](/zh/docs/guides/video-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+| `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
+| `reference` 参考素材 | 1–20 | `reference_audio` 0–5<br />`reference_image` 0–10<br />`reference_video` 0–5 |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `duration` | 时长：输出视频的秒数。 | `2`–`30` | `5` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p`、`1080p` | `1080p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 | `adaptive`、`16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `adaptive` | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 | `false`、`true` | `true` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "alibaba/wan-3.0-prime",
+  "input": {
+    "type": "text",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot"
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "1080p",
+    "aspect_ratio": "adaptive",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "alibaba/wan-3.0-prime",
+  "input": {
+    "type": "image",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "first_frame",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "1080p",
+    "aspect_ratio": "adaptive",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`reference` 输入：
+
+```json
+{
+  "model": "alibaba/wan-3.0-prime",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "1080p",
+    "aspect_ratio": "adaptive",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/alibaba/wan-3.0-prime?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
