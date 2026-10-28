@@ -101,6 +101,21 @@ curl --request POST https://gateway.yir.ai/v1/files/$FILE_ID/complete \
 | `GET /v1/files/{id}` | 返回 `200` 和文件快照，请读取其 `status`（`pending_upload`、`processing`、`ready`、`expired` 或 `failed`）。文件不存在时返回 `404 YIR_FILE_NOT_FOUND`。 |
 | `POST /v1/files/{id}/complete`、`GET /v1/files/{id}/content` | `404 YIR_FILE_NOT_FOUND`、`409 YIR_FILE_NOT_READY` 或 `410 YIR_FILE_EXPIRED`。 |
 
+## 浏览器直传
+
+分片上传地址接受任意网页的跨域 `PUT`，推荐让浏览器把文件直接传到存储，不经你的服务器中转：
+
+1. 你的服务器用 API Key 创建上传计划，只把分片地址交给浏览器。
+2. 浏览器把每个分片 `PUT` 到对应地址。
+3. 你的服务器调用 `complete`，使用返回的 `file_id`。
+
+```ts
+// 浏览器：partUrl 由你的服务器下发，不是 API Key。
+await fetch(partUrl, { method: "PUT", body: file });
+```
+
+不要把 API Key 暴露在浏览器中。每个分片地址只能写入对应文件的对应分片，并在 `upload.expires_at` 后失效。
+
 ## 读取文件
 
 `GET /v1/files/{id}` 返回当前状态。`GET /v1/files/{id}/content` 以 `307` 重定向到短期签名地址。API Key 只发送给 Gateway，不要发送给重定向目标。File 上的 `url` 字段是用于这种认证读取的路径，不能作为生成请求中的参考地址。

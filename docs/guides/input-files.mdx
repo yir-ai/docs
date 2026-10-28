@@ -101,6 +101,21 @@ Only `ready` files can be used in requests. A referenced file that is missing, n
 | `GET /v1/files/{id}` | `200` with the file snapshot; read its `status` (`pending_upload`, `processing`, `ready`, `expired`, or `failed`). An unknown file returns `404 YIR_FILE_NOT_FOUND`. |
 | `POST /v1/files/{id}/complete`, `GET /v1/files/{id}/content` | `404 YIR_FILE_NOT_FOUND`, `409 YIR_FILE_NOT_READY`, or `410 YIR_FILE_EXPIRED`. |
 
+## Uploading from the browser
+
+Upload part URLs accept cross-origin `PUT` from any web page, so we recommend letting the browser send the bytes straight to storage instead of relaying them through your server:
+
+1. Your server creates the upload plan with your API Key and passes only the part URLs to the browser.
+2. The browser `PUT`s each part to its URL.
+3. Your server calls `complete` and uses the returned `file_id`.
+
+```ts
+// Browser: partUrl comes from your server, never your API Key.
+await fetch(partUrl, { method: "PUT", body: file });
+```
+
+Never expose your API Key in the browser. Each part URL is limited to one file, one part, and `upload.expires_at`.
+
 ## Reading a file back
 
 `GET /v1/files/{id}` returns the current status. `GET /v1/files/{id}/content` redirects (`307`) to a short-lived signed URL. Send your API Key only to the Gateway, not to the redirect target. The `url` field on a File is a path for this authenticated read, not a reference URL for generation requests.

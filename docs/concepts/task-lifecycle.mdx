@@ -82,6 +82,8 @@ While a result is kept, `result.availability` is `available` and `result.files` 
 
 Yir is not an asset library. Copy every result you need to your own storage as soon as the Job succeeds.
 
+Result URLs allow cross-origin `GET` from any web page, so a browser can `fetch` a result directly, for example to show it or upload it to your storage, without relaying it through your server.
+
 A successful Job can carry `result.warnings: ["additional_results_unavailable"]` when an optional extra output (for example a video's last frame) could not be delivered. The Job is still successful and is charged normally.
 
 ### Content safety
