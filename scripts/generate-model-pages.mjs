@@ -187,7 +187,8 @@ function exampleRequest(model, view, mode) {
   const constraint = view.constraints[mode]
   if (constraint.max_references) {
     const roles = constraint.allowed_reference_roles ?? []
-    const required = Object.entries(constraint.reference_counts_by_role ?? {}).filter(([, count]) => count.minimum > 0).map(([role]) => role)
+    const counted = Object.entries(constraint.reference_counts_by_role ?? {}).filter(([, count]) => count.minimum > 0).map(([role]) => role)
+    const required = [...new Set([...(constraint.required_reference_roles ?? []), ...counted])]
     const picked = required.length ? required : [(EXAMPLE_ROLE[mode] ?? []).find(role => roles.includes(role)) ?? roles[0]]
     input.references = picked.map(role => ({ role, file_id: 'file_...' }))
   }
