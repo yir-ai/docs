@@ -183,10 +183,12 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 
 ### 其他图片模型
 
+`openai/gpt-image-1` 已于 2026-10-29 下架并移出模型列表，因为已没有渠道提供该模型。报价或生成请求指定该模型或其别名时，返回 `400 YIR_INVALID_REQUEST`，`retryable` 为 `false`，message 会给出替代型号。请改用 `openai/gpt-image-2`。已有 Job 仍可查询。
+
 | 模型 | 参数或功能 | 官方 API | Yir |
 | --- | --- | --- | --- |
-| `openai/gpt-image-1`、`openai/gpt-image-1.5` | `quality`、`size` 及不可用选项 | 同上方 GPT Image 2。 | 同上方 GPT Image 2。`aspect_ratio` 为 `1:1`、`2:3` 或 `3:2`，默认 `1:1`（没有 `auto`）。 |
-| `openai/gpt-image-1`、`openai/gpt-image-1.5` | `input_fidelity`、透明背景 | 支持。 | 不可用。 |
+| `openai/gpt-image-1.5` | `quality`、`size` 及不可用选项 | 同上方 GPT Image 2。 | 同上方 GPT Image 2。`aspect_ratio` 为 `1:1`、`2:3` 或 `3:2`，默认 `1:1`（没有 `auto`）。 |
+| `openai/gpt-image-1.5` | `input_fidelity`、透明背景 | 支持。 | 不可用。 |
 | `recraft/recraft-v3` | 尺寸 | 14 种比例；省略时按提示词选择。 | 5 种比例；默认 `1:1`。 |
 | `recraft/recraft-v3` | `style`、自定义风格、`controls`（颜色、背景、艺术程度）、`text_layout`、矢量输出、图片输入 | 支持。 | 不可用。只支持文生位图。 |
 | `meta/muse-image-1.0` | 尺寸、编辑与参考图 | 任意尺寸（默认 `auto`）；支持编辑和多图合成。 | 只有 `1:1`；只支持文生图。 |

@@ -149,7 +149,7 @@ check('grok-video audio always on', sameSet(vals(gv, 'generate_audio'), [true]) 
 check('grok-video image input aspect auto only', sameSet(vals(gv, 'aspect_ratio', 'image'), ['auto']) && def(gv, 'aspect_ratio', 'image') === 'auto', vals(gv, 'aspect_ratio', 'image'))
 check('grok-video no 4:3/3:4, default 16:9', !vals(gv, 'aspect_ratio').includes('4:3') && !vals(gv, 'aspect_ratio').includes('3:4') && def(gv, 'aspect_ratio') === '16:9', vals(gv, 'aspect_ratio'))
 // Other image
-for (const g of ['gpt-image-1', 'gpt-image-1.5']) check(`${g} aspect 1:1/2:3/3:2 default 1:1`, sameSet(vals('openai/' + g, 'aspect_ratio'), ['1:1', '2:3', '3:2']) && def('openai/' + g, 'aspect_ratio') === '1:1', vals('openai/' + g, 'aspect_ratio'))
+for (const g of ['gpt-image-1.5']) check(`${g} aspect 1:1/2:3/3:2 default 1:1`, sameSet(vals('openai/' + g, 'aspect_ratio'), ['1:1', '2:3', '3:2']) && def('openai/' + g, 'aspect_ratio') === '1:1', vals('openai/' + g, 'aspect_ratio'))
 check('recraft-v3 5 ratios default 1:1, text only', vals('recraft/recraft-v3', 'aspect_ratio').length === 5 && def('recraft/recraft-v3', 'aspect_ratio') === '1:1' && eq(modes('recraft/recraft-v3'), ['text']), [vals('recraft/recraft-v3', 'aspect_ratio'), modes('recraft/recraft-v3')])
 check('muse 1:1 only, text only', sameSet(vals('meta/muse-image-1.0', 'aspect_ratio'), ['1:1']) && eq(modes('meta/muse-image-1.0'), ['text']), [vals('meta/muse-image-1.0', 'aspect_ratio'), modes('meta/muse-image-1.0')])
 const rv = 'reve/reve-2.1'
@@ -157,7 +157,7 @@ check('reve same 7 ratios as Reve v1, default 1:1, no auto', sameSet(vals(rv, 'a
 check('reve edits take exactly 1 reference_image', C(rv, 'image')?.min_references === 1 && C(rv, 'image')?.max_references === 1 && sameSet(C(rv, 'image')?.allowed_reference_roles, ['reference_image']), C(rv, 'image'))
 check('reve resolution native only', sameSet(vals(rv, 'resolution'), ['native']), vals(rv, 'resolution'))
 // Retired models: the page says they were removed from the model list.
-for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)
+for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)
 
 
 test('the Yir column of the official API differences page matches the model contract', () => {
@@ -181,7 +181,7 @@ test('rules for every model hold across the contract', () => {
 })
 
 // Retired models may still be named, only to point callers at their replacements.
-const withdrawn = new Set(['google/veo-3.0-generate-001', 'google/gemini-omni-video'])
+const withdrawn = new Set(['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1'])
 
 test('every model the differences pages name is still in the contract', async () => {
   const known = new Set([...c.models.map(m => m.id), ...withdrawn])

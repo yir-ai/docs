@@ -183,10 +183,12 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 
 ### Other image models
 
+`openai/gpt-image-1` was retired on 2026-10-29 and removed from the model list, because no channel serves it any more. Quotes and generation requests that name it or its alias fail with `400 YIR_INVALID_REQUEST` and `retryable: false`; the message names the replacement. Use `openai/gpt-image-2` instead. Existing jobs can still be read.
+
 | Model | Parameter or feature | Official API | Yir |
 | --- | --- | --- | --- |
-| `openai/gpt-image-1`, `openai/gpt-image-1.5` | `quality`, `size`, unavailable options | As for GPT Image 2 above. | As for GPT Image 2 above. `aspect_ratio` is `1:1`, `2:3` or `3:2`, default `1:1` (no `auto`). |
-| `openai/gpt-image-1`, `openai/gpt-image-1.5` | `input_fidelity`, transparent background | Available. | Not available. |
+| `openai/gpt-image-1.5` | `quality`, `size`, unavailable options | As for GPT Image 2 above. | As for GPT Image 2 above. `aspect_ratio` is `1:1`, `2:3` or `3:2`, default `1:1` (no `auto`). |
+| `openai/gpt-image-1.5` | `input_fidelity`, transparent background | Available. | Not available. |
 | `recraft/recraft-v3` | Size | 14 ratios; chosen from the prompt when omitted. | 5 ratios; default `1:1`. |
 | `recraft/recraft-v3` | `style`, custom styles, `controls` (colors, background, artistic level), `text_layout`, vector output, image inputs | Available. | Not available. Text to raster image only. |
 | `meta/muse-image-1.0` | Size, editing and references | Any size (default `auto`); edits and multi-image composition. | `1:1` only; text to image only. |
