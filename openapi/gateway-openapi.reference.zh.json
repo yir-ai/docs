@@ -1667,8 +1667,10 @@
               "n": {
                 "type": "integer",
                 "enum": [
-                  1
-                ]
+                  1,
+                  4
+                ],
+                "description": "每个 Job 的图片数。多数模型生成一张；Midjourney 每次请求固定生成四张。"
               }
             }
           }
@@ -1736,8 +1738,10 @@
               "n": {
                 "type": "integer",
                 "enum": [
-                  1
-                ]
+                  1,
+                  4
+                ],
+                "description": "每个 Job 的图片数。多数模型生成一张；Midjourney 每次请求固定生成四张。"
               }
             }
           }

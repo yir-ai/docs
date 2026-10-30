@@ -19,7 +19,7 @@ const LOCALES = {
 // Creator ID → sidebar group title.
 const CREATORS = {
   alibaba: 'Alibaba', bfl: 'Black Forest Labs', bytedance: 'ByteDance', elevenlabs: 'ElevenLabs', google: 'Google', heygen: 'HeyGen', klingai: 'Kling AI',
-  meta: 'Meta', minimax: 'MiniMax', openai: 'OpenAI', prodia: 'Prodia', pruna: 'Pruna AI', recraft: 'Recraft', reve: 'Reve', spacexai: 'xAI', suno: 'Suno',
+  meta: 'Meta', midjourney: 'Midjourney', minimax: 'MiniMax', openai: 'OpenAI', prodia: 'Prodia', pruna: 'Pruna AI', recraft: 'Recraft', reve: 'Reve', spacexai: 'xAI', suno: 'Suno',
   topaz: 'Topaz Labs',
 }
 
@@ -251,7 +251,7 @@ export function renderPage(model, lang, notesFile) {
   return lines.join('\n')
 }
 
-// Monochrome creator mark (lobehub/icons, MIT; ElevenLabs and Suno from simple-icons, CC0; Prodia, Pruna and Topaz drawn to match), inlined so
+// Monochrome creator mark (lobehub/icons, MIT; ElevenLabs and Suno from simple-icons, CC0; Prodia, Pruna, Topaz and Midjourney drawn to match), inlined so
 // it follows the sidebar text color in both themes. Same marks as yir-web.
 function creatorIcon(creator) {
   const paths = creatorMarks[creator]
