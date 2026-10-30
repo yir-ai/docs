@@ -1,0 +1,65 @@
+---
+title: "P-Video-Replace"
+description: "Pruna 视频换人模型，把 1–3 张身份照片里的人放进源视频，保留原动作和音轨"
+seo:
+  title: "P-Video-Replace API 文档：参数与调用示例"
+  description: "P-Video-Replace API 文档：模型 ID pruna/p-video-replace、输入模式、参数取值与默认值，附请求示例。Pruna 视频换人模型，把 1–3 张身份照片里的人放进源视频，保留原动作和音轨。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `pruna/p-video-replace` | `p-video-replace` | [视频生成](/zh/docs/guides/video-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `reference` 参考素材 | 2–4 | `reference_image` 1–3<br />`reference_video` 1 |
+
+以下输入模式可在明确支持的渠道省略文字： `reference`
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `duration` | 时长：输出视频的秒数。 | `1`–`30` | `5` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `720p`、`1080p` | `720p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 | `auto` | `auto` | 否 |
+| `seed` | 随机种子：可选随机种子；不同渠道使用相同种子不保证结果完全一致。 | `-9007199254740991`–`9007199254740991` | 不设置 | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 | `true` | `true` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`reference` 输入：
+
+```json
+{
+  "model": "pruna/p-video-replace",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      },
+      {
+        "role": "reference_video",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "auto",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/pruna/p-video-replace?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。

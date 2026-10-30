@@ -1,0 +1,60 @@
+---
+title: "Topaz Starlight Precise 2.6"
+description: "Topaz 画质最高的生成式视频超分模型，适合 AI 生成视频与老旧素材，放大到 1080p 或 4K（30fps），保留原画幅、时长和音轨"
+seo:
+  title: "Topaz Starlight Precise 2.6 API 文档：参数与调用示例"
+  description: "Topaz Starlight Precise 2.6 API 文档：模型 ID topaz/starlight-precise-2.6、输入模式、参数取值与默认值，附请求示例。Topaz 画质最高的生成式视频超分模型，适合 AI 生成视频与老旧素材，放大到 1080p 或 4K（30fps），保留原画幅、时长和音轨。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `topaz/starlight-precise-2.6` | `starlight-precise-2.6`、`topaz-starlight` | [视频生成](/zh/docs/guides/video-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `reference` 参考素材 | 1 | `reference_video` 1 |
+
+以下输入模式可在明确支持的渠道省略文字： `reference`
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `duration` | 时长：输出视频的秒数。 | `1`–`60` | `10` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `1080p`、`4K` | `1080p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 | `auto` | `auto` | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 | `true` | `true` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`reference` 输入：
+
+```json
+{
+  "model": "topaz/starlight-precise-2.6",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_video",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "auto",
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/topaz/starlight-precise-2.6?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
