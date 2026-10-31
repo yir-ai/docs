@@ -10,7 +10,7 @@ Submit audio Jobs (music, sound effects and text-to-speech) to `POST /v1/audio/g
 | Field | Required | Description |
 | --- | --- | --- |
 | `model` | Yes | A music, sound-effect or text-to-speech model such as `minimax/music-2.6`. See [models and parameters](/docs/models). |
-| `input` | Yes | `{ "type": "text", "prompt": ..., "lyrics": ... }`. `prompt` describes style, mood and scenario, or the sound. `lyrics` uses lines separated by `\n`. Length limits are per model. |
+| `input` | Yes | `{ "type": "text", "prompt": ..., "lyrics": ... }`. `prompt` describes style, mood and scenario, or the sound. `lyrics` uses lines separated by `\n`. Length limits are per model. Suno also takes a `reference` input to [cover an uploaded song](#cover-an-uploaded-song). |
 | `parameters` | No | Only what the model's contract declares: `instrumental` and `lyrics_optimizer` (default `false`), `duration` for length-priced models, and `n` (`1`, or `2` for Suno). |
 | `max_cost` | No | Optional cap on the Job's charge in USD. See [billing](/docs/concepts/billing#set-a-spending-limit). |
 | `routing` | No | See [routing](/docs/concepts/routing). |
@@ -26,6 +26,22 @@ Vocal music needs `lyrics`. Set `lyrics_optimizer: true` and omit `lyrics` to ha
 | [Suno v6](/docs/models/suno/suno-v6), [v6 Wild](/docs/models/suno/suno-v6-wild) and [v6 Mini](/docs/models/suno/suno-v6-mini) | Own lyrics, auto lyrics or instrumental | Model decides | 2 |
 
 Suno has no official API; Yir accesses the Suno v6 models unofficially through third-party channels. There is no tempo or key control. Prices and billing rules are on each model page.
+
+## Cover an uploaded song
+
+Suno v6, v6 Wild and v6 Mini can cover a song you provide: the result keeps the source melody and remakes it in the style the prompt describes. Send `input.type: "reference"` with exactly one `reference_audio` (a `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`, up to 8 minutes). Lyrics follow the same rule as above: send new `lyrics`, set `lyrics_optimizer: true`, or set `instrumental: true`. A cover returns two tracks at the same price as basic generation. Other audio models reject reference input with `400 YIR_INVALID_REQUEST`.
+
+```json
+{
+  "model": "suno/suno-v6",
+  "input": {
+    "type": "reference",
+    "prompt": "Acoustic folk, fingerpicked guitar and a soft female vocal",
+    "references": [{ "role": "reference_audio", "file_id": "file_..." }]
+  },
+  "parameters": { "lyrics_optimizer": true }
+}
+```
 
 ## Sound effects
 

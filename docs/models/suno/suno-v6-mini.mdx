@@ -17,6 +17,7 @@ seo:
 | Mode | References | Reference roles |
 | --- | --- | --- |
 | `text` Text only | — | — |
+| `reference` Reference media | 1 | `reference_audio` |
 
 ## Parameters
 
@@ -37,6 +38,30 @@ seo:
     "type": "text",
     "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
     "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet"
+  },
+  "parameters": {
+    "instrumental": false,
+    "lyrics_optimizer": false,
+    "n": 2
+  }
+}
+```
+
+`reference` input:
+
+```json
+{
+  "model": "suno/suno-v6-mini",
+  "input": {
+    "type": "reference",
+    "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
+    "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet",
+    "references": [
+      {
+        "role": "reference_audio",
+        "file_id": "file_..."
+      }
+    ]
   },
   "parameters": {
     "instrumental": false,

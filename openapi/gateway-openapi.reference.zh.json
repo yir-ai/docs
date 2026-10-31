@@ -2107,6 +2107,73 @@
           }
         }
       },
+      "StandardMusicReferenceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "prompt",
+          "references"
+        ],
+        "description": "上传原曲翻唱（仅 Suno，即模型合同声明 reference 输入方式的模型）：保留一首原曲的旋律，按提示词描述的风格重新演绎。歌词规则与文本输入相同：传 lyrics、parameters.lyrics_optimizer 或 parameters.instrumental。",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "reference"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "\\S",
+            "description": "翻唱的风格，例如曲风、乐器和人声。各模型的长度上限见模型合同（Suno 为 1000）。"
+          },
+          "lyrics": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "pattern": "\\S",
+            "description": "在原曲旋律上演唱的新歌词，各行用 \\n 分隔。parameters.instrumental 或 parameters.lyrics_optimizer 为 true 时不要传；使用 lyrics_optimizer 时由模型根据提示词和原曲决定歌词。"
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "description": "恰好一首原曲，角色为 reference_audio，时长不超过 8 分钟。",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "const": "reference_audio"
+                },
+                "file_id": {
+                  "$ref": "#/components/schemas/FileID"
+                },
+                "url": {
+                  "$ref": "#/components/schemas/InputURL"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "file_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "url"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
       "StandardMusicParameters": {
         "type": "object",
         "additionalProperties": false,
@@ -2165,7 +2232,14 @@
             "description": "GET /v1/models 列出的音乐模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下线模型的错误消息会给出替代模型。"
           },
           "input": {
-            "$ref": "#/components/schemas/StandardMusicTextInput"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/StandardMusicTextInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardMusicReferenceInput"
+              }
+            ]
           },
           "routing": {
             "$ref": "#/components/schemas/RoutingOverride"
@@ -2205,7 +2279,14 @@
             "description": "GET /v1/models 列出的音乐模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false；已下线模型的错误消息会给出替代模型。"
           },
           "input": {
-            "$ref": "#/components/schemas/StandardMusicTextInput"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/StandardMusicTextInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardMusicReferenceInput"
+              }
+            ]
           },
           "routing": {
             "$ref": "#/components/schemas/RoutingOverride"

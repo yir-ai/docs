@@ -2107,6 +2107,73 @@
           }
         }
       },
+      "StandardMusicReferenceInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "prompt",
+          "references"
+        ],
+        "description": "Upload-a-song cover (Suno only, per model contract input mode reference): keeps the melody of one source song and remakes it in the style described by the prompt. Lyrics follow the same rule as text input: send lyrics, parameters.lyrics_optimizer or parameters.instrumental.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "reference"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "\\S",
+            "description": "Style of the cover, for example genre, instruments and vocal. The per-model limit is in the model contract (1000 for Suno)."
+          },
+          "lyrics": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "pattern": "\\S",
+            "description": "New lyrics to sing over the source melody, lines separated by \\n. Omit it when parameters.instrumental or parameters.lyrics_optimizer is true; with lyrics_optimizer the model decides the lyrics from the prompt and the source song."
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "description": "Exactly one source song with role reference_audio, at most 8 minutes.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "const": "reference_audio"
+                },
+                "file_id": {
+                  "$ref": "#/components/schemas/FileID"
+                },
+                "url": {
+                  "$ref": "#/components/schemas/InputURL"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "file_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "url"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
       "StandardMusicParameters": {
         "type": "object",
         "additionalProperties": false,
@@ -2165,7 +2232,14 @@
             "description": "Music model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false; for a retired model the message names its replacement."
           },
           "input": {
-            "$ref": "#/components/schemas/StandardMusicTextInput"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/StandardMusicTextInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardMusicReferenceInput"
+              }
+            ]
           },
           "routing": {
             "$ref": "#/components/schemas/RoutingOverride"
@@ -2205,7 +2279,14 @@
             "description": "Music model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false; for a retired model the message names its replacement."
           },
           "input": {
-            "$ref": "#/components/schemas/StandardMusicTextInput"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/StandardMusicTextInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardMusicReferenceInput"
+              }
+            ]
           },
           "routing": {
             "$ref": "#/components/schemas/RoutingOverride"

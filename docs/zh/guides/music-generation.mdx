@@ -10,7 +10,7 @@ description: 使用 Yir Standard API 生成歌曲、纯音乐、音效和文字�
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `model` | 是 | 音乐、音效或文字转语音模型，例如 `minimax/music-2.6`。见[模型与参数](/zh/docs/models)。 |
-| `input` | 是 | `{ "type": "text", "prompt": ..., "lyrics": ... }`。`prompt` 描述风格、情绪和使用场景，或描述声音。`lyrics` 各行用 `\n` 分隔。长度上限因模型而异。 |
+| `input` | 是 | `{ "type": "text", "prompt": ..., "lyrics": ... }`。`prompt` 描述风格、情绪和使用场景，或描述声音。`lyrics` 各行用 `\n` 分隔。长度上限因模型而异。Suno 还接受 `reference` 输入，用于[上传原曲翻唱](#上传原曲翻唱)。 |
 | `parameters` | 否 | 只接受模型合同声明的参数：`instrumental` 和 `lyrics_optimizer`（默认 `false`）、按时长计价模型的 `duration`，以及 `n`（`1`，Suno 为 `2`）。 |
 | `max_cost` | 否 | 可选，Job 的美元费用上限，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
 | `routing` | 否 | 见[路由](/zh/docs/concepts/routing)。 |
@@ -26,6 +26,22 @@ description: 使用 Yir Standard API 生成歌曲、纯音乐、音效和文字�
 | [Suno v6](/zh/docs/models/suno/suno-v6)、[v6 Wild](/zh/docs/models/suno/suno-v6-wild) 与 [v6 Mini](/zh/docs/models/suno/suno-v6-mini) | 自带歌词、自动写词或纯音乐 | 由模型决定 | 2 |
 
 Suno 没有官方 API，Yir 经第三方渠道非官方接入 Suno v6 系列。不支持控制速度或调性。价格与计费规则见各模型页。
+
+## 上传原曲翻唱
+
+Suno v6、v6 Wild 与 v6 Mini 可以翻唱你提供的歌曲：保留原曲旋律，按提示词描述的风格重新演绎。传 `input.type: "reference"`，并给出恰好一段 `reference_audio`（[Files API](/zh/docs/guides/input-files) 的 `file_id` 或公开 HTTPS `url`，不超过 8 分钟）。歌词规则与上文相同：传新的 `lyrics`、设置 `lyrics_optimizer: true` 或设置 `instrumental: true`。翻唱每次返回两首，价格与基础生成相同。其他音频模型的 reference 输入返回 `400 YIR_INVALID_REQUEST`。
+
+```json
+{
+  "model": "suno/suno-v6",
+  "input": {
+    "type": "reference",
+    "prompt": "Acoustic folk, fingerpicked guitar and a soft female vocal",
+    "references": [{ "role": "reference_audio", "file_id": "file_..." }]
+  },
+  "parameters": { "lyrics_optimizer": true }
+}
+```
 
 ## 音效
 

@@ -17,6 +17,7 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
+| `reference` 参考素材 | 1 | `reference_audio` |
 
 ## 参数
 
@@ -37,6 +38,30 @@ seo:
     "type": "text",
     "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
     "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet"
+  },
+  "parameters": {
+    "instrumental": false,
+    "lyrics_optimizer": false,
+    "n": 2
+  }
+}
+```
+
+`reference` 输入：
+
+```json
+{
+  "model": "suno/suno-v6-mini",
+  "input": {
+    "type": "reference",
+    "prompt": "Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk",
+    "lyrics": "[Verse]\nMorning light on an empty street\n[Chorus]\nWalk with me, slow and sweet",
+    "references": [
+      {
+        "role": "reference_audio",
+        "file_id": "file_..."
+      }
+    ]
   },
   "parameters": {
     "instrumental": false,

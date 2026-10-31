@@ -14,7 +14,11 @@ Choose one of three combinations:
 | Song with lyrics written from the prompt | Omit | `false` | `true` |
 | Instrumental | Omit | `true` | `false` |
 
-Other combinations are rejected with `400 YIR_INVALID_REQUEST`. The prompt describes the style (up to 1,000 characters); lyrics are up to 5,000 characters. Only basic generation is available: no extend, cover or stems.
+Other combinations are rejected with `400 YIR_INVALID_REQUEST`. The prompt describes the style (up to 1,000 characters); lyrics are up to 5,000 characters. Extend and stems are not available.
+
+## Cover an uploaded song
+
+Send `input.type: "reference"` with exactly one `reference_audio` source song (up to 8 minutes) to get a cover that keeps its melody in the style the prompt describes. Lyrics use the same three combinations; with `lyrics_optimizer` the model writes lyrics from the prompt and the source song. A cover makes two tracks at the same price as basic generation. See [Cover an uploaded song](/docs/guides/music-generation#cover-an-uploaded-song).
 
 ## Output
 
