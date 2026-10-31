@@ -2020,6 +2020,36 @@
                   "type": "string",
                   "pattern": "^[A-Za-z][A-Za-z0-9_]{0,31}$",
                   "description": "在输入约束声明了 subject_references 的模型上，把同名参考素材归为一个主体，提示词中用 @<subject> 引用。同名 reference_image 照片组成一个角色；声明了 max_videos_per_subject 时，同名 reference_video 组成视频角色（不再带照片）；声明了 max_audios_per_subject 时，同名 reference_audio 是该角色的音色，只有 reference_audio 的名字是独立音色。除非 subject_references.mixed 为 true，否则此时所有参考素材都必须是带 subject 的 reference_image。"
+                },
+                "point": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "x",
+                    "y",
+                    "t"
+                  ],
+                  "description": "仅用于视频换人（yir/video-person-swap）：这张照片要替换的人在 reference_video 模板中的位置。须配合带 subject（位置名）的 reference_image。",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "人脸中心的横向位置，按画面宽度的比例表示。"
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "人脸中心的纵向位置，按画面高度的比例表示。"
+                    },
+                    "t": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 60,
+                      "description": "人脸位于该点时对应的模板时间（秒）。"
+                    }
+                  }
                 }
               },
               "oneOf": [
@@ -3647,6 +3677,9 @@
             "minimum": 1,
             "description": "3D（glb）结果的实测三角面数。未测得时省略。"
           },
+          "swap_checks": {
+            "$ref": "#/components/schemas/ResultFileSwapChecks"
+          },
           "expires_at": {
             "type": "integer",
             "format": "int64",
@@ -3679,6 +3712,59 @@
           "reason": {
             "type": "string",
             "description": "稳定原因码，例如 vendor_signed、signature_scrubbed、route_audited、hash_mismatch、signature_missing、third_party_signed、unsigned。"
+          }
+        }
+      },
+      "ResultFileSwapChecks": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "threshold",
+          "all_swapped",
+          "passes",
+          "slots"
+        ],
+        "description": "仅用于视频换人：对交付视频逐个位置的检查。similarity_to_original 是该位置的原人物与输出中任一人脸的最高相似度，低于阈值即视为已替换。尽力而为：即使部分位置未替换，视频仍会交付。",
+        "properties": {
+          "threshold": {
+            "type": "number"
+          },
+          "all_swapped": {
+            "type": "boolean"
+          },
+          "passes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "主生成之后执行的修补轮数。"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "similarity_to_original",
+                "swapped"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "参考主体。"
+                },
+                "similarity_to_original": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "swapped": {
+                  "type": "boolean"
+                }
+              }
+            }
           }
         }
       },

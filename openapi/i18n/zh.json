@@ -176,5 +176,12 @@
   "3D model ID or alias listed by GET /v1/models. An unknown or retired model returns 400 YIR_INVALID_REQUEST with retryable false.": "GET /v1/models 列出的 3D 模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false。",
   "3D request: one Job delivers one glb model behind a short-lived link.": "3D 请求：每个 Job 通过短效链接交付一个 glb 模型。",
   "The 3D generation request contract. A quote ignores the submit-only webhook_url and max_cost and reports them in parameter_notices. A quote creates no job and charges nothing.": "3D 生成请求合同。报价会忽略仅提交时有效的 webhook_url 和 max_cost，并在 parameter_notices 中说明。报价不创建 Job，不收费。",
-  "Measured triangle count of a 3D (glb) result. Omitted when not measured.": "3D（glb）结果的实测三角面数。未测得时省略。"
+  "Measured triangle count of a 3D (glb) result. Omitted when not measured.": "3D（glb）结果的实测三角面数。未测得时省略。",
+  "Video person swap only (yir/video-person-swap): where the person this photo replaces appears in the reference_video template. Requires a reference_image with a subject (the position name).": "仅用于视频换人（yir/video-person-swap）：这张照片要替换的人在 reference_video 模板中的位置。须配合带 subject（位置名）的 reference_image。",
+  "Face center as a fraction of the frame width.": "人脸中心的横向位置，按画面宽度的比例表示。",
+  "Face center as a fraction of the frame height.": "人脸中心的纵向位置，按画面高度的比例表示。",
+  "Second of the template at which the face is at that point.": "人脸位于该点时对应的模板时间（秒）。",
+  "Video person swap only: per-position check of the delivered video. similarity_to_original is the highest face similarity between the original person at that position and any face in the output; below threshold counts as swapped. Best effort: the video is delivered even when some positions are not swapped.": "仅用于视频换人：对交付视频逐个位置的检查。similarity_to_original 是该位置的原人物与输出中任一人脸的最高相似度，低于阈值即视为已替换。尽力而为：即使部分位置未替换，视频仍会交付。",
+  "Repair passes run after the main generation.": "主生成之后执行的修补轮数。",
+  "The reference subject.": "参考主体。"
 }
