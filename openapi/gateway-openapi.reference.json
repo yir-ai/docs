@@ -4122,7 +4122,9 @@
               "not_used_by_quote",
               "output_count_exceeded",
               "resolution_exceeded",
-              "audio_included"
+              "audio_included",
+              "texture_included",
+              "pbr_included"
             ]
           },
           "message": {
