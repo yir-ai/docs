@@ -1,6 +1,9 @@
 ---
 title: 视频生成
 description: 使用 Yir Standard API 从文本、首尾帧，或图片、视频、音频混合参考生成视频，并了解时长、分辨率与参考限制。
+seo:
+  title: "视频生成 API 指南：文生视频、首尾帧与多参考"
+  description: "用 Yir Standard API 生成视频：文生视频、图生视频、首尾帧，以及图片、视频、音频混合参考；说明各模型的时长、分辨率、画幅与参考素材限制，附请求示例。"
 ---
 
 视频 Job 提交到 `POST /v1/videos/generations`。视频遵循与图片相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)和[路由](/zh/docs/concepts/routing)规则，但通常需要数分钟而不是数秒，因此 [Webhook](/zh/docs/production/webhooks) 往往比轮询更合适。

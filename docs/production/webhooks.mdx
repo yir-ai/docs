@@ -1,6 +1,8 @@
 ---
 title: Webhooks
 description: Receive the terminal Job by HTTPS callback, verify its signature, and process it exactly once.
+seo:
+  title: "Webhooks: Receive Terminal Jobs and Verify Signatures"
 ---
 
 Set `webhook_url` on a generation request to receive the Job when it reaches `succeeded`, `failed`, or `cancelled`. The callback body is the complete terminal Job, the same as `GET /v1/jobs/{id}`, including `result` and `billing`. It is never a raw provider response.

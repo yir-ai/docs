@@ -1,6 +1,8 @@
 ---
 title: Routing and fallback
 description: Control which provider channels and channel variants may run a request, and how fallback works.
+seo:
+  title: "Routing and Provider Fallback: Pick Channels by Price or Speed"
 ---
 
 A model on Yir can be served by several **provider channels**: the model maker's official API and other certified suppliers. For each Job, Yir picks an eligible channel, and if an attempt is confirmed failed, it can fall back to another channel, staying within your `max_cost` when you set one.
