@@ -4,5 +4,5 @@ export default defineMeta({
   title: "生成",
   icon: "wand-sparkles",
   order: 3,
-  pages: ["image-generation", "video-generation", "music-generation", "input-files"],
+  pages: ["image-generation", "video-generation", "music-generation", "3d-generation", "input-files"],
 });

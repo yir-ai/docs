@@ -13,11 +13,11 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 
 | 方面 | 官方 API | Yir |
 | --- | --- | --- |
-| 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)和[音乐生成](/zh/docs/guides/music-generation)。 |
+| 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)、[音乐生成](/zh/docs/guides/music-generation)和 [3D 生成](/zh/docs/guides/3d-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
 | 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 为 `1`；Suno v6 系列（`suno/suno-v6`、`suno/suno-v6-wild`、`suno/suno-v6-mini`）例外，每次固定生成两首（`n: 2`）。每个输出提交一个 Job，各用独立的幂等键。 |
-| 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
+| 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`，3D 多视角输入为 `front_view`、`left_view`、`back_view`、`right_view`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
 | 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
 | 取值范围 | 官方完整范围。 | 有时只支持官方取值的一部分，以便事先报价并由多个渠道承接。显式传入的值不会被悄悄改写：没有渠道能承接时，报价返回 `no_matching_supply`，生成请求被拒绝。 |
@@ -198,3 +198,21 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `reve/reve-2.1` | `aspect_ratio` | `auto`（默认）加固定比例：v1 API 与 Yir 的 7 种比例相同，v2 API 有从 `4:1` 到 `1:4` 的 17 种。 | 7 种比例，默认 `1:1`；没有 `auto`。 |
 | `reve/reve-2.1` | 参考图 | Remix 可传多张参考图；v2 API 接受有序参考列表。 | 编辑时只接受 1 张 `reference_image`。 |
 | `reve/reve-2.1` | `test_time_scaling`（质量 1–5）、`postprocessing`（放大、去背景）、`version`、版面（layout）操作 | 支持。 | 不可用。输出尺寸由模型决定（`resolution: native`）。 |
+
+### 3D 模型
+
+按各厂商自己的 API 文档核对，TRELLIS.2 按微软开源权重发布核对（2026-10-30）。每个 3D Job 交付一个 glb 文件；不提供 OBJ、FBX、USDZ 等其他格式，也不提供绑骨、动画等后处理。见 [3D 生成](/zh/docs/guides/3d-generation)。
+
+| 模型 | 参数或功能 | 官方 API | Yir |
+| --- | --- | --- | --- |
+| `tripo/tripo-h3.1` | 四边面拓扑 | 支持 `quad` 重拓扑，开启后输出 FBX。 | `topology` 只有 `triangle`。 |
+| `tripo/tripo-h3.1` | 多视角输入 | 正面视角，可加左、后、右视角。 | 不可用。只支持文字和单图输入。 |
+| `tripo/tripo-h3.1` | 几何质量 | `standard` 或 `detailed`。 | 只有 `standard`。`texture` 选择贴图档位（`standard` 或 `hd`）。 |
+| `tencent/hunyuan-3d-3.1-pro` | `FaceCount` | 3,000–1,500,000，默认 500,000。 | `face_limit` 为 40,000–1,500,000，默认 500,000。非默认值可能另收费。 |
+| `tencent/hunyuan-3d-3.1-pro` | 多视角角度 | 左、后、右视角，3.1 另有顶部、底部和前侧视角。 | `multiview` 接受 `front_view` 加 `left_view`、`back_view`、`right_view`，其他角度不可用。 |
+| `microsoft/trellis-2` | PBR 材质 | 始终生成。 | `pbr` 恒为 `true`；不提供无贴图输出（`texture: "none"`）。 |
+| `microsoft/trellis-2` | `texture_size` | `1024`、`2048`（默认）或 `4096`。 | `texture`：`standard` 为 2048 像素，`hd` 为 4096 像素。没有 1024。 |
+| `microsoft/trellis-2` | 几何分辨率、`decimation_target` | 多档分辨率；减面按顶点数计。 | 固定 1024 几何分辨率。不接受 `face_limit`。 |
+| `meshy/meshy-7.1` | 多图输入 | 同一物体的多张图片。 | 不可用。只支持文字和单图输入。 |
+| `meshy/meshy-7.1` | `should_texture` 与 preview 模式 | 文生 3D 先跑 preview（白模），再跑 refine（贴图）。 | 一个 Job 完成：`texture: "none"` 对应 preview 白模，`texture: "standard"` 对应 preview 加 refine。 |
+| `meshy/meshy-7.1` | 绑骨与动画 | 支持。 | 不可用。`face_limit`（100–300,000，默认 30,000）与 `topology`（`triangle` 或 `quad`）对应 `target_polycount` 与 `topology`。 |

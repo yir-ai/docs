@@ -3,7 +3,7 @@
   "info": {
     "title": "Yir Standard 异步 AIGC API",
     "version": "1.0.0-preview",
-    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片、视频和音频（音乐、音效、语音）生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
+    "description": "Yir AI 图片与视频 API 路由的公开 REST API：报价并提交图片、视频、音频（音乐、音效、语音）和 3D 生成任务、上传输入文件、读取模型合同、跟踪任务。\n\n兼容性：本 API 只做加法。新字段都是可选的，枚举可能新增取值，客户端必须忽略未知字段并容忍未知枚举值。模型及其参数、允许值和默认值来自模型合同（GET /v1/models?include=parameters），变化无需发布 SDK。已发布模型的默认值、取值含义和计费语义不变，任何一项变化都以新模型 ID 发布。ID 是不透明字符串，不要解析。废弃字段至少保留一个 SDK minor 版本，并在 SDK 变更记录中公告。"
   },
   "servers": [
     {
@@ -25,6 +25,9 @@
     },
     {
       "name": "Audio"
+    },
+    {
+      "name": "3D"
     },
     {
       "name": "Files"
@@ -392,6 +395,148 @@
                 "routing": {
                   "preference": "cost",
                   "fallback": true
+                },
+                "webhook_url": "https://example.com/webhooks/yir"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "$ref": "#/components/responses/JobAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/InsufficientBalance"
+          },
+          "403": {
+            "$ref": "#/components/responses/SpendLimitExceeded"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/3d/quotes": {
+      "post": {
+        "operationId": "quote3DGeneration",
+        "summary": "3D 报价",
+        "description": "估算 3D 生成请求的价格并检查可用渠道。不创建 Job，不收费。",
+        "tags": [
+          "3D"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Standard3DQuoteRequest"
+              },
+              "example": {
+                "model": "tencent/hunyuan-3d-3.1-pro",
+                "input": {
+                  "type": "image",
+                  "references": [
+                    {
+                      "role": "reference_image",
+                      "url": "https://example.com/chair.png"
+                    }
+                  ]
+                },
+                "parameters": {
+                  "texture": "standard",
+                  "pbr": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "当前参考报价",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/NoExecutableRoute"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporarilyUnavailable"
+          }
+        }
+      }
+    },
+    "/v1/3d/generations": {
+      "post": {
+        "operationId": "submit3DGeneration",
+        "summary": "提交 3D Job",
+        "description": "按文字、单张图片或多视角图片生成一个 glb 格式的 3D 模型。贴图、PBR 贴图、面数和拓扑按模型合同范围内的 parameters 执行；结果文件报告实测面数。",
+        "tags": [
+          "3D"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/YirReferral"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Standard3DGenerationRequest"
+              },
+              "example": {
+                "model": "tripo/tripo-h3.1",
+                "input": {
+                  "type": "text",
+                  "prompt": "A weathered wooden armchair with a woven seat"
+                },
+                "parameters": {
+                  "texture": "standard",
+                  "pbr": true
                 },
                 "webhook_url": "https://example.com/webhooks/yir"
               }
@@ -2395,11 +2540,289 @@
                       "$ref": "#/components/schemas/StandardMusicQuoteRequest"
                     }
                   }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "operation",
+                    "request"
+                  ],
+                  "properties": {
+                    "operation": {
+                      "const": "generate_3d"
+                    },
+                    "request": {
+                      "$ref": "#/components/schemas/Standard3DQuoteRequest"
+                    }
+                  }
                 }
               ]
             }
           }
         }
+      },
+      "Standard3DTextInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "prompt"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "text"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "pattern": "\\S",
+            "description": "要建模的物体描述。各模型的长度上限见模型合同（Tripo 与混元 Pro 为 1024，Meshy 为 600）。"
+          }
+        }
+      },
+      "Standard3DImageInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "references"
+        ],
+        "description": "用单个物体的一张图片生成 3D。图片输入不接收 prompt。",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "image"
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "const": "reference_image"
+                },
+                "file_id": {
+                  "$ref": "#/components/schemas/FileID"
+                },
+                "url": {
+                  "$ref": "#/components/schemas/InputURL"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "file_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "url"
+                  ]
+                }
+              ]
+            },
+            "description": "恰好一张图片，角色为 reference_image；纯色背景、单个物体占据画面大部分时效果最好。"
+          }
+        }
+      },
+      "Standard3DMultiviewInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "references"
+        ],
+        "description": "用同一物体的多个视角图片生成 3D，仅限模型合同列出 multiview 输入方式的模型。多视角输入不接收 prompt，可能另收费（以报价为准）。",
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "multiview"
+          },
+          "references": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "front_view",
+                    "left_view",
+                    "back_view",
+                    "right_view"
+                  ]
+                },
+                "file_id": {
+                  "$ref": "#/components/schemas/FileID"
+                },
+                "url": {
+                  "$ref": "#/components/schemas/InputURL"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "file_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "url"
+                  ]
+                }
+              ]
+            },
+            "description": "一张 front_view，外加 left_view、back_view、right_view 中至少一张，每种角色最多一张。"
+          }
+        }
+      },
+      "Standard3DParameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "可选的 3D 参数；省略的字段取模型默认值，模型只接受其合同声明的取值。每个 Job 交付一个 glb 文件。",
+        "properties": {
+          "texture": {
+            "type": "string",
+            "enum": [
+              "none",
+              "standard",
+              "hd"
+            ],
+            "description": "none 只出无贴图白模；standard 与 hd 带烘焙贴图（hd 为更高分辨率贴图，限支持的模型）。"
+          },
+          "pbr": {
+            "type": "boolean",
+            "description": "在基础颜色之外生成 PBR 贴图（金属度、粗糙度、法线）。需要带贴图。部分模型另收费（以报价为准）。"
+          },
+          "face_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2000000,
+            "description": "目标面数。范围与默认值见模型合同；省略即模型默认。部分模型自定义面数另收费。"
+          },
+          "topology": {
+            "type": "string",
+            "enum": [
+              "triangle",
+              "quad"
+            ],
+            "description": "网格面类型；quad 为四边面为主的重拓扑（限支持的模型）。glb 文件内仍以三角面存储。"
+          },
+          "n": {
+            "type": "integer",
+            "enum": [
+              1
+            ],
+            "description": "每个 Job 生成一个模型。"
+          }
+        }
+      },
+      "Standard3DGenerationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "input"
+        ],
+        "properties": {
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
+          "max_cost": {
+            "$ref": "#/components/schemas/MaxCost"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "GET /v1/models 列出的 3D 模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false。"
+          },
+          "input": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Standard3DTextInput"
+              },
+              {
+                "$ref": "#/components/schemas/Standard3DImageInput"
+              },
+              {
+                "$ref": "#/components/schemas/Standard3DMultiviewInput"
+              }
+            ]
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingOverride"
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 1000,
+            "pattern": "^https://"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/Standard3DParameters"
+          }
+        },
+        "description": "3D 请求：每个 Job 通过短效链接交付一个 glb 模型。"
+      },
+      "Standard3DQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "input"
+        ],
+        "properties": {
+          "max_cost": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 max_cost。"
+          },
+          "webhook_url": {
+            "description": "仅用于提交。报价忽略任何取值，并在 parameter_notices 中说明 webhook_url。"
+          },
+          "billing_mode": {
+            "$ref": "#/components/schemas/ActualBillingMode"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "GET /v1/models 列出的 3D 模型 ID 或别名。未知或已下线的模型返回 400 YIR_INVALID_REQUEST，retryable 为 false。"
+          },
+          "input": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Standard3DTextInput"
+              },
+              {
+                "$ref": "#/components/schemas/Standard3DImageInput"
+              },
+              {
+                "$ref": "#/components/schemas/Standard3DMultiviewInput"
+              }
+            ]
+          },
+          "routing": {
+            "$ref": "#/components/schemas/RoutingOverride"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/Standard3DParameters"
+          }
+        },
+        "description": "3D 生成请求合同。报价会忽略仅提交时有效的 webhook_url 和 max_cost，并在 parameter_notices 中说明。报价不创建 Job，不收费。"
       },
       "QuoteBatch": {
         "type": "object",
@@ -2536,7 +2959,8 @@
               "generate_video",
               "generate_music",
               "generate_sound_effect",
-              "generate_speech"
+              "generate_speech",
+              "generate_3d"
             ]
           },
           "input_mode": {
@@ -2544,7 +2968,8 @@
             "enum": [
               "text",
               "image",
-              "reference"
+              "reference",
+              "multiview"
             ]
           },
           "parameters": {
@@ -3216,6 +3641,12 @@
             "minimum": 1,
             "description": "音频结果的实测播放时长（毫秒）。未测量时省略。"
           },
+          "faces": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "description": "3D（glb）结果的实测三角面数。未测得时省略。"
+          },
           "expires_at": {
             "type": "integer",
             "format": "int64",
@@ -3723,14 +4154,16 @@
               "generate_video",
               "generate_music",
               "generate_sound_effect",
-              "generate_speech"
+              "generate_speech",
+              "generate_3d"
             ]
           },
           "input_mode": {
             "enum": [
               "text",
               "image",
-              "reference"
+              "reference",
+              "multiview"
             ]
           },
           "parameter_rules": {
@@ -3842,7 +4275,8 @@
               "generate_video",
               "generate_music",
               "generate_sound_effect",
-              "generate_speech"
+              "generate_speech",
+              "generate_3d"
             ]
           },
           "input_mode": {
@@ -3850,7 +4284,8 @@
             "enum": [
               "text",
               "image",
-              "reference"
+              "reference",
+              "multiview"
             ]
           },
           "specification_label": {
@@ -4078,7 +4513,8 @@
               "generate_video",
               "generate_music",
               "generate_sound_effect",
-              "generate_speech"
+              "generate_speech",
+              "generate_3d"
             ]
           },
           "input_modes": {
@@ -4090,7 +4526,8 @@
               "enum": [
                 "text",
                 "image",
-                "reference"
+                "reference",
+                "multiview"
               ]
             }
           },

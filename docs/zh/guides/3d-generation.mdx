@@ -1,0 +1,118 @@
+---
+title: 3D 生成
+description: 使用 Yir Standard API 按文字、单张图片或多视角图片生成 glb 3D 模型。
+---
+
+3D Job 提交到 `POST /v1/3d/generations`，报价用 `POST /v1/3d/quotes`。3D 遵循与图片、视频相同的[生命周期](/zh/docs/concepts/task-lifecycle)、[计费](/zh/docs/concepts/billing)、[路由](/zh/docs/concepts/routing)和 [Webhook](/zh/docs/production/webhooks) 规则。每个 Job 交付一个 glb 格式的模型。
+
+## 请求字段
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `model` | 是 | 3D 模型，例如 `tripo/tripo-h3.1`。见[模型与参数](/zh/docs/models)。 |
+| `input` | 是 | 三种[输入方式](#输入方式)之一：`text`、`image` 或 `multiview`。 |
+| `parameters` | 否 | `texture`、`pbr`、`face_limit`、`topology` 和 `n`，取值以模型合同声明为准；省略的字段取模型默认值。见[参数](#参数)。 |
+| `max_cost` | 否 | 可选，Job 的美元费用上限，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
+| `routing` | 否 | 见[路由](/zh/docs/concepts/routing)。 |
+| `webhook_url` | 否 | 接收终态 Job 的 HTTPS 地址。 |
+
+## 输入方式
+
+| `input.type` | 内容 | 提示词 |
+| --- | --- | --- |
+| `text` | `prompt` 描述要建模的物体。长度上限因模型而异（Tripo 与混元为 1024 个字符，Meshy 为 600）。 | 必填 |
+| `image` | 恰好一张角色为 `reference_image` 的参考图。纯色背景、单个物体占据画面大部分时效果最好。 | 不接受 |
+| `multiview` | 一张 `front_view`，外加 `left_view`、`back_view`、`right_view` 中至少一张，每种角色最多一张（同一物体的 2–4 张图片）。 | 不接受 |
+
+每张参考图使用 [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开的 HTTPS `url`。模型只接受其合同列出的输入方式，其他方式返回 `400 YIR_INVALID_REQUEST`。
+
+```json
+{
+  "model": "tencent/hunyuan-3d-3.1-pro",
+  "input": {
+    "type": "multiview",
+    "references": [
+      { "role": "front_view", "file_id": "file_..." },
+      { "role": "back_view", "url": "https://example.com/chair-back.png" }
+    ]
+  }
+}
+```
+
+## 参数
+
+| 参数 | 取值 | 说明 |
+| --- | --- | --- |
+| `texture` | `none`、`standard`、`hd` | `none` 只出无贴图白模；`standard` 与 `hd` 带烘焙贴图，`hd` 为更高分辨率贴图（限提供该档的模型）。 |
+| `pbr` | `true`、`false` | 在基础颜色之外生成 PBR 贴图（金属度、粗糙度、法线）。需要带贴图：`texture: "none"` 时省略 `pbr` 会自动视为 `false`，显式 `pbr: true` 会被拒绝。 |
+| `face_limit` | 整数 | 网格目标面数，结果可能略有出入。范围与默认值见模型合同；传入默认值与省略等价。 |
+| `topology` | `triangle`、`quad` | 网格面类型。`quad` 为四边面为主的重拓扑（限提供该选项的模型）。glb 文件内始终以三角面存储。 |
+| `n` | `1` | 每个 Job 生成一个模型。需要多个模型时，每个模型提交一个 Job。 |
+
+各模型只接受其中部分取值：
+
+| 模型 | 输入方式 | `texture` | `pbr` | `face_limit` | `topology` |
+| --- | --- | --- | --- | --- | --- |
+| [Tripo H3.1](/zh/docs/models/tripo/tripo-h3-1) | `text`、`image` | `none`、`standard`、`hd`；默认 `standard` | 默认 `true` | 1,000–1,500,000；省略时由模型决定 | `triangle` |
+| [Hunyuan 3D 3.1 Pro](/zh/docs/models/tencent/hunyuan-3d-3-1-pro) | `text`、`image`、`multiview` | `none`、`standard`；默认 `standard` | 默认 `false` | 40,000–1,500,000；默认 500,000 | `triangle` |
+| [TRELLIS.2](/zh/docs/models/microsoft/trellis-2) | `image` | `standard`、`hd`（2048 或 4096 像素贴图）；默认 `standard` | 恒为 `true` | 不接受 | `triangle` |
+| [Meshy 7.1](/zh/docs/models/meshy/meshy-7-1) | `text`、`image` | `none`、`standard`；默认 `standard` | 默认 `false` | 100–300,000；默认 30,000 | `triangle`、`quad` |
+
+部分选项会影响价格：视模型而定，可能是贴图档位、PBR、多视角输入或自定义面数。价格以完整请求的[报价](/zh/docs/concepts/billing#获取报价)为准；当前价格见[模型市场](https://yir.ai/zh/models)。
+
+## 报价、提交与获取结果
+
+用相同的请求体（去掉 `max_cost` 和 `webhook_url`）报价，并检查 `supply.available`：
+
+```bash
+curl https://gateway.yir.ai/v1/3d/quotes \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "model": "tripo/tripo-h3.1",
+    "input": { "type": "text", "prompt": "A weathered wooden armchair with a woven seat" },
+    "parameters": { "texture": "standard", "pbr": true }
+  }'
+```
+
+带 `Idempotency-Key` 提交：
+
+```bash
+curl https://gateway.yir.ai/v1/3d/generations \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: 3d-$(date +%s)" \
+  --data '{
+    "model": "tripo/tripo-h3.1",
+    "input": { "type": "text", "prompt": "A weathered wooden armchair with a woven seat" },
+    "parameters": { "texture": "standard", "pbr": true }
+  }' | tee job.json
+
+export YIR_JOB_ID="$(jq -r '.id' job.json)"
+```
+
+轮询直到 Job 进入终态，再下载模型：
+
+```bash
+while true; do
+  status="$(curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID/status \
+    --header "Authorization: Bearer $YIR_API_KEY" | jq -r '.status')"
+  echo "status: $status"
+  case "$status" in
+    succeeded|failed|cancelled) break ;;
+    *) sleep 10 ;;
+  esac
+done
+
+curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID \
+  --header "Authorization: Bearer $YIR_API_KEY" > job.json
+curl --location --output model.glb "$(jq -r '.result.files[0].url' job.json)"
+```
+
+批量报价（`POST /v1/quotes`）接受 `operation: "generate_3d"` 的 3D 请求项，请求体相同。
+
+## 结果
+
+成功的 Job 在 `result.files` 中返回一个文件，`media_type` 为 `model/gltf-binary`（glb）。`faces` 是网格的实测三角面数，未测得时省略。URL 是短效签名链接，请复制到自己的存储。见[结果与保留期](/zh/docs/concepts/task-lifecycle#结果与保留期)。
+
+渠道多给时，Yir 照常交付模型、不判失败，并附 `disposition: "exceeded"` 的参数通知：请求 `texture: "none"` 却带贴图（`texture_included`），或请求 `pbr: false` 却带 PBR 贴图（`pbr_included`）。收费不超过报价。见[渠道相关的参数差异](/zh/docs/concepts/routing#渠道相关的参数差异)。

@@ -14,7 +14,8 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 | 单个图片请求 | `POST /v1/images/quotes` |
 | 单个视频请求 | `POST /v1/videos/quotes` |
 | 单个音频请求（音乐、音效或语音） | `POST /v1/audio/quotes`（旧名 `/v1/music/quotes`） |
-| 最多 20 个图片、视频或音乐请求 | `POST /v1/quotes` |
+| 单个 3D 请求 | `POST /v1/3d/quotes` |
+| 最多 20 个图片、视频、音频或 3D 请求 | `POST /v1/quotes` |
 
 报价与提交使用相同的模型、输入和参数校验，但不创建 Job、不动用资金，也不锁定价格。仅用于提交的 `max_cost` 和 `webhook_url` 在报价中会被忽略，并列在 `parameter_notices` 中。
 

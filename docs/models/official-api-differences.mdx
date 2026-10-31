@@ -11,11 +11,11 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 
 | Topic | Official APIs | Yir |
 | --- | --- | --- |
-| Request shape | Each provider has its own endpoint and body. | One body for all models: `model`, `input` (prompt and references), `parameters`. See [image generation](/docs/guides/image-generation), [video generation](/docs/guides/video-generation) and [music generation](/docs/guides/music-generation). |
+| Request shape | Each provider has its own endpoint and body. | One body for all models: `model`, `input` (prompt and references), `parameters`. See [image generation](/docs/guides/image-generation), [video generation](/docs/guides/video-generation), [music generation](/docs/guides/music-generation) and [3D generation](/docs/guides/3d-generation). |
 | Execution | Often synchronous, sometimes streamed. | Always an asynchronous Job. Poll, long-poll or use a Webhook; there is no streaming or partial-image output. See [Job lifecycle](/docs/concepts/task-lifecycle). |
 | Output size | Usually pixel sizes (`size`, `width`/`height`) or provider-specific presets. | `resolution` (a tier such as `1K`, `2K`, `4K`, or `480p`, `720p`, `1080p`) plus `aspect_ratio`. Yir translates them into each channel's native size, so exact pixel dimensions can differ by channel. |
 | Number of outputs | Many APIs accept `n` greater than 1. | `n` is `1`, except the Suno v6 models (`suno/suno-v6`, `suno/suno-v6-wild`, `suno/suno-v6-mini`), which always make two tracks (`n: 2`). Submit one Job per output, each with its own idempotency key. |
-| Reference inputs | URLs, base64 data or multipart uploads, with provider-specific field names. | A `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`, with a role such as `reference_image`, `first_frame`, `last_frame`, `reference_video` or `reference_audio`. Base64, data URLs and multipart bodies are rejected. |
+| Reference inputs | URLs, base64 data or multipart uploads, with provider-specific field names. | A `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`, with a role such as `reference_image`, `first_frame`, `last_frame`, `reference_video`, `reference_audio`, or `front_view`, `left_view`, `back_view` and `right_view` for 3D multi-view input. Base64, data URLs and multipart bodies are rejected. |
 | Unlisted parameters | Provider-specific options such as `seed`, `negative_prompt`, `style`, `output_format`, `background`, `moderation` or `user`. | Not accepted. `parameters` only takes the names in the model's contract; anything else fails with `400 YIR_INVALID_REQUEST`. Yir never forwards unknown fields to a channel. |
 | Defaults | The provider's defaults, sometimes "let the model decide". | The `default` in Yir's contract. An omitted parameter means that default, which can differ from the provider's (see the model sections below). |
 | Value ranges | Full official range. | Sometimes a subset of the official values, chosen so the request can be priced in advance and served by more than one channel. Explicit values are never silently rewritten: if no channel can serve a value, the quote reports `no_matching_supply` and a generation request is rejected. |
@@ -196,3 +196,21 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `reve/reve-2.1` | `aspect_ratio` | `auto` (the default) plus fixed ratios: the v1 API has the same 7 ratios as Yir, the v2 API 17 ratios from `4:1` to `1:4`. | 7 ratios, default `1:1`; no `auto`. |
 | `reve/reve-2.1` | Reference images | Remix with several reference images; the v2 API takes an ordered list of references. | Editing with exactly 1 `reference_image`. |
 | `reve/reve-2.1` | `test_time_scaling` (quality 1–5), `postprocessing` (upscale, background removal), `version`, layout operations | Available. | Not available. Output size is chosen by the model (`resolution: native`). |
+
+### 3D models
+
+Checked against each maker's own API documentation or, for TRELLIS.2, Microsoft's open-weight release (2026-10-30). Every 3D Job delivers one glb file; OBJ, FBX, USDZ and other formats, rigging, animation and other post-processing are not available. See [3D generation](/docs/guides/3d-generation).
+
+| Model | Parameter or feature | Official API | Yir |
+| --- | --- | --- | --- |
+| `tripo/tripo-h3.1` | Quad topology | `quad` remeshing, which outputs FBX. | `topology` is `triangle` only. |
+| `tripo/tripo-h3.1` | Multi-view input | Front view plus optional left, back and right views. | Not available. Text and single-image input only. |
+| `tripo/tripo-h3.1` | Geometry quality | `standard` or `detailed`. | `standard` only. `texture` chooses the texture tier (`standard` or `hd`). |
+| `tencent/hunyuan-3d-3.1-pro` | `FaceCount` | 3,000 to 1,500,000, default 500,000. | `face_limit` from 40,000 to 1,500,000, default 500,000. A value other than the default can cost more. |
+| `tencent/hunyuan-3d-3.1-pro` | Multi-view angles | Left, back and right views, and in 3.1 also top, bottom and front-quarter views. | `multiview` takes `front_view` plus `left_view`, `back_view` and `right_view`; other angles are not available. |
+| `microsoft/trellis-2` | PBR materials | Always produced. | `pbr` is always `true`; untextured output (`texture: "none"`) is not available. |
+| `microsoft/trellis-2` | `texture_size` | `1024`, `2048` (default) or `4096`. | `texture`: `standard` is 2048 px, `hd` is 4096 px. No 1024. |
+| `microsoft/trellis-2` | Geometry resolution, `decimation_target` | Several resolutions; decimation counted in vertices. | Fixed at 1024 geometry resolution. `face_limit` is not accepted. |
+| `meshy/meshy-7.1` | Multi-image input | Several images of one object. | Not available. Text and single-image input only. |
+| `meshy/meshy-7.1` | `should_texture` and preview mode | Text-to-3D runs as a preview (untextured mesh) followed by a refine (textures). | One Job: `texture: "none"` corresponds to the preview mesh, `texture: "standard"` to preview plus refine. |
+| `meshy/meshy-7.1` | Rigging and animation | Available. | Not available. `face_limit` (100 to 300,000, default 30,000) and `topology` (`triangle` or `quad`) map to `target_polycount` and `topology`. |

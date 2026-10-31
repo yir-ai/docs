@@ -1,0 +1,118 @@
+---
+title: 3D generation
+description: Generate glb 3D models from text, one image or several views with the Yir Standard API.
+---
+
+Submit 3D Jobs to `POST /v1/3d/generations` and quote them with `POST /v1/3d/quotes`. 3D Jobs follow the same [lifecycle](/docs/concepts/task-lifecycle), [billing](/docs/concepts/billing), [routing](/docs/concepts/routing), and [Webhooks](/docs/production/webhooks) as images and videos. Each Job delivers one model as a glb file.
+
+## Request fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `model` | Yes | A 3D model such as `tripo/tripo-h3.1`. See [models and parameters](/docs/models). |
+| `input` | Yes | One of the three [input types](#input-types): `text`, `image` or `multiview`. |
+| `parameters` | No | `texture`, `pbr`, `face_limit`, `topology` and `n`, within the values the model's contract declares. Omitted fields take the model defaults. See [parameters](#parameters). |
+| `max_cost` | No | Optional cap on the Job's charge in USD. See [billing](/docs/concepts/billing#set-a-spending-limit). |
+| `routing` | No | See [routing](/docs/concepts/routing). |
+| `webhook_url` | No | HTTPS URL that receives the terminal Job. |
+
+## Input types
+
+| `input.type` | Content | Prompt |
+| --- | --- | --- |
+| `text` | `prompt` describing the object. The length limit is per model (1024 characters for Tripo and Hunyuan, 600 for Meshy). | Required |
+| `image` | Exactly one reference with role `reference_image`. A plain background with one object filling most of the frame works best. | Not accepted |
+| `multiview` | One `front_view` plus at least one of `left_view`, `back_view` and `right_view`, each role at most once (2 to 4 images of the same object). | Not accepted |
+
+Each reference is a `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`. A model accepts only the input types its contract lists; others fail with `400 YIR_INVALID_REQUEST`.
+
+```json
+{
+  "model": "tencent/hunyuan-3d-3.1-pro",
+  "input": {
+    "type": "multiview",
+    "references": [
+      { "role": "front_view", "file_id": "file_..." },
+      { "role": "back_view", "url": "https://example.com/chair-back.png" }
+    ]
+  }
+}
+```
+
+## Parameters
+
+| Parameter | Values | Description |
+| --- | --- | --- |
+| `texture` | `none`, `standard`, `hd` | `none` returns an untextured mesh; `standard` and `hd` bake textures, `hd` at a higher resolution where the model offers it. |
+| `pbr` | `true`, `false` | PBR maps (metallic, roughness, normal) in addition to base color. Requires a texture: with `texture: "none"`, an omitted `pbr` becomes `false`, and an explicit `pbr: true` is rejected. |
+| `face_limit` | Integer | Target face count of the mesh; the result can differ slightly. Range and default come from the model's contract. Sending the default is the same as omitting it. |
+| `topology` | `triangle`, `quad` | Mesh face type. `quad` is a quad-dominant remesh where the model offers it. The glb file always stores triangles. |
+| `n` | `1` | One model per Job. Submit one Job per model you want. |
+
+Each model accepts only part of these values:
+
+| Model | Input types | `texture` | `pbr` | `face_limit` | `topology` |
+| --- | --- | --- | --- | --- | --- |
+| [Tripo H3.1](/docs/models/tripo/tripo-h3-1) | `text`, `image` | `none`, `standard`, `hd`; default `standard` | Default `true` | 1,000 to 1,500,000; omitted lets the model choose | `triangle` |
+| [Hunyuan 3D 3.1 Pro](/docs/models/tencent/hunyuan-3d-3-1-pro) | `text`, `image`, `multiview` | `none`, `standard`; default `standard` | Default `false` | 40,000 to 1,500,000; default 500,000 | `triangle` |
+| [TRELLIS.2](/docs/models/microsoft/trellis-2) | `image` | `standard`, `hd` (2048 or 4096 px textures); default `standard` | Always `true` | Not accepted | `triangle` |
+| [Meshy 7.1](/docs/models/meshy/meshy-7-1) | `text`, `image` | `none`, `standard`; default `standard` | Default `false` | 100 to 300,000; default 30,000 | `triangle`, `quad` |
+
+Some options change the price: the texture tier, PBR, multi-view input or a custom face count, depending on the model. The [quote](/docs/concepts/billing#get-a-quote) for the complete request is the price; current prices are listed in [Model Market](https://yir.ai/models).
+
+## Quote, submit and collect
+
+Quote the request with the same body (without `max_cost` and `webhook_url`) and check `supply.available`:
+
+```bash
+curl https://gateway.yir.ai/v1/3d/quotes \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "model": "tripo/tripo-h3.1",
+    "input": { "type": "text", "prompt": "A weathered wooden armchair with a woven seat" },
+    "parameters": { "texture": "standard", "pbr": true }
+  }'
+```
+
+Submit it with an `Idempotency-Key`:
+
+```bash
+curl https://gateway.yir.ai/v1/3d/generations \
+  --header "Authorization: Bearer $YIR_API_KEY" \
+  --header "Content-Type: application/json" \
+  --header "Idempotency-Key: 3d-$(date +%s)" \
+  --data '{
+    "model": "tripo/tripo-h3.1",
+    "input": { "type": "text", "prompt": "A weathered wooden armchair with a woven seat" },
+    "parameters": { "texture": "standard", "pbr": true }
+  }' | tee job.json
+
+export YIR_JOB_ID="$(jq -r '.id' job.json)"
+```
+
+Poll until the Job reaches a terminal state, then download the model:
+
+```bash
+while true; do
+  status="$(curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID/status \
+    --header "Authorization: Bearer $YIR_API_KEY" | jq -r '.status')"
+  echo "status: $status"
+  case "$status" in
+    succeeded|failed|cancelled) break ;;
+    *) sleep 10 ;;
+  esac
+done
+
+curl --silent https://gateway.yir.ai/v1/jobs/$YIR_JOB_ID \
+  --header "Authorization: Bearer $YIR_API_KEY" > job.json
+curl --location --output model.glb "$(jq -r '.result.files[0].url' job.json)"
+```
+
+Batch quotes (`POST /v1/quotes`) accept 3D items with `operation: "generate_3d"` and the same request body.
+
+## Results
+
+A successful Job returns one file in `result.files` with `media_type: "model/gltf-binary"` (glb). `faces` reports the measured triangle count of the mesh and is omitted when it could not be measured. The URL is a short-lived signed link; copy the file to your own storage. See [results and retention](/docs/concepts/task-lifecycle#results-and-retention).
+
+When the channel returns more than you asked for, Yir delivers the model instead of failing the Job and adds a parameter notice with `disposition: "exceeded"`: a textured model when you sent `texture: "none"` (`texture_included`), or PBR maps when you sent `pbr: false` (`pbr_included`). You are charged no more than the quote. See [parameters that differ by channel](/docs/concepts/routing#parameters-that-differ-by-channel).

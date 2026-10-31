@@ -1,0 +1,77 @@
+---
+title: "Meshy 7.1"
+description: "Meshy 7.1 3D 生成模型，按文字或单张图片生成 glb 模型，可选 PBR 贴图、四边面拓扑与目标面数"
+seo:
+  title: "Meshy 7.1 API 文档：参数与调用示例"
+  description: "Meshy 7.1 API 文档：模型 ID meshy/meshy-7.1、输入模式、参数取值与默认值，附请求示例。Meshy 7.1 3D 生成模型，按文字或单张图片生成 glb 模型，可选 PBR 贴图、四边面拓扑与目标面数。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `meshy/meshy-7.1` | `meshy-7.1` | [3D 生成](/zh/docs/guides/3d-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `image` 图片输入 | 1 | `reference_image` |
+| `text` 纯文本 | — | — |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `texture` | 贴图：贴图档位：none 只出白模，standard 与 hd 带贴图（hd 为更高分辨率贴图，部分模型支持）。 | `none`、`standard` | `standard` | 否 |
+| `pbr` | PBR 贴图：在基础颜色之外生成 PBR 贴图（金属度、粗糙度、法线），需要带贴图；部分模型另收费（以报价为准）。 | `false`、`true` | `false` | 否 |
+| `face_limit` | 目标面数：网格目标面数，结果可能略有出入；省略即模型默认。部分模型自定义面数另收费（以报价为准）。 | `100`–`300000` | `30000` | 否 |
+| `topology` | 拓扑：网格面类型：triangle 三角面或 quad 四边面（部分模型支持四边面重拓扑）；glb 文件内仍以三角面存储。 | `triangle`、`quad` | `triangle` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`image` 输入：
+
+```json
+{
+  "model": "meshy/meshy-7.1",
+  "input": {
+    "type": "image",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "texture": "standard",
+    "pbr": false,
+    "face_limit": 30000,
+    "topology": "triangle",
+    "n": 1
+  }
+}
+```
+
+`text` 输入：
+
+```json
+{
+  "model": "meshy/meshy-7.1",
+  "input": {
+    "type": "text",
+    "prompt": "A weathered wooden armchair with a woven seat"
+  },
+  "parameters": {
+    "texture": "standard",
+    "pbr": false,
+    "face_limit": 30000,
+    "topology": "triangle",
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/meshy/meshy-7.1?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
