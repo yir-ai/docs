@@ -20,15 +20,15 @@ description: 使用 Yir Standard API 按文字、单张图片或多视角图片�
 
 | `input.type` | 内容 | 提示词 |
 | --- | --- | --- |
-| `text` | `prompt` 描述要建模的物体。长度上限因模型而异（Tripo 与混元为 1024 个字符，Meshy 为 600）。 | 必填 |
+| `text` | `prompt` 描述要建模的物体。长度上限因模型而异（Tripo 为 1024 个字符，Meshy 为 600）。 | 必填 |
 | `image` | 恰好一张角色为 `reference_image` 的参考图。纯色背景、单个物体占据画面大部分时效果最好。 | 不接受 |
-| `multiview` | 一张 `front_view`，外加 `left_view`、`back_view`、`right_view` 中至少一张，每种角色最多一张（同一物体的 2–4 张图片）。 | 不接受 |
+| `multiview` | 一张 `front_view`，外加 `left_view`、`back_view`、`right_view` 中至少一张，每种角色最多一张（同一物体的 2–4 张图片）。Hi3D V3.0 与 Meshy 7.1 提供。 | 不接受 |
 
 每张参考图使用 [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开的 HTTPS `url`。模型只接受其合同列出的输入方式，其他方式返回 `400 YIR_INVALID_REQUEST`。
 
 ```json
 {
-  "model": "tencent/hunyuan-3d-3.1-pro",
+  "model": "hitem3d/hi3d-v3.0",
   "input": {
     "type": "multiview",
     "references": [
@@ -54,11 +54,11 @@ description: 使用 Yir Standard API 按文字、单张图片或多视角图片�
 | 模型 | 输入方式 | `texture` | `pbr` | `face_limit` | `topology` |
 | --- | --- | --- | --- | --- | --- |
 | [Tripo H3.1](/zh/docs/models/tripo/tripo-h3-1) | `text`、`image` | `none`、`standard`、`hd`；默认 `standard` | 默认 `true` | 1,000–1,500,000；省略时由模型决定 | `triangle` |
-| [Hunyuan 3D 3.1 Pro](/zh/docs/models/tencent/hunyuan-3d-3-1-pro) | `text`、`image`、`multiview` | `none`、`standard`；默认 `standard` | 默认 `false` | 40,000–1,500,000；默认 500,000 | `triangle` |
-| [TRELLIS.2](/zh/docs/models/microsoft/trellis-2) | `image` | `standard`、`hd`（2048 或 4096 像素贴图）；默认 `standard` | 恒为 `true` | 不接受 | `triangle` |
-| [Meshy 7.1](/zh/docs/models/meshy/meshy-7-1) | `text`、`image` | `none`、`standard`；默认 `standard` | 默认 `false` | 100–300,000；默认 30,000 | `triangle`、`quad` |
+| [Tripo P2](/zh/docs/models/tripo/tripo-p2) | `text`、`image` | `none`、`standard`、`hd`；默认 `standard` | 默认 `true` | 48–50,000（低面数）；省略时由模型决定 | `triangle` |
+| [Hi3D V3.0](/zh/docs/models/hitem3d/hi3d-v3-0) | `image`、`multiview` | `none`、`standard`；默认 `standard` | 默认 `true` | 100,000–5,000,000；省略时取模型默认 | `triangle` |
+| [Meshy 7.1](/zh/docs/models/meshy/meshy-7-1) | `text`、`image`、`multiview` | `none`、`standard`；默认 `standard` | 默认 `false` | 100–300,000；默认 30,000 | `triangle`、`quad` |
 
-部分选项会影响价格：视模型而定，可能是贴图档位、PBR、多视角输入或自定义面数。价格以完整请求的[报价](/zh/docs/concepts/billing#获取报价)为准；当前价格见[模型市场](https://yir.ai/zh/models)。
+部分选项会影响价格，视模型而定，例如贴图档位或 PBR。价格以完整请求的[报价](/zh/docs/concepts/billing#获取报价)为准；当前价格见[模型市场](https://yir.ai/zh/models)。
 
 ## 报价、提交与获取结果
 

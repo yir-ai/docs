@@ -201,18 +201,19 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 
 ### 3D 模型
 
-按各厂商自己的 API 文档核对，TRELLIS.2 按微软开源权重发布核对（2026-10-30）。每个 3D Job 交付一个 glb 文件；不提供 OBJ、FBX、USDZ 等其他格式，也不提供绑骨、动画等后处理。见 [3D 生成](/zh/docs/guides/3d-generation)。
+按各厂商自己的 API 文档核对（2026-10-30）。每个 3D Job 交付一个 glb 文件；不提供 OBJ、FBX、USDZ 等其他格式，也不提供绑骨、动画等后处理。见 [3D 生成](/zh/docs/guides/3d-generation)。
 
 | 模型 | 参数或功能 | 官方 API | Yir |
 | --- | --- | --- | --- |
 | `tripo/tripo-h3.1` | 四边面拓扑 | 支持 `quad` 重拓扑，开启后输出 FBX。 | `topology` 只有 `triangle`。 |
 | `tripo/tripo-h3.1` | 多视角输入 | 正面视角，可加左、后、右视角。 | 不可用。只支持文字和单图输入。 |
 | `tripo/tripo-h3.1` | 几何质量 | `standard` 或 `detailed`。 | 只有 `standard`。`texture` 选择贴图档位（`standard` 或 `hd`）。 |
-| `tencent/hunyuan-3d-3.1-pro` | `FaceCount` | 3,000–1,500,000，默认 500,000。 | `face_limit` 为 40,000–1,500,000，默认 500,000。非默认值可能另收费。 |
-| `tencent/hunyuan-3d-3.1-pro` | 多视角角度 | 左、后、右视角，3.1 另有顶部、底部和前侧视角。 | `multiview` 接受 `front_view` 加 `left_view`、`back_view`、`right_view`，其他角度不可用。 |
-| `microsoft/trellis-2` | PBR 材质 | 始终生成。 | `pbr` 恒为 `true`；不提供无贴图输出（`texture: "none"`）。 |
-| `microsoft/trellis-2` | `texture_size` | `1024`、`2048`（默认）或 `4096`。 | `texture`：`standard` 为 2048 像素，`hd` 为 4096 像素。没有 1024。 |
-| `microsoft/trellis-2` | 几何分辨率、`decimation_target` | 多档分辨率；减面按顶点数计。 | 固定 1024 几何分辨率。不接受 `face_limit`。 |
-| `meshy/meshy-7.1` | 多图输入 | 同一物体的多张图片。 | 不可用。只支持文字和单图输入。 |
+| `tripo/tripo-p2` | 四边面拓扑 | 支持四边面重拓扑（48–25,000 面），是该模型的主打能力。 | `topology` 暂只有 `triangle`；`face_limit` 为 48–50,000 三角面，省略时由模型决定。 |
+| `tripo/tripo-p2` | 多视角输入 | 正面视角，可加左、后、右视角。 | 不可用。只支持文字和单图输入。 |
+| `hitem3d/hi3d-v3.0` | 输入 | 单图或多视角图片；正面必填，可加左、后、右视角。 | `image` 接受一张 `reference_image`；`multiview` 接受 `front_view` 加 `left_view`、`back_view`、`right_view`。不支持文字输入。 |
+| `hitem3d/hi3d-v3.0` | 几何分辨率 | `2048quality` 或 `2048master`。 | 固定 `2048quality`。 |
+| `hitem3d/hi3d-v3.0` | `request_type` | `1`（只出几何）或 `3`（几何加贴图）。 | `texture` 为 `none` 或 `standard`，没有 `hd` 档。`pbr` 默认 `true`。 |
+| `hitem3d/hi3d-v3.0` | `face` | 100,000–5,000,000；只给推荐值，未写默认值。 | `face_limit` 为 100,000–5,000,000；省略时取模型默认。 |
+| `meshy/meshy-7.1` | 多图输入 | 同一物体的多张图片，第一张为正面。 | `multiview` 接受 `front_view`（排在第一张）加 `left_view`、`back_view`、`right_view`，共 2–4 张。 |
 | `meshy/meshy-7.1` | `should_texture` 与 preview 模式 | 文生 3D 先跑 preview（白模），再跑 refine（贴图）。 | 一个 Job 完成：`texture: "none"` 对应 preview 白模，`texture: "standard"` 对应 preview 加 refine。 |
 | `meshy/meshy-7.1` | 绑骨与动画 | 支持。 | 不可用。`face_limit`（100–300,000，默认 30,000）与 `topology`（`triangle` 或 `quad`）对应 `target_polycount` 与 `topology`。 |

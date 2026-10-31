@@ -1,9 +1,9 @@
 ---
 title: "Meshy 7.1"
-description: "Meshy 7.1 3D 生成模型，按文字或单张图片生成 glb 模型，可选 PBR 贴图、四边面拓扑与目标面数"
+description: "Meshy 7.1 3D 生成模型，按文字、单图或多视角图片生成 glb 模型，可选 PBR 贴图、四边面拓扑与目标面数"
 seo:
   title: "Meshy 7.1 API 文档：参数与调用示例"
-  description: "Meshy 7.1 API 文档：模型 ID meshy/meshy-7.1、输入模式、参数取值与默认值，附请求示例。Meshy 7.1 3D 生成模型，按文字或单张图片生成 glb 模型，可选 PBR 贴图、四边面拓扑与目标面数。"
+  description: "Meshy 7.1 API 文档：模型 ID meshy/meshy-7.1、输入模式、参数取值与默认值，附请求示例。Meshy 7.1 3D 生成模型，按文字、单图或多视角图片生成 glb 模型，可选 PBR 贴图、四边面拓扑与目标面数。"
 ---
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
@@ -17,6 +17,7 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `image` 图片输入 | 1 | `reference_image` |
+| `multiview` 多视角图片 | 2–4 | `back_view` 0–1<br />`front_view` 1<br />`left_view` 0–1<br />`right_view` 0–1 |
 | `text` 纯文本 | — | — |
 
 ## 参数
@@ -41,6 +42,34 @@ seo:
     "references": [
       {
         "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "texture": "standard",
+    "pbr": false,
+    "face_limit": 30000,
+    "topology": "triangle",
+    "n": 1
+  }
+}
+```
+
+`multiview` 输入：
+
+```json
+{
+  "model": "meshy/meshy-7.1",
+  "input": {
+    "type": "multiview",
+    "references": [
+      {
+        "role": "front_view",
+        "file_id": "file_..."
+      },
+      {
+        "role": "back_view",
         "file_id": "file_..."
       }
     ]

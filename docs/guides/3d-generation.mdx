@@ -20,15 +20,15 @@ Submit 3D Jobs to `POST /v1/3d/generations` and quote them with `POST /v1/3d/quo
 
 | `input.type` | Content | Prompt |
 | --- | --- | --- |
-| `text` | `prompt` describing the object. The length limit is per model (1024 characters for Tripo and Hunyuan, 600 for Meshy). | Required |
+| `text` | `prompt` describing the object. The length limit is per model (1024 characters for Tripo, 600 for Meshy). | Required |
 | `image` | Exactly one reference with role `reference_image`. A plain background with one object filling most of the frame works best. | Not accepted |
-| `multiview` | One `front_view` plus at least one of `left_view`, `back_view` and `right_view`, each role at most once (2 to 4 images of the same object). | Not accepted |
+| `multiview` | One `front_view` plus at least one of `left_view`, `back_view` and `right_view`, each role at most once (2 to 4 images of the same object). Offered by Hi3D V3.0 and Meshy 7.1. | Not accepted |
 
 Each reference is a `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`. A model accepts only the input types its contract lists; others fail with `400 YIR_INVALID_REQUEST`.
 
 ```json
 {
-  "model": "tencent/hunyuan-3d-3.1-pro",
+  "model": "hitem3d/hi3d-v3.0",
   "input": {
     "type": "multiview",
     "references": [
@@ -54,11 +54,11 @@ Each model accepts only part of these values:
 | Model | Input types | `texture` | `pbr` | `face_limit` | `topology` |
 | --- | --- | --- | --- | --- | --- |
 | [Tripo H3.1](/docs/models/tripo/tripo-h3-1) | `text`, `image` | `none`, `standard`, `hd`; default `standard` | Default `true` | 1,000 to 1,500,000; omitted lets the model choose | `triangle` |
-| [Hunyuan 3D 3.1 Pro](/docs/models/tencent/hunyuan-3d-3-1-pro) | `text`, `image`, `multiview` | `none`, `standard`; default `standard` | Default `false` | 40,000 to 1,500,000; default 500,000 | `triangle` |
-| [TRELLIS.2](/docs/models/microsoft/trellis-2) | `image` | `standard`, `hd` (2048 or 4096 px textures); default `standard` | Always `true` | Not accepted | `triangle` |
-| [Meshy 7.1](/docs/models/meshy/meshy-7-1) | `text`, `image` | `none`, `standard`; default `standard` | Default `false` | 100 to 300,000; default 30,000 | `triangle`, `quad` |
+| [Tripo P2](/docs/models/tripo/tripo-p2) | `text`, `image` | `none`, `standard`, `hd`; default `standard` | Default `true` | 48 to 50,000 (low-poly); omitted lets the model choose | `triangle` |
+| [Hi3D V3.0](/docs/models/hitem3d/hi3d-v3-0) | `image`, `multiview` | `none`, `standard`; default `standard` | Default `true` | 100,000 to 5,000,000; omitted uses the model default | `triangle` |
+| [Meshy 7.1](/docs/models/meshy/meshy-7-1) | `text`, `image`, `multiview` | `none`, `standard`; default `standard` | Default `false` | 100 to 300,000; default 30,000 | `triangle`, `quad` |
 
-Some options change the price: the texture tier, PBR, multi-view input or a custom face count, depending on the model. The [quote](/docs/concepts/billing#get-a-quote) for the complete request is the price; current prices are listed in [Model Market](https://yir.ai/models).
+Some options change the price, such as the texture tier or PBR, depending on the model. The [quote](/docs/concepts/billing#get-a-quote) for the complete request is the price; current prices are listed in [Model Market](https://yir.ai/models).
 
 ## Quote, submit and collect
 

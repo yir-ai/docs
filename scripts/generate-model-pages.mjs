@@ -18,9 +18,9 @@ const LOCALES = {
 
 // Creator ID → sidebar group title.
 const CREATORS = {
-  alibaba: 'Alibaba', bfl: 'Black Forest Labs', bytedance: 'ByteDance', elevenlabs: 'ElevenLabs', google: 'Google', heygen: 'HeyGen', klingai: 'Kling AI',
-  meshy: 'Meshy', meta: 'Meta', microsoft: 'Microsoft', midjourney: 'Midjourney', minimax: 'MiniMax', openai: 'OpenAI', prodia: 'Prodia', pruna: 'Pruna AI', recraft: 'Recraft', reve: 'Reve', spacexai: 'xAI', suno: 'Suno',
-  tencent: 'Tencent', topaz: 'Topaz Labs', tripo: 'Tripo',
+  alibaba: 'Alibaba', bfl: 'Black Forest Labs', bytedance: 'ByteDance', elevenlabs: 'ElevenLabs', google: 'Google', heygen: 'HeyGen', hitem3d: 'Hitem3D', klingai: 'Kling AI',
+  meshy: 'Meshy', meta: 'Meta', midjourney: 'Midjourney', minimax: 'MiniMax', openai: 'OpenAI', prodia: 'Prodia', pruna: 'Pruna AI', recraft: 'Recraft', reve: 'Reve', spacexai: 'xAI', suno: 'Suno',
+  topaz: 'Topaz Labs', tripo: 'Tripo',
 }
 
 // Models whose notes are shared with another page.
@@ -259,7 +259,7 @@ export function renderPage(model, lang, notesFile) {
   return lines.join('\n')
 }
 
-// Monochrome creator mark (lobehub/icons, MIT, including Meshy, Microsoft, Tencent and Tripo; ElevenLabs and Suno from simple-icons, CC0; Prodia, Pruna, Topaz and Midjourney drawn to match), inlined so
+// Monochrome creator mark (lobehub/icons, MIT, including Meshy and Tripo; ElevenLabs and Suno from simple-icons, CC0; Prodia, Pruna, Topaz, Midjourney and Hitem3D drawn to match), inlined so
 // it follows the sidebar text color in both themes. Same marks as yir-web.
 function creatorIcon(creator) {
   const paths = creatorMarks[creator]

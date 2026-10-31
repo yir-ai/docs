@@ -157,13 +157,14 @@ check('reve same 7 ratios as Reve v1, default 1:1, no auto', sameSet(vals(rv, 'a
 check('reve edits take exactly 1 reference_image', C(rv, 'image')?.min_references === 1 && C(rv, 'image')?.max_references === 1 && sameSet(C(rv, 'image')?.allowed_reference_roles, ['reference_image']), C(rv, 'image'))
 check('reve resolution native only', sameSet(vals(rv, 'resolution'), ['native']), vals(rv, 'resolution'))
 // 3D
-const tr = 'tripo/tripo-h3.1', hy = 'tencent/hunyuan-3d-3.1-pro', tl = 'microsoft/trellis-2', me = 'meshy/meshy-7.1'
+const tr = 'tripo/tripo-h3.1', p2 = 'tripo/tripo-p2', hi = 'hitem3d/hi3d-v3.0', me = 'meshy/meshy-7.1'
+const views = ['front_view', 'left_view', 'back_view', 'right_view']
 check('tripo text and image only, triangle only', eq(modes(tr), ['image', 'text']) && sameSet(vals(tr, 'topology'), ['triangle']), [modes(tr), vals(tr, 'topology')])
 check('tripo texture none/standard/hd', sameSet(vals(tr, 'texture'), ['none', 'standard', 'hd']), vals(tr, 'texture'))
-check('hunyuan face_limit 40000..1500000 default 500000', P(hy, 'face_limit')?.minimum === 40000 && P(hy, 'face_limit')?.maximum === 1500000 && def(hy, 'face_limit') === 500000, P(hy, 'face_limit'))
-check('hunyuan multiview front plus left/back/right', sameSet(C(hy, 'multiview')?.allowed_reference_roles, ['front_view', 'left_view', 'back_view', 'right_view']), C(hy, 'multiview')?.allowed_reference_roles)
-check('trellis image only, pbr always true, standard/hd, no face_limit', eq(modes(tl), ['image']) && sameSet(vals(tl, 'pbr', 'image'), [true]) && sameSet(vals(tl, 'texture', 'image'), ['standard', 'hd']) && !P(tl, 'face_limit', 'image'), [vals(tl, 'pbr', 'image'), vals(tl, 'texture', 'image')])
-check('meshy text and image only, face_limit 100..300000 default 30000, triangle/quad', eq(modes(me), ['image', 'text']) && P(me, 'face_limit')?.minimum === 100 && P(me, 'face_limit')?.maximum === 300000 && def(me, 'face_limit') === 30000 && sameSet(vals(me, 'topology'), ['triangle', 'quad']), [modes(me), P(me, 'face_limit'), vals(me, 'topology')])
+check('tripo p2 text and image only, triangle only, face_limit 48..50000 no default', eq(modes(p2), ['image', 'text']) && sameSet(vals(p2, 'topology'), ['triangle']) && P(p2, 'face_limit')?.minimum === 48 && P(p2, 'face_limit')?.maximum === 50000 && def(p2, 'face_limit') === undefined, [modes(p2), vals(p2, 'topology'), P(p2, 'face_limit')])
+check('hi3d image and multiview only, front plus left/back/right', eq(modes(hi), ['image', 'multiview']) && sameSet(C(hi, 'multiview')?.allowed_reference_roles, views) && sameSet(vals(hi, 'pbr', 'image'), [false, true]) && def(hi, 'pbr', 'image') === true, [modes(hi), C(hi, 'multiview')?.allowed_reference_roles])
+check('hi3d texture none/standard, face_limit 100000..5000000 no default', sameSet(vals(hi, 'texture', 'image'), ['none', 'standard']) && P(hi, 'face_limit', 'image')?.minimum === 100000 && P(hi, 'face_limit', 'image')?.maximum === 5000000 && def(hi, 'face_limit', 'image') === undefined, [vals(hi, 'texture', 'image'), P(hi, 'face_limit', 'image')])
+check('meshy text, image and multiview, face_limit 100..300000 default 30000, triangle/quad', eq(modes(me), ['image', 'multiview', 'text']) && sameSet(C(me, 'multiview')?.allowed_reference_roles, views) && P(me, 'face_limit')?.minimum === 100 && P(me, 'face_limit')?.maximum === 300000 && def(me, 'face_limit') === 30000 && sameSet(vals(me, 'topology'), ['triangle', 'quad']), [modes(me), P(me, 'face_limit'), vals(me, 'topology')])
 check('meshy texture none/standard', sameSet(vals(me, 'texture'), ['none', 'standard']), vals(me, 'texture'))
 // Retired models: the page says they were removed from the model list.
 for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)

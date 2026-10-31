@@ -453,7 +453,7 @@
                 "$ref": "#/components/schemas/Standard3DQuoteRequest"
               },
               "example": {
-                "model": "tencent/hunyuan-3d-3.1-pro",
+                "model": "hitem3d/hi3d-v3.0",
                 "input": {
                   "type": "image",
                   "references": [
@@ -2579,7 +2579,7 @@
             "minLength": 1,
             "maxLength": 1024,
             "pattern": "\\S",
-            "description": "要建模的物体描述。各模型的长度上限见模型合同（Tripo 与混元 Pro 为 1024，Meshy 为 600）。"
+            "description": "要建模的物体描述。各模型的长度上限见模型合同（Tripo 为 1024，Meshy 为 600）。"
           }
         }
       },
@@ -2713,7 +2713,7 @@
           "face_limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 2000000,
+            "maximum": 5000000,
             "description": "目标面数。范围与默认值见模型合同；省略即模型默认。部分模型自定义面数另收费。"
           },
           "topology": {

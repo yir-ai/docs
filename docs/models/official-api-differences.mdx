@@ -199,18 +199,19 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 
 ### 3D models
 
-Checked against each maker's own API documentation or, for TRELLIS.2, Microsoft's open-weight release (2026-10-30). Every 3D Job delivers one glb file; OBJ, FBX, USDZ and other formats, rigging, animation and other post-processing are not available. See [3D generation](/docs/guides/3d-generation).
+Checked against each maker's own API documentation (2026-10-30). Every 3D Job delivers one glb file; OBJ, FBX, USDZ and other formats, rigging, animation and other post-processing are not available. See [3D generation](/docs/guides/3d-generation).
 
 | Model | Parameter or feature | Official API | Yir |
 | --- | --- | --- | --- |
 | `tripo/tripo-h3.1` | Quad topology | `quad` remeshing, which outputs FBX. | `topology` is `triangle` only. |
 | `tripo/tripo-h3.1` | Multi-view input | Front view plus optional left, back and right views. | Not available. Text and single-image input only. |
 | `tripo/tripo-h3.1` | Geometry quality | `standard` or `detailed`. | `standard` only. `texture` chooses the texture tier (`standard` or `hd`). |
-| `tencent/hunyuan-3d-3.1-pro` | `FaceCount` | 3,000 to 1,500,000, default 500,000. | `face_limit` from 40,000 to 1,500,000, default 500,000. A value other than the default can cost more. |
-| `tencent/hunyuan-3d-3.1-pro` | Multi-view angles | Left, back and right views, and in 3.1 also top, bottom and front-quarter views. | `multiview` takes `front_view` plus `left_view`, `back_view` and `right_view`; other angles are not available. |
-| `microsoft/trellis-2` | PBR materials | Always produced. | `pbr` is always `true`; untextured output (`texture: "none"`) is not available. |
-| `microsoft/trellis-2` | `texture_size` | `1024`, `2048` (default) or `4096`. | `texture`: `standard` is 2048 px, `hd` is 4096 px. No 1024. |
-| `microsoft/trellis-2` | Geometry resolution, `decimation_target` | Several resolutions; decimation counted in vertices. | Fixed at 1024 geometry resolution. `face_limit` is not accepted. |
-| `meshy/meshy-7.1` | Multi-image input | Several images of one object. | Not available. Text and single-image input only. |
+| `tripo/tripo-p2` | Quad topology | Quad remeshing with 48 to 25,000 faces, the model's main option. | `topology` is `triangle` only for now; `face_limit` takes 48 to 50,000 triangles and omitted lets the model choose. |
+| `tripo/tripo-p2` | Multi-view input | Front view plus optional left, back and right views. | Not available. Text and single-image input only. |
+| `hitem3d/hi3d-v3.0` | Input | One image or multi-view images; front view required, plus left, back and right views. | `image` with one `reference_image`, or `multiview` with `front_view` plus `left_view`, `back_view` and `right_view`. No text input. |
+| `hitem3d/hi3d-v3.0` | Geometry resolution | `2048quality` or `2048master`. | Fixed at `2048quality`. |
+| `hitem3d/hi3d-v3.0` | `request_type` | `1` (geometry only) or `3` (geometry with texture). | `texture`: `none` or `standard`; there is no `hd` tier. `pbr` defaults to `true`. |
+| `hitem3d/hi3d-v3.0` | `face` | 100,000 to 5,000,000; only recommended values, no documented default. | `face_limit` from 100,000 to 5,000,000; omitted uses the model default. |
+| `meshy/meshy-7.1` | Multi-image input | Several images of one object; the first is the front. | `multiview` with `front_view` (sent first) plus `left_view`, `back_view` and `right_view`, 2 to 4 images. |
 | `meshy/meshy-7.1` | `should_texture` and preview mode | Text-to-3D runs as a preview (untextured mesh) followed by a refine (textures). | One Job: `texture: "none"` corresponds to the preview mesh, `texture: "standard"` to preview plus refine. |
 | `meshy/meshy-7.1` | Rigging and animation | Available. | Not available. `face_limit` (100 to 300,000, default 30,000) and `topology` (`triangle` or `quad`) map to `target_polycount` and `topology`. |
