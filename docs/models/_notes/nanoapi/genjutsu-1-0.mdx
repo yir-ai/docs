@@ -1,0 +1,7 @@
+## Source video and billing
+
+Genjutsu transfers motion from one source video to the people in 1–10 reference images. Upload a 1–30 second MP4 using [Files](/docs/guides/input-files).
+
+The output duration and aspect ratio follow the source video. `duration` is a catalog representative value; it is not sent to the model and does not trim the video. Audio cannot be controlled: `generate_audio: true` is rejected, while `false` does not guarantee a silent result. Check the delivered file for an audio track.
+
+Quotes use the longer of the measured audio and video tracks, rounded to the nearest second with a four-second minimum. Reference media have no additional fee. A URL that has not yet been imported has no complete quote; use a newly uploaded, measured file for an estimate. Final charges use the actual task cost.
