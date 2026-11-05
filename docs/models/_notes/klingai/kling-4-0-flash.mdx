@@ -1,0 +1,5 @@
+The current fal route supports text generation, a single first frame, or reference generation with up to 10 images and one 3–20-second video. End frames, keyframes, subject groups, voices, and a first frame mixed with reference inputs are not available in this integration. Audio is generated natively; there is no audio toggle upstream.
+
+In reference prompts, use `@image_1`, `@image_2`, and `@video_1`. Yir maps these to fal's `@Image1`, `@Image2`, and `@Video1`.
+
+Video references change the pricing basis: billable seconds equal output duration plus the greater of input and output duration. For example, a 10-second reference and 5-second output use 15 billable seconds. Check the current quote; final charges follow the provider's task-level usage.
