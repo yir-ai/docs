@@ -35,6 +35,78 @@ Custom ordering (`order`) is not supported. Invalid routing values fail with `40
 
 **Tip: don't use `only` to control cost.** Channels outside `only` never take part in fallback, so when every listed channel fails or is unavailable, the Job fails even if another channel could finish it. To cap what a Job can cost, set `max_cost` and leave room for a fallback channel (see [quotes and billing](/docs/concepts/billing)). To avoid channels that alter the output, use `fidelity`. Use `only` for targeted tests, or when your use case requires specific channels.
 
+## How speed-first routing selects a channel
+
+`routing.preference: "speed"` selects among eligible channels for **the same model and the current request specification**. It does not switch models or guarantee the fastest channel for every request.
+
+Selection follows this order:
+
+1. **Filter for executable routes.** The key's Routing Profile, `only`, `variants`, `fidelity`, model parameters and channel availability still apply, as does `max_cost` when set. Speed-first routing does not bypass these restrictions.
+2. **Prefer healthy channels and the requested quality tier.** Degraded channels follow healthy ones. A route that serves the request by upgrading to a higher quality tier, at a higher price than a route serving the requested tier, follows those requested-tier routes as a fallback.
+3. **Compare historical median upstream duration (P50).** Among candidates otherwise equal on the preceding conditions, routes with valid speed statistics lead, with lower P50 first. Statistics are separate for each channel route (including its variant) and exact request specification. Timing for a different resolution, aspect ratio or quality tier is not directly substituted for your request.
+4. **Use price for the remaining order.** Equal P50 values, or candidates without valid speed statistics, are ordered by price, lowest first. Routes without valid speed statistics follow routes with valid statistics.
+
+A P50 of 30 seconds means roughly half of the valid historical samples completed upstream within 30 seconds. **It is not a deadline for your request.** Speed statistics must meet validity requirements; currently at least 5 valid duration samples are required, and expired statistics are not used. Current upstream queues can still differ from historical conditions.
+
+This compares **upstream execution time**. Your end-to-end wait also includes input preparation, scheduling and result delivery, so P50 is not the full time from submitting a request to downloading its result.
+
+### Why can speed-first routing still select a discounted variant?
+
+A discount describes price, not necessarily slower execution. A discounted variant may have a lower valid P50, or it may win on price when candidates lack valid speed statistics or have equal P50 values. A more expensive standard variant is not guaranteed to finish faster every time.
+
+`speed` controls selection order; `fallback` controls switching after eligible failures (with the [content-rejection exception](#content-rejections)); `accelerate` controls switching when an image attempt remains unresolved for too long. **Speed-first routing does not automatically race multiple channels in parallel**, or immediately treat an ordinary delay as a failure. See [Acceleration](#acceleration) for its triggers and billing.
+
+## Custom channel examples
+
+These are `routing` fragments to merge into a quote or generation request. You still need the model, inputs and other fields required by that endpoint. Check [Model Market](https://yir.ai/models) for channels and variants supporting your model and specification, then quote with the same parameters. Changing channels or variants can change the price.
+
+### Prefer speed across all eligible channels
+
+```json
+{
+  "routing": {
+    "preference": "speed",
+    "fallback": true,
+    "accelerate": true
+  }
+}
+```
+
+Omitting `only` keeps all eligible channels permitted by the key's policy. Acceleration applies only to images and still requires an eligible next route.
+
+### Use only APIMart's standard variant, while keeping other channels
+
+For example, for a GPT Image 2.5 model that supports APIMart's standard variant:
+
+```json
+{
+  "routing": {
+    "preference": "speed",
+    "variants": { "apimart": "standard" },
+    "fallback": true
+  }
+}
+```
+
+This excludes APIMart's `ext` variant. It **does not force APIMart to run first** or exclude other channels, which still participate in speed ranking and fallback. To use only APIMart's standard variant, also add `"only": ["apimart"]`; doing so removes cross-channel fallback.
+
+### Prefer speed within a chosen set of channels
+
+```json
+{
+  "routing": {
+    "only": ["apimart", "kie"],
+    "variants": { "apimart": "standard" },
+    "preference": "speed",
+    "fallback": true
+  }
+}
+```
+
+Selection and fallback stay within eligible APIMart standard and KIE routes. `only` is an unordered allowlist: appearing first does not give a channel priority, and `fallback: true` does not permit channels outside the list. If neither is available, Yir does not automatically use the official channel or another provider.
+
+For persistent rules on a key, configure speed preference and channel exclusions in [Console Routing Profiles](/docs/console#routing-profiles), and check that the key is bound to that profile. You can exclude a whole channel, a special-price tier, or a channel for a specific model. Request-level settings cannot re-enable channels excluded by the key's policy. Narrowing the eligible set leaves fewer options for speed and fallback.
+
 ## Channel IDs and the official alias
 
 Channel IDs are lowercase identifiers such as `openai`, `google`, `fal`, or `kie`. Model detail pages in [Model Market](https://yir.ai/models) list the channels and variants that serve each model.
