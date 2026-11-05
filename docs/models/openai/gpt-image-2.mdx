@@ -24,8 +24,8 @@ seo:
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `1K`, `2K`, `4K` | `1K` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `2:1`, `1:2`, `3:1`, `1:3`, `21:9`, `9:21` | `auto` | No |
-| `quality` | Quality: Image generation quality tier. | `low`, `medium`, `high` | Not set | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. With quality=high, auto aspect ratio is supported only at 1K; choose an explicit aspect_ratio at other resolutions. | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `2:1`, `1:2`, `3:1`, `1:3`, `21:9`, `9:21` | `auto` | No |
+| `quality` | Quality: Image generation quality tier. With quality=high, auto aspect ratio is supported only at 1K; choose an explicit aspect_ratio at other resolutions. | `low`, `medium`, `high` | Not set | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
