@@ -24,12 +24,12 @@ You influence this with the optional `routing` object on quote and generation re
 
 | Field | Values | Effect |
 | --- | --- | --- |
-| `preference` | `cost`, `speed` | `cost` (default) orders channels by estimated price, lowest first. `speed` orders channels by their observed upstream generation time (median over recent Jobs); channels with too few recent Jobs come after, ordered by price. `balanced` is still accepted as a deprecated alias of `cost`. Defaults to the key's Routing Profile. |
+| `preference` | `cost`, `speed` | `cost` orders channels by estimated price, lowest first. `speed` orders channels by their observed upstream generation time (median over recent Jobs); channels with too few recent Jobs come after, ordered by price. Defaults to the key's Routing Profile (`cost` unless you change it). `balanced` is a deprecated alias of `cost` and is still accepted. |
 | `only` | 1–16 channel IDs | Unordered allowlist. Selection and fallback stay inside it. A single entry pins one channel, which is useful for testing. |
 | `variants` | Map of channel ID → variant | Chooses a specific version of a channel. See below. |
 | `fallback` | `true`, `false` | `false` allows only one provider attempt, except after an unbilled content rejection (see [below](#content-rejections)). Defaults to the key's Routing Profile. |
 | `fidelity` | `original`, `genuine`, `any` | Minimum faithfulness of the channel's output to the model's native output. See [Fidelity](#fidelity). Defaults to the key's Routing Profile. |
-| `accelerate` | `true`, `false` | Moves an image attempt that stalls far past its channel's usual completion time to the next route. See [Acceleration](#acceleration). Defaults to the key's Routing Profile. |
+| `accelerate` | `true`, `false` | Starts the next route when an image attempt runs well past its usual time with no result. See [Acceleration](#acceleration). Defaults to the key's Routing Profile. |
 
 Custom ordering (`order`) is not supported. Invalid routing values fail with `400 YIR_INVALID_ROUTING_OVERRIDE`.
 
@@ -54,7 +54,7 @@ This compares **upstream execution time**. Your end-to-end wait also includes in
 
 A discount describes price, not necessarily slower execution. A discounted variant may have a lower valid P50, or it may win on price when candidates lack valid speed statistics or have equal P50 values. A more expensive standard variant is not guaranteed to finish faster every time.
 
-`speed` controls selection order; `fallback` controls switching after eligible failures (with the [content-rejection exception](#content-rejections)); `accelerate` controls switching when an image attempt remains unresolved for too long. **Speed-first routing does not automatically race multiple channels in parallel**, or immediately treat an ordinary delay as a failure. See [Acceleration](#acceleration) for its triggers and billing.
+`speed` controls selection order; `fallback` controls switching after eligible failures (with the [content-rejection exception](#content-rejections)); `accelerate` controls starting the next route when an image attempt remains unresolved for too long. **Speed-first routing does not race multiple channels in parallel**, or treat an ordinary delay as a failure. See [Acceleration](#acceleration) for its triggers and billing.
 
 ## Custom channel examples
 
@@ -142,7 +142,7 @@ Some channels return output that is not the model's native result, for example a
 
 The default comes from `default_fidelity` on the Routing Profile bound to your API Key (`genuine` unless you change it in [Console](/docs/console#routing-profiles)); `routing.fidelity` on a request overrides it. The filter applies after `only` and channel exclusions and before pricing, so a stricter value can raise the price. It is fixed when the Job is admitted.
 
-If no channel meets the floor, generation fails with `422 YIR_FIDELITY_EXCLUDED`, and a quote returns `supply.available: false` with `issues: ["no_matching_supply"]`. Use `genuine` or `any`, or choose another model or specification.
+If no channel meets the floor, generation fails with `422 YIR_FIDELITY_EXCLUDED`, and a quote returns `supply.available: false` with `issues: ["no_matching_supply"]`. Relax `fidelity`, or choose another model or specification.
 
 Each delivered file reports what was actually checked, in `result.files[].fidelity`:
 
@@ -162,7 +162,7 @@ Each delivered file reports what was actually checked, in `result.files[].fideli
 
 ## How fallback works
 
-Yir moves to another channel after the current attempt is **confirmed failed**, or, with [acceleration](#acceleration), when an image attempt stalls far past its channel's usual completion time. Otherwise slow or unknown attempts are not abandoned. By default a Job may try up to three channels, at most two third-party and one official, in `preference` order (the official channel can come first), subject to:
+Yir moves to another channel after the current attempt is **confirmed failed**. With [acceleration](#acceleration), it also starts the next route when an image attempt runs well past its usual time. Otherwise Yir does not abandon an attempt for being slow or unknown. By default a Job may try up to three channels, at most two third-party and one official, in `preference` order (the official channel can come first), subject to:
 
 - your `only` and `variants` choices, and any restriction on the key's Routing Profile;
 - the model and parameters each channel supports;
@@ -173,28 +173,34 @@ Channels skipped before submission do not count as attempts. An official referen
 
 ### Content rejections
 
-Channels moderate content differently, so a prompt one channel rejects may pass on another. When a channel rejects the prompt or references for content safety **and does not bill the attempt**, Yir tries up to two more channels, even with `fallback: false`. These attempts stay inside `only`, `variants`, the key's Routing Profile and `max_cost`, do not count toward the three-attempt limit, and never retry the channel that rejected. You pay only for the attempt that delivers. If no channel accepts it, or none remains, the Job fails with `YIR_CONTENT_REJECTED`. A rejection the channel already billed (output it generated and then blocked), or one from Yir's own check of reference images, ends the Job without switching.
+Channels moderate content differently, so a prompt one channel rejects may pass on another. When a channel rejects the prompt or references for content safety **and does not bill the attempt**, Yir tries up to two more channels, even with `fallback: false`. These attempts stay inside `only`, `variants`, the key's Routing Profile and `max_cost`, do not count toward the three-attempt limit, and never retry the channel that rejected. An unbilled rejection costs nothing. If no channel accepts it, or none remains, the Job fails with `YIR_CONTENT_REJECTED`. A rejection the channel billed or may have billed (for example output it generated and then blocked), or one from Yir's own check of reference images, ends the Job without switching.
 
 **Warning: a tight `max_cost` can interrupt delivery during failover.** Even after a Job is accepted, a failed channel may need to be replaced by a more expensive one. If its estimate exceeds the remaining budget after earlier billed attempts, Yir skips it; if no eligible fallback fits, the Job fails with `YIR_BUDGET_EXCEEDED` and may deliver no result. When delivery continuity is more important than a per-Job spending cap, omit this optional field; otherwise leave room for more expensive fallback channels and earlier attempts' charges. Omitting it removes the per-Job cap, so actual charges can exceed the quote; account balance and other limits still apply.
 
 ## Acceleration
 
-Upstream channels occasionally leave a task unresolved for far longer than usual. With `accelerate` on, when an image attempt is still unresolved upstream at about twice that channel's recent p99 completion time (at least 5 minutes; roughly 10 to 15 minutes on today's image channels), Yir cuts it off and retries on the next route.
+Upstream channels occasionally leave a task unresolved for far longer than usual. With `accelerate` on, when an image attempt reaches its cutoff with no result, Yir starts the next route. The cutoff comes from recent timing for that channel and specification, usually 1.5 to 13 minutes, and can be shorter while a channel is slow.
 
 - **It needs a next route.** Acceleration follows the fallback rules above: `fallback` on, within `only` and `variants`, within what remains of `max_cost` and your balance, and under the three-attempt limit. If no next route remains, Yir keeps waiting for the current attempt.
-- **One attempt at a time.** Yir does not race channels in parallel. The cut-off attempt never supplies the result, even if it finishes later.
-- **Billing.** If the cut-off attempt's upstream bills it anyway, that actual cost is charged like any other upstream-billed attempt and counts toward `max_cost`.
+- **Once per Job.** A Job is accelerated at most once, and only image attempts with a low estimated price qualify.
+- **The first result is delivered.** The cut-off attempt is not cancelled and can run alongside the next route. Whichever finishes first supplies the result, and a Job delivers only one. If the next route fails, the cut-off attempt can still supply the result.
+- **Billing.** If upstream bills both attempts, both actual costs are charged and count toward `max_cost`.
 - **Images only.** Video Jobs are never accelerated: video attempts are expensive, and a cut-off attempt can still be billed.
 
-The default comes from `default_accelerate` on the Routing Profile bound to your API Key (on unless you change it in [Console](/docs/console#routing-profiles)); `routing.accelerate` on a request overrides it. Set `{"accelerate": false}` to always wait for the first channel, for example when you would rather wait on a slow, cheaper channel than risk paying for a second attempt. In Console Logs, a cut-off attempt is shown as **Accelerated to another channel**.
+The default comes from `default_accelerate` on the Routing Profile bound to your API Key (on unless you change it in [Console](/docs/console#routing-profiles)); `routing.accelerate` on a request overrides it. Set it to `false` to avoid switching channels over long waits, for example when you would rather wait on a slow, cheaper channel than risk paying for a second attempt. In Console Logs, a cut-off attempt is shown as **Accelerated to another channel**.
 
 ## Parameters that differ by channel
 
-A few parameters are handled differently by different channels. When a channel ignores one of your parameters, Yir reports it instead of hiding it:
+A few parameters are handled differently by different channels. When a channel ignores one of your parameters, Yir reports it:
 
 - Quotes include `parameter_notices` for the first channel and `parameter_handling_may_vary: true` if fallback channels may behave differently.
 - Successful Jobs and their Webhooks include the `parameter_notices` of the attempt that produced the result.
-- When a channel returns more than you asked for and the result is still usable, Yir delivers it instead of failing the Job and adds a notice with `disposition: "exceeded"`: extra outputs are trimmed to `n` (the last ones are kept, `output_count_exceeded`), a higher resolution with the requested aspect ratio is kept (`resolution_exceeded`), a video with audio is kept when you sent `generate_audio: false` (`audio_included`), and a 3D model with a texture or PBR maps is kept when you sent `texture: "none"` or `pbr: false` (`texture_included`, `pbr_included`). You are charged no more than the quote. Fewer outputs, a different aspect ratio or duration, a lower resolution, or missing audio when you asked for it still fail.
+- When a channel returns more than you asked for and the result is still usable, Yir delivers it instead of failing the Job, adds a notice with `disposition: "exceeded"`, and charges no more than the quote:
+  - More outputs than `n`: only the last `n` are delivered (`output_count_exceeded`).
+  - A higher resolution with the requested aspect ratio: delivered (`resolution_exceeded`).
+  - A video with audio when you sent `generate_audio: false`: delivered (`audio_included`).
+  - A 3D model with a texture or PBR maps when you sent `texture: "none"` or `pbr: false`: delivered (`texture_included`, `pbr_included`).
+- Fewer outputs, a different aspect ratio or duration, a lower resolution, or missing audio when you asked for it still fail.
 
 Some parameters instead limit which channels can run. For GPT Image, `quality` is a minimum tier: only channels that serve the requested tier take part in routing and fallback, and the parameter is never ignored. Each model page lists the channels and the tiers they serve, for example [GPT Image 2](/docs/models/openai/gpt-image-2#quality) and [GPT Image 2.5](/docs/models/openai/gpt-image-2-5-flare#quality).
 
