@@ -43,7 +43,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | `stream`、`partial_images` | 流式返回中间图。 | 不可用；结果在 Job 结束时返回。 |
 | `mask` | 编辑端点的局部重绘蒙版。 | 不可用。编辑通过 `reference_image` 参考图和提示词完成。 |
 
-GPT Image 2.6 文生图另外支持 `output_format: gif`，配合 `frame_count`、`frame_duration_ms` 和 `size` 使用，详见模型页。
+GPT Image 2.6 文生图另外支持 `output_format: gif`（配合 `frame_count`、`frame_duration_ms` 和 `size`）和 1K、2K 的 `output_format: svg`，详见模型页。
 
 迁移时：把 `quality: "auto"` 改为具体档位或省略，把 `size` 改为 `resolution` 加 `aspect_ratio`。见 [GPT Image 2](/zh/docs/models/openai/gpt-image-2#与-openai-api-的差异) 和 [GPT Image 2.5](/zh/docs/models/openai/gpt-image-2-5-flare#与-openai-api-的差异)。
 
