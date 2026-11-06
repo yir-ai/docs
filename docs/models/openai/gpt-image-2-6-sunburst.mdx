@@ -26,7 +26,7 @@ seo:
 | `resolution` | Resolution: Output resolution. | `1K`, `2K`, `4K` | `1K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. At 2K, use 1:1, 3:2, 2:3, 4:3, 3:4, 5:4, 4:5, 16:9, 9:16, 2:1, 1:2, 3:1, 1:3, 21:9, 9:21. At 4K, use 1:1, 3:2, 2:3, 4:3, 3:4, 5:4, 4:5, 16:9, 9:16, 2:1, 1:2, 3:1, 1:3, 21:9, 9:21. | `auto`, `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `2:1`, `1:2`, `3:1`, `1:3`, `21:9`, `9:21` | `auto` | No |
 | `size` | Frame size: Pixels of each GIF frame, default 512x512. Requires output_format=gif; 768x768 allows up to 12 frames. | `512x512`, `768x768` | Not set | No |
-| `output_format` | Output format: gif for an animated GIF, svg for a vector file (1K or 2K, explicit aspect ratio, default 1:1; runs on one channel, and the text model that writes the SVG is billed too). Text input only; omit for a still image. | `gif`, `svg` | Not set | No |
+| `output_format` | Output format: gif for an animated GIF, svg for a vector file (1K or 2K, explicit aspect ratio, default 1:1; runs on one channel, and the text model that writes the SVG is billed too). gif accepts reference images; svg is text input only. Omit for a still image. | `gif`, `svg` | Not set | No |
 | `frame_count` | Frame count: GIF frames, default 9. Frames share one generated sheet, so 2 to 8 frames cost the same. Requires output_format=gif. | `2` to `16` | Not set | No |
 | `frame_duration_ms` | Frame duration: Milliseconds per GIF frame, default 200. Requires output_format=gif. | `20` to `2000` | Not set | No |
 | `quality` | Quality: Image generation quality tier. | `low`, `medium`, `high`, `xhigh`, `max` | Not set | No |

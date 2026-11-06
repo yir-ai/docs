@@ -41,7 +41,7 @@ Models: `openai/gpt-image-2`, `openai/gpt-image-2.5-flare`, `openai/gpt-image-2.
 | `stream`, `partial_images` | Streamed partial images. | Not available; results arrive when the Job finishes. |
 | `mask` | Inpainting mask on the edits endpoint. | Not available. Edits use `reference_image` references and the prompt. |
 
-GPT Image 2.6 text-to-image also accepts `output_format: gif` with `frame_count`, `frame_duration_ms` and `size`, and `output_format: svg` at 1K or 2K; see its model page.
+GPT Image 2.6 also accepts `output_format: gif` with `frame_count`, `frame_duration_ms` and `size`, from text or reference images, and text-to-image `output_format: svg` at 1K or 2K; see its model page.
 
 Migrating: replace `quality: "auto"` with a tier or omit it, and replace `size` with `resolution` plus `aspect_ratio`. See [GPT Image 2](/docs/models/openai/gpt-image-2#differences-from-the-openai-api) and [GPT Image 2.5](/docs/models/openai/gpt-image-2-5-flare#differences-from-the-openai-api).
 
