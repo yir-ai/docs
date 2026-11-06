@@ -12,9 +12,10 @@ Pass `{ "role": "...", "url": "https://..." }` in `input.references` (or `input.
 - HTTPS only, up to 2,048 characters. At most 3 redirects; private and reserved addresses are refused.
 - Up to 100 MiB. The media type is detected from the file contents.
 - A URL that cannot be imported returns `400 YIR_INVALID_REQUEST` naming the reference. `retryable` is `true` only for remote timeouts, connection failures, HTTP 429, and 5xx.
+- Each account imports up to 16 URLs at once, and every reference counts separately. A URL waits up to 20 seconds for a free slot; after that the request returns `429 YIR_RATE_LIMITED` with `Retry-After`, creates no Job, and is not charged. Retry with the same `Idempotency-Key`.
 - Quotes do not download URLs, so prices that depend on input media are only estimated.
 
-Use the Files API for files over 100 MiB, for exact media-dependent quotes, or when the source is not publicly reachable. The TypeScript SDK and the Vercel AI SDK adapter send only `file_id` references.
+Use the Files API for files over 100 MiB, for exact media-dependent quotes, when the source is not publicly reachable, or for batches that reuse the same references: upload once and pass the `file_id` to every Job, which skips URL imports. The TypeScript SDK and the Vercel AI SDK adapter send only `file_id` references.
 
 ## Limits
 

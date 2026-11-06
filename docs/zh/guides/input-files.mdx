@@ -12,9 +12,10 @@ description: 用 Files API 上传参考图片、视频和音频，或直接传�
 - 仅 HTTPS，最长 2,048 个字符；最多跟随 3 次跳转，拒绝内网与保留地址。
 - 最大 100 MiB，媒体类型按文件内容识别。
 - 无法导入的 URL 返回 `400 YIR_INVALID_REQUEST` 并指明对应参考；仅远端超时、连接失败、HTTP 429 和 5xx 时 `retryable` 为 `true`。
+- 每个账户同时最多导入 16 个 URL，每个参考单独计数。URL 最多等待 20 秒名额，之后请求返回 `429 YIR_RATE_LIMITED` 与 `Retry-After`，不创建 Job，也不收费。重试时沿用原 `Idempotency-Key`。
 - 报价不下载 URL，依赖输入媒体的价格只是估算。
 
-文件超过 100 MiB、需要按实际媒体精确报价，或源文件不能公开访问时，请使用 Files API。TypeScript SDK 与 Vercel AI SDK 适配器只发送 `file_id` 参考。
+文件超过 100 MiB、需要按实际媒体精确报价、源文件不能公开访问，或批量任务复用同一批参考时，请使用 Files API：上传一次后在每个 Job 中传 `file_id`，提交时不再导入 URL。TypeScript SDK 与 Vercel AI SDK 适配器只发送 `file_id` 参考。
 
 ## 限制
 

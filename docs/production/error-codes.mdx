@@ -49,7 +49,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_BUDGET_EXCEEDED` | 422 | The request's `max_cost` is below every eligible channel's current estimate. The message names the lowest estimate. Prices can change, so a cap that passed before can fail now. | Quote again. Raise `max_cost` on a new request if you accept the price, or choose a cheaper model or specification. |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
 | `YIR_FIDELITY_EXCLUDED` | 422 | Every channel for this specification is below the requested `routing.fidelity`. | Use a lower `fidelity`, or another model or specification. See [fidelity](/docs/concepts/routing#fidelity). |
-| `YIR_RATE_LIMITED` | 429 | The API key exceeded its per-minute request limit, which any Gateway endpoint can return, or too many Jobs are in progress for your account. | Wait the number of seconds in the `Retry-After` header, then retry. See [request rate limits](#request-rate-limits). For in-progress Jobs, wait for them to finish. |
+| `YIR_RATE_LIMITED` | 429 | The API key exceeded its per-minute request limit, which any Gateway endpoint can return, too many Jobs are in progress for your account, or a generation request could not get a slot to import its reference URLs. | Wait the number of seconds in the `Retry-After` header, then retry. See [request rate limits](#request-rate-limits). For in-progress Jobs, wait for them to finish. For URL imports, see [public URLs](/docs/guides/input-files#public-urls). |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |
 
 ### Request rate limits
@@ -62,7 +62,7 @@ Each API key has a per-minute request limit on every Gateway endpoint. The limit
 | Quotes: `POST /v1/images/quotes`, `/v1/videos/quotes`, `/v1/audio/quotes` (and legacy `/v1/music/quotes`), `/v1/3d/quotes`, `/v1/quotes` | 1,500 / minute |
 | Writes: `POST /v1/images/generations`, `/v1/videos/generations`, `/v1/audio/generations` (and legacy `/v1/music/generations`), `/v1/3d/generations`, `/v1/files`, `/v1/files/{id}/complete`, `/v1/jobs/{id}/cancel` | 600 / minute |
 
-Counting uses fixed one-minute windows. Over the limit, the request returns `429` with `YIR_RATE_LIMITED` (`retryable: true`, `action: retry_later`) and a `Retry-After` header in seconds; nothing is created or charged. A `429` for too many in-progress Jobs has no `Retry-After`. If you hit this limit, check your client for a loop first; contact support if your normal traffic needs more.
+Counting uses fixed one-minute windows. Over the limit, the request returns `429` with `YIR_RATE_LIMITED` (`retryable: true`, `action: retry_later`) and a `Retry-After` header in seconds; nothing is created or charged. A `429` for too many in-progress Jobs has no `Retry-After`. A `429` for URL imports does not depend on these per-minute limits; see [public URLs](/docs/guides/input-files#public-urls). If you hit this limit, check your client for a loop first; contact support if your normal traffic needs more.
 
 ## Job errors
 
