@@ -92,9 +92,9 @@ A successful result can carry `result.content_safety`, which tells you whether t
 
 | Value | Meaning |
 | --- | --- |
-| `{"status": "passed", "checked_by": "provider"}` | The upstream provider enforces content moderation on this route. |
+| `{"status": "passed", "checked_by": "provider"}` | The upstream provider enforces content moderation on this route. What it covers is set by the provider. |
 | `{"status": "passed", "checked_by": "yir"}` | The provider has no reliable moderation, so Yir checked the output itself before delivery. |
-| `{"status": "unchecked"}` | No check could be applied to this output. |
+| `{"status": "unchecked"}` | No check could be applied to this output. Yir's own check covers images only, so video and audio from a provider without reliable moderation are `unchecked`. |
 
 Before a Job with reference images is sent to a channel, Yir checks the prompt and those images once for explicit sexual content and content involving minors. If the check blocks them, the Job fails with `YIR_CONTENT_REJECTED` without being sent and is not charged; if the check is unavailable, Yir may try another channel, and otherwise the Job fails with `YIR_TEMPORARILY_UNAVAILABLE` (retryable) without being sent and is not charged, so submit again later. When the status is `passed`, you can skip your own NSFW check on the result. When it is `unchecked`, or the field is absent (results delivered before the field existed), apply your own policy. Output that fails a check is never delivered: the Job ends as `failed` with [`YIR_CONTENT_REJECTED`](/docs/production/error-codes), and is charged only if the provider had already billed the generation. Webhooks carry the same `result` object.
 
