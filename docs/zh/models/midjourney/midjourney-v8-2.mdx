@@ -25,6 +25,15 @@ seo:
 | --- | --- | --- | --- | --- |
 | `resolution` | 分辨率：输出内容的分辨率。 | `1K` | `1K` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 | `1:1`、`4:3`、`3:4`、`3:2`、`2:3`、`16:9`、`9:16` | `1:1` | 否 |
+| `seed` | 随机种子：可选随机种子；不同渠道使用相同种子不保证结果完全一致。 | integer | 不设置 | 否 |
+| `stylize` | 风格化：Midjourney --stylize：默认审美的强度，0 到 1000，默认 100。 | integer | 不设置 | 否 |
+| `chaos` | 多样性：Midjourney --chaos：四张图之间的差异程度，0 到 100，默认 0。 | integer | 不设置 | 否 |
+| `weird` | 怪异度：Midjourney --weird：偏离常规的古怪程度，0 到 3000，默认 0。 | integer | 不设置 | 否 |
+| `raw` | 原始模式：Midjourney --raw：关闭默认审美，更贴近提示词字面。 | `false`、`true` | 不设置 | 否 |
+| `tile` | 无缝拼贴：Midjourney --tile：生成可无缝重复的图案。 | `false`、`true` | 不设置 | 否 |
+| `negative_prompt` | 排除内容：Midjourney --no：不希望出现的内容，逗号分隔，最多 500 字符，不能包含 -- 参数。 | string | 不设置 | 否 |
+| `style_reference` | 风格参考：Midjourney --sref 风格码：1 到 4 个数字码，用空格分隔；不接受图片网址。 | string | 不设置 | 否 |
+| `style_weight` | 风格权重：Midjourney --sw：风格参考的强度，0 到 1000，默认 100；需要同时传 style_reference。 | integer | 不设置 | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `4` | `4` | 否 |
 
 ## 示例

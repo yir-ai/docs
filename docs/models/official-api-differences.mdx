@@ -198,6 +198,8 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `reve/reve-2.1` | `aspect_ratio` | `auto` (the default) plus fixed ratios: the v1 API has the same 7 ratios as Yir, the v2 API 17 ratios from `4:1` to `1:4`. | 7 ratios, default `1:1`; no `auto`. |
 | `reve/reve-2.1` | Reference images | Remix with several reference images; the v2 API takes an ordered list of references. | Editing with exactly 1 `reference_image`. |
 | `reve/reve-2.1` | `test_time_scaling` (quality 1–5), `postprocessing` (upscale, background removal), `version`, layout operations | Available. | Not available. Output size is chosen by the model (`resolution: native`). |
+| `midjourney/midjourney-v8.2` | Parameters | Written as `--` flags at the end of the prompt. Midjourney has no official API. | Sent as separate fields in `parameters`: `stylize` (0–1000), `chaos` (0–100), `weird` (0–3000), `raw`, `tile`, `negative_prompt` (`--no`), `style_reference` (1 to 4 numeric `--sref` codes), `style_weight` (0–1000, needs `style_reference`) and `seed` (0–4294967295). Omitted fields use Midjourney's defaults. A prompt containing `--` flags is rejected. |
+| `midjourney/midjourney-v8.2` | `--v`, `--niji`, `--repeat`, `--fast`/`--relax`/`--turbo`, `--draft`, `--hd`, `--q`, `--sref` image URLs, upscale, variations, pan and zoom | Available. | Not available. Each request returns one grid of four images at standard resolution. |
 
 ### 3D models
 
