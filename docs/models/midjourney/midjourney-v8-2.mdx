@@ -25,15 +25,15 @@ seo:
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `1K` | `1K` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. | `1:1`, `4:3`, `3:4`, `3:2`, `2:3`, `16:9`, `9:16` | `1:1` | No |
-| `seed` | Seed: Optional random seed; matching seeds do not guarantee identical results across providers. | integer | Not set | No |
-| `stylize` | Stylize: Midjourney --stylize: how strongly the default aesthetic is applied, 0 to 1000, default 100. | integer | Not set | No |
-| `chaos` | Chaos: Midjourney --chaos: how different the four images are from each other, 0 to 100, default 0. | integer | Not set | No |
-| `weird` | Weird: Midjourney --weird: quirky, unconventional looks, 0 to 3000, default 0. | integer | Not set | No |
+| `seed` | Seed: Optional random seed; matching seeds do not guarantee identical results across providers. | `0` to `4294967295` | Not set | No |
+| `stylize` | Stylize: Midjourney --stylize: how strongly the default aesthetic is applied, 0 to 1000, default 100. | `0` to `1000` | Not set | No |
+| `chaos` | Chaos: Midjourney --chaos: how different the four images are from each other, 0 to 100, default 0. | `0` to `100` | Not set | No |
+| `weird` | Weird: Midjourney --weird: quirky, unconventional looks, 0 to 3000, default 0. | `0` to `3000` | Not set | No |
 | `raw` | Raw: Midjourney --raw: turn off the default aesthetic so the prompt is followed more literally. | `false`, `true` | Not set | No |
 | `tile` | Tile: Midjourney --tile: seamless repeating pattern. | `false`, `true` | Not set | No |
 | `negative_prompt` | Negative prompt: Midjourney --no: things to leave out, comma separated, up to 500 characters; --flags are not accepted. | string | Not set | No |
 | `style_reference` | Style reference: Midjourney --sref style codes: 1 to 4 numeric codes separated by spaces. Image URLs are not accepted. | string | Not set | No |
-| `style_weight` | Style weight: Midjourney --sw: strength of style_reference, 0 to 1000, default 100. Requires style_reference. | integer | Not set | No |
+| `style_weight` | Style weight: Midjourney --sw: strength of style_reference, 0 to 1000, default 100. Requires style_reference. | `0` to `1000` | Not set | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `4` | `4` | No |
 
 ## Examples
