@@ -34,6 +34,7 @@ seo:
 | `negative_prompt` | Negative prompt: Midjourney --no: things to leave out, comma separated, up to 500 characters; --flags are not accepted. | string | Not set | No |
 | `style_reference` | Style reference: Midjourney --sref style codes: 1 to 4 numeric codes separated by spaces. Image URLs are not accepted. | string | Not set | No |
 | `style_weight` | Style weight: Midjourney --sw: strength of style_reference, 0 to 1000, default 100. Requires style_reference. | `0` to `1000` | Not set | No |
+| `image_weight` | Image weight: Midjourney --iw: how strongly the reference images (image prompts) shape the result, 0 to 3, decimals allowed, default 1. Only with reference images. | `0` to `3` | Not set | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `4` | `4` | No |
 
 ## Examples

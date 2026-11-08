@@ -200,7 +200,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `reve/reve-2.1` | `aspect_ratio` | `auto`（默认）加固定比例：v1 API 与 Yir 的 7 种比例相同，v2 API 有从 `4:1` 到 `1:4` 的 17 种。 | 7 种比例，默认 `1:1`；没有 `auto`。 |
 | `reve/reve-2.1` | 参考图 | Remix 可传多张参考图；v2 API 接受有序参考列表。 | 编辑时只接受 1 张 `reference_image`。 |
 | `reve/reve-2.1` | `test_time_scaling`（质量 1–5）、`postprocessing`（放大、去背景）、`version`、版面（layout）操作 | 支持。 | 不可用。输出尺寸由模型决定（`resolution: native`）。 |
-| `midjourney/midjourney-v8.2` | 参数 | 写在提示词末尾的 `--` 参数。Midjourney 没有官方 API。 | 在 `parameters` 里单独传：`stylize`（0–1000）、`chaos`（0–100）、`weird`（0–3000）、`raw`、`tile`、`negative_prompt`（即 `--no`）、`style_reference`（1 到 4 个数字 `--sref` 风格码）、`style_weight`（0–1000，需要同时传 `style_reference`）和 `seed`（0–4294967295）。不传时按 Midjourney 默认值。提示词里含 `--` 参数会被拒绝。 |
+| `midjourney/midjourney-v8.2` | 参数 | 写在提示词末尾的 `--` 参数。Midjourney 没有官方 API。 | 在 `parameters` 里单独传：`stylize`（0–1000）、`chaos`（0–100）、`weird`（0–3000）、`raw`、`tile`、`negative_prompt`（即 `--no`）、`style_reference`（1 到 4 个数字 `--sref` 风格码）、`style_weight`（0–1000，需要同时传 `style_reference`）、`image_weight`（即 `--iw`，0–3，可带小数，只在带参考图时可用）和 `seed`（0–4294967295）。不传时按 Midjourney 默认值。提示词里含 `--` 参数会被拒绝。 |
 | `midjourney/midjourney-v8.2` | `--v`、`--niji`、`--repeat`、`--fast`/`--relax`/`--turbo`、`--draft`、`--hd`、`--q`、图片网址形式的 `--sref`、放大、变体、平移与缩放 | 支持。 | 不可用。每次请求返回一组标准分辨率的四张图。 |
 
 ### 3D 模型
