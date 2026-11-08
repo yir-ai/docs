@@ -27,6 +27,7 @@ const movedPages: Record<string, string> = {
   "models/google/veo-3-0-generate-001": "models/google/veo-3-1-generate-001",
   "models/google/gemini-omni-video": "models/google/gemini-omni-1-1-flash",
   "models/openai/gpt-image-1": "models/openai/gpt-image-2",
+  "models/bytedance/seedance-1-5-pro": "models/bytedance/seedance-2-0-mini",
 };
 
 // Crisp chat bubble on every docs page, tagged so support can tell docs

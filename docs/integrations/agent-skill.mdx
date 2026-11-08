@@ -64,7 +64,7 @@ You can also run the script directly from where you installed it (shown here for
 node ~/.claude/skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
 
 # Text to video
-node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-2.0-mini --prompt "waves at night" -p duration=5
 ```
 
 Results are saved to `./yir-output` by default. Each result gets a `.json` sidecar with its prompt, parameters, channel, Job ID, and charge. Run `node ~/.claude/skills/yir/scripts/yir.mjs --help` for all commands, including `models`, `quote`, and `job <id> --wait --download`.

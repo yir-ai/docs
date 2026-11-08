@@ -84,12 +84,13 @@ For `google/veo-3.1-generate-001`, first-frame `image` mode may omit `input.prom
 
 ### ByteDance Seedance and Seedream
 
+`bytedance/seedance-1.5-pro` was retired on 2026-11-11 and removed from the model list, because ByteDance shut the model down. Quotes and generation requests that name it or its alias fail with `400 YIR_INVALID_REQUEST` and `retryable: false`; the message names the replacement. Use `bytedance/seedance-2.0-mini` instead. Existing jobs can still be read.
+
 Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive` (Seedance 2.5 with a first frame uses `auto`), and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. The upstream `duration: -1` value is not accepted directly. Seedance 2.5 reference-video edits can use Yir's `duration: "auto"` with `aspect_ratio: "auto"`; other input modes retain fixed durations. `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
 
 | Model | Parameter or feature | ByteDance API | Yir |
 | --- | --- | --- | --- |
-| `bytedance/seedance-1.5-pro` | `aspect_ratio` | Includes `adaptive` (follows the first frame). | Fixed ratios only. |
-| `bytedance/seedance-1.5-pro`, `-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Only on `bytedance/seedance-2.0`. |
+| `bytedance/seedance-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Only on `bytedance/seedance-2.0`. |
 | `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `4K`; `4K` runs on the APIMart standard and KIE channels only. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | `aspect_ratio` | Includes `adaptive`. | Fixed ratios only. |
 | `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p`, `720p` or `1080p` for text, image and reference input. Default remains `720p`. |

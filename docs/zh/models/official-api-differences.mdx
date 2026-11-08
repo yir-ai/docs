@@ -86,12 +86,13 @@ GPT Image 2.6 另外支持 `output_format: gif`（配合 `frame_count`、`frame_
 
 ### 字节跳动 Seedance 与 Seedream
 
+`bytedance/seedance-1.5-pro` 已于 2026-11-11 下线并移出模型列表，因为字节跳动已停用该模型。指定它或其别名的报价和生成请求会返回 `400 YIR_INVALID_REQUEST`，`retryable: false`，消息里会给出替代模型。请改用 `bytedance/seedance-2.0-mini`。已有任务仍可查询。
+
 Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `480p`（Seedance 2.5 为 `720p`），而非 `720p`；`duration` 为 `4` 秒（2.0 Fast 与 2.0 Mini 为 `5` 秒），而非 `5` 秒或由模型决定；`aspect_ratio` 为 `16:9` 而非 `adaptive`（Seedance 2.5 带首帧时为 `auto`）；`generate_audio` 为 `false` 而非 `true`。如果依赖字节跳动的默认值，请显式设置这些参数。Yir 不直接接受上游的 `duration: -1`。Seedance 2.5 参考视频编辑可使用 `duration: "auto"` 和 `aspect_ratio: "auto"`，其他输入模式仍使用固定时长。所有 Seedance 模型都不提供 `camera_fixed`、`draft`、`service_tier` 和 `priority`。
 
 | 模型 | 参数或功能 | 字节跳动 API | Yir |
 | --- | --- | --- | --- |
-| `bytedance/seedance-1.5-pro` | `aspect_ratio` | 含 `adaptive`（跟随首帧）。 | 只有固定比例。 |
-| `bytedance/seedance-1.5-pro`、`-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
+| `bytedance/seedance-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
 | `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版与 KIE 渠道。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | `aspect_ratio` | 包含 `adaptive`。 | 只有固定比例。 |
 | `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生、图片、参考均可用 `480p`、`720p`、`1080p`。默认仍为 `720p`。 |

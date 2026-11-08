@@ -49,7 +49,7 @@ for (const v of ['google/veo-3.1-generate-001', 'google/veo-3.1-fast-generate-00
   check(`${v} no reference mode`, !modes(v).includes('reference'), modes(v))
 }
 // Seedance defaults
-for (const s of ['seedance-1.5-pro', 'seedance-2.0', 'seedance-2.0-fast', 'seedance-2.0-mini']) {
+for (const s of ['seedance-2.0', 'seedance-2.0-fast', 'seedance-2.0-mini']) {
   const id = 'bytedance/' + s
   check(`${s} resolution default 480p`, def(id, 'resolution') === '480p', def(id, 'resolution'))
   const d = ['seedance-2.0-fast', 'seedance-2.0-mini'].includes(s) ? 5 : 4
@@ -67,7 +67,6 @@ check('seedance-2.5 first frame: only auto, default auto', sameSet(vals(s25, 'as
 check('seedance-2.5 text resolution includes 1080p', sameSet(vals(s25, 'resolution'), ['480p', '720p', '1080p']), vals(s25, 'resolution'))
 for (const mode of ['text', 'image', 'reference']) check('seedance-2.5 ' + mode + ' resolution 480p/720p/1080p', sameSet(vals(s25, 'resolution', mode), ['480p', '720p', '1080p']), vals(s25, 'resolution', mode))
 check('seedance-2.5 audio-only references allowed, up to 10 audio', !C(s25, 'reference')?.required_any_reference_roles && C(s25, 'reference')?.reference_counts_by_role?.reference_audio?.maximum === 10, C(s25, 'reference'))
-check('seedance-1.5-pro no adaptive', !vals('bytedance/seedance-1.5-pro', 'aspect_ratio').includes('adaptive'), vals('bytedance/seedance-1.5-pro', 'aspect_ratio'))
 const withLastFrame = c.models.filter(m => m.operations.some(o => o.parameters.some(p => p.name === 'return_last_frame'))).map(m => m.id)
 check('return_last_frame only on seedance-2.0', eq(withLastFrame, ['bytedance/seedance-2.0']), withLastFrame)
 check('seedance-2.0 resolution up to 4K', sameSet(vals('bytedance/seedance-2.0', 'resolution'), ['480p', '720p', '1080p', '4K']), vals('bytedance/seedance-2.0', 'resolution'))
@@ -167,7 +166,7 @@ check('hi3d texture none/standard, face_limit 100000..5000000 no default', sameS
 check('meshy text, image and multiview, face_limit 100..300000 default 30000, triangle/quad', eq(modes(me), ['image', 'multiview', 'text']) && sameSet(C(me, 'multiview')?.allowed_reference_roles, views) && P(me, 'face_limit')?.minimum === 100 && P(me, 'face_limit')?.maximum === 300000 && def(me, 'face_limit') === 30000 && sameSet(vals(me, 'topology'), ['triangle', 'quad']), [modes(me), P(me, 'face_limit'), vals(me, 'topology')])
 check('meshy texture none/standard', sameSet(vals(me, 'texture'), ['none', 'standard']), vals(me, 'texture'))
 // Retired models: the page says they were removed from the model list.
-for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)
+for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1', 'bytedance/seedance-1.5-pro']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)
 
 
 test('the Yir column of the official API differences page matches the model contract', () => {
@@ -191,7 +190,7 @@ test('rules for every model hold across the contract', () => {
 })
 
 // Retired models may still be named, only to point callers at their replacements.
-const withdrawn = new Set(['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1'])
+const withdrawn = new Set(['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1', 'bytedance/seedance-1.5-pro'])
 
 test('every model the differences pages name is still in the contract', async () => {
   const known = new Set([...c.models.map(m => m.id), ...withdrawn])

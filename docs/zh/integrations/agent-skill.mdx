@@ -66,7 +66,7 @@ Job 费用从 Yir 钱包扣除。
 node ~/.claude/skills/yir/scripts/yir.mjs image -m openai/gpt-image-2 --prompt "a lighthouse at dusk" -p aspect_ratio=16:9
 
 # 文生视频
-node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-1.5-pro --prompt "waves at night" -p duration=4
+node ~/.claude/skills/yir/scripts/yir.mjs video -m bytedance/seedance-2.0-mini --prompt "waves at night" -p duration=5
 ```
 
 结果默认保存到 `./yir-output`，每个结果旁附一个 `.json` 文件，记录提示词、参数、渠道、Job ID 和费用。运行 `node ~/.claude/skills/yir/scripts/yir.mjs --help` 查看全部命令，包括 `models`、`quote` 和 `job <id> --wait --download`。
