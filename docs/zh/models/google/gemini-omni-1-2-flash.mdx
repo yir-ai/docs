@@ -1,9 +1,9 @@
 ---
 title: "Gemini Omni 1.2 Flash"
-description: "Google Gemini 系列视频生成模型，原生音轨，支持 3–15 秒、360p 与 720p 输出"
+description: "Google Gemini 系列视频生成模型，原生音轨，支持 3–15 秒、360p 至 4K 输出"
 seo:
   title: "Gemini Omni 1.2 Flash API 文档：参数与调用示例"
-  description: "Gemini Omni 1.2 Flash API 文档：模型 ID google/gemini-omni-1.2-flash、输入模式、参数取值与默认值，附请求示例。Google Gemini 系列视频生成模型，原生音轨，支持 3–15 秒、360p 与 720p 输出。"
+  description: "Gemini Omni 1.2 Flash API 文档：模型 ID google/gemini-omni-1.2-flash、输入模式、参数取值与默认值，附请求示例。Google Gemini 系列视频生成模型，原生音轨，支持 3–15 秒、360p 至 4K 输出。"
 ---
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
@@ -25,7 +25,7 @@ seo:
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
 | `duration` | 时长：输出视频的秒数。 | `3`、`4`、`5`、`6`、`7`、`8`、`9`、`10`、`11`、`12`、`13`、`14`、`15` | `10` | 否 |
-| `resolution` | 分辨率：输出内容的分辨率。 | `360p`、`720p` | `720p` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `360p`、`720p`、`1080p`、`4K` | `720p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 | `16:9`、`9:16` | `16:9` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
