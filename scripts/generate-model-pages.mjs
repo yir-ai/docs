@@ -35,6 +35,7 @@ const TEXT = {
     operations: { generate_image: '[Image generation](/docs/guides/image-generation)', generate_video: '[Video generation](/docs/guides/video-generation)', generate_music: '[Audio generation](/docs/guides/music-generation)', generate_sound_effect: '[Audio generation](/docs/guides/music-generation#sound-effects)', generate_speech: '[Audio generation](/docs/guides/music-generation#text-to-speech)', generate_3d: '[3D generation](/docs/guides/3d-generation)' },
     alias: 'Alias', aliases: 'Aliases', modelId: 'Model ID', endpoint: 'Endpoint',
     optionalPrompt: 'Text is optional in these input modes on explicitly supported channels:',
+    promptLimit: (limit, modes) => `Prompt limit: ${limit.toLocaleString('en-US')} characters${modes ? ` (${modes})` : ''}; longer prompts are rejected with 400.`,
     inputModes: 'Input modes', mode: 'Mode', references: 'References', roles: 'Reference roles',
     modeNames: { text: 'Text only', image: 'Image input', reference: 'Reference media', multiview: 'Multi-view images' },
     none: '—', atLeastOne: list => `At least one ${list}`, maxDuration: (role, s) => `With \`${role}\`: up to ${s} s`,
@@ -65,6 +66,7 @@ const TEXT = {
     operations: { generate_image: '[图片生成](/zh/docs/guides/image-generation)', generate_video: '[视频生成](/zh/docs/guides/video-generation)', generate_music: '[音频生成](/zh/docs/guides/music-generation)', generate_sound_effect: '[音频生成](/zh/docs/guides/music-generation#音效)', generate_speech: '[音频生成](/zh/docs/guides/music-generation#文字转语音)', generate_3d: '[3D 生成](/zh/docs/guides/3d-generation)' },
     alias: '别名', aliases: '别名', modelId: '模型 ID', endpoint: '接口',
     optionalPrompt: '以下输入模式可在明确支持的渠道省略文字：',
+    promptLimit: (limit, modes) => `提示词上限：${limit} 个字符${modes ? `（${modes}）` : ''}，超出时返回 400。`,
     inputModes: '输入模式', mode: '模式', references: '参考数量', roles: '参考角色',
     modeNames: { text: '纯文本', image: '图片输入', reference: '参考素材', multiview: '多视角图片' },
     none: '—', atLeastOne: list => `至少包含 ${list} 之一`, maxDuration: (role, s) => `带 \`${role}\` 时最长 ${s} 秒`,
@@ -238,6 +240,14 @@ export function renderPage(model, lang, notesFile) {
     }
     const promptOptionalModes = view.modes.filter(mode => view.constraints[mode].prompt_optional === true && !PROMPTLESS_MODES[view.operation]?.includes(mode))
     if (promptOptionalModes.length) lines.push('', `${t.optionalPrompt} ${promptOptionalModes.map(code).join(t.sep)}`)
+    const promptLimits = new Map()
+    for (const mode of view.modes) {
+      const limit = view.constraints[mode].max_prompt_characters
+      if (limit) promptLimits.set(limit, [...(promptLimits.get(limit) ?? []), mode])
+    }
+    for (const [limit, modes] of promptLimits) {
+      lines.push('', t.promptLimit(limit, modes.length < view.modes.length ? modes.map(code).join(t.sep) : ''))
+    }
     for (const mode of view.modes) {
       if (view.constraints[mode].subject_references) lines.push(...subjectLines(mode, view.constraints[mode].subject_references, t))
     }

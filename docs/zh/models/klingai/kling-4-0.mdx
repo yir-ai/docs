@@ -20,6 +20,8 @@ seo:
 | `image` 图片输入 | 1–10 | `first_frame` 1<br />`keyframe` 0–8<br />`last_frame` 0–1 |
 | `reference` 参考素材 | 1–15 | `reference_audio` 仅用于主体<br />`reference_image` 0–10<br />`reference_video` 0–5 |
 
+提示词上限：10000 个字符，超出时返回 400。
+
 ### 主体参考（`reference`）
 
 给参考素材设置相同的 `references[].subject` 名称即可归为一个主体，提示词中用 `@<subject>` 引用。

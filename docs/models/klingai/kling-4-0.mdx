@@ -20,6 +20,8 @@ seo:
 | `image` Image input | 1 to 10 | `first_frame` 1<br />`keyframe` 0 to 8<br />`last_frame` 0 to 1 |
 | `reference` Reference media | 1 to 15 | `reference_audio` only in subjects<br />`reference_image` 0 to 10<br />`reference_video` 0 to 5 |
 
+Prompt limit: 10,000 characters; longer prompts are rejected with 400.
+
 ### Subject references (`reference`)
 
 Give references the same `references[].subject` name to group them into one subject, and refer to it in the prompt as `@<subject>`.
