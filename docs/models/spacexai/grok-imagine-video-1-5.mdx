@@ -27,8 +27,8 @@ Prompt limit: 8,000 characters (`reference`); longer prompts are rejected with 4
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
 | `duration` | Duration: Output video duration in seconds. | `1` to `15` | `8` | No |
-| `resolution` | Resolution: Output resolution. Only in `text`. | `480p`, `720p`, `1080p` | `480p` | No |
-| `resolution` | Resolution: Output resolution. Only in `image`, `reference`. | `480p`, `720p` | `480p` | No |
+| `resolution` | Resolution: Output resolution. Only in `text`, `image`. | `480p`, `720p`, `1080p` | `480p` | No |
+| `resolution` | Resolution: Output resolution. Only in `reference`. | `480p`, `720p` | `480p` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`, `reference`. | `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `3:2`, `2:3` | `16:9` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `auto` | `auto` | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
