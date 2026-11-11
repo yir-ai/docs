@@ -59,6 +59,7 @@ A common robust setup uses Webhooks as the primary signal and slow polling as a 
 | Situation | What to do |
 | --- | --- |
 | Submission timed out or connection dropped | Resend the identical request with the same idempotency key. |
+| Submission rejected with a 4xx status and an `error.code` | No Job was created and the idempotency key is still unused, except for `409 YIR_IDEMPOTENCY_CONFLICT` and `404 YIR_JOB_NOT_FOUND` (the Job was created but could not be read back; resend with the same key). It is safe to release your own reservation or refund your user; then follow `error.action`. This holds for that attempt only: an earlier attempt with the same key that timed out may still have created a Job. |
 | Status query timed out | Retry the status query. The Job is unaffected. |
 | Status is `queued`, `running`, or `delivering` | Wait and query again. Slow is not failed. |
 | Local wait deadline reached | Stop waiting, keep the Job ID, resume later. Do not resubmit. |
