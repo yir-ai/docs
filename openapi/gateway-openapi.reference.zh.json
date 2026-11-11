@@ -4096,6 +4096,11 @@
             "type": "integer",
             "minimum": 1
           },
+          "duration_seconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "就绪视频或音频文件的实测时长（秒），向上取整到毫秒。以 file_id 引用时，报价按该实测值计算输入媒体费用；URL 引用在报价时没有实测时长。"
+          },
           "name": {
             "type": "string",
             "minLength": 1,
