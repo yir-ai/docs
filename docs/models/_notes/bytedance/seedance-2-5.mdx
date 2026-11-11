@@ -1,3 +1,16 @@
+## Task type
+
+`parameters.task_type` tells the model how to use the references in `reference` mode, matching ByteDance's `omni_reference_task_type`:
+
+| Value | Use | Constraints |
+| --- | --- | --- |
+| `auto` (default) | The model decides from the references and the prompt. | None up front; a mismatch fails after submission. |
+| `reference` | Generate a new video guided by the images, videos and audio. | Fixed `duration` and `aspect_ratio` as usual. |
+| `edit` | Change the reference video, for example replace a subject. | A 4–30 second `reference_video`; `duration` and `aspect_ratio` follow it (omit them or pass `"auto"`). Runs on the APIMart and KIE channels. |
+| `extend` | Continue the reference video. | A `reference_video`; `aspect_ratio` follows it and `duration` is the length of the new part. Runs on the APIMart and KIE channels. |
+
+The model still reads the prompt. A prompt that sounds like an edit ("replace the dog in @video1", "copy @video1 exactly") can be rejected as `reference`, and under `reference` the model may keep the original subject. To swap a subject while keeping the motion, describe the motion and say where the subject comes from ("the dog from @image1 trots down the stairs like the dog in @video1"), or use `edit`.
+
 ## Follow the reference video duration
 
 For video edits, use `input.type: "reference"` with at least one `reference_video` and `parameters.duration: "auto"`. Set `aspect_ratio: "auto"` or omit it; a fixed ratio is rejected with automatic duration. The upstream model determines from the prompt whether the request is an edit. This option is not available for text-only, first-frame, or image-only reference requests.

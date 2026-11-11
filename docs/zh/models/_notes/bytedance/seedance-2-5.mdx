@@ -1,3 +1,16 @@
+## 任务类型
+
+`reference` 模式下，`parameters.task_type` 告诉模型如何使用参考素材，对应字节官方的 `omni_reference_task_type`：
+
+| 取值 | 用途 | 约束 |
+| --- | --- | --- |
+| `auto`（默认） | 模型根据素材和提示词自行判断。 | 提交时不校验；判断结果与参数冲突时，任务提交后才失败。 |
+| `reference` | 参照图片、视频、音频生成新视频。 | `duration` 与 `aspect_ratio` 照常取固定值。 |
+| `edit` | 修改参考视频，例如替换其中的主体。 | 需要 4–30 秒的 `reference_video`；`duration` 与 `aspect_ratio` 跟随原视频（省略或传 `"auto"`）。走 APIMart 和 KIE 渠道。 |
+| `extend` | 延长参考视频。 | 需要 `reference_video`；`aspect_ratio` 跟随原视频，`duration` 为新增部分的秒数。走 APIMart 和 KIE 渠道。 |
+
+模型仍会读提示词。读起来像编辑的提示词（如 "replace the dog in @video1"、"copy @video1 exactly"）在 `reference` 下可能被拒，或保留原视频里的主体。想保留动作、换掉主体时，描述动作并说明主体来自哪里（如 "the dog from @image1 trots down the stairs like the dog in @video1"），或改用 `edit`。
+
 ## 时长跟随参考视频
 
 视频编辑时，使用 `input.type: "reference"`，至少提供一个 `reference_video`，并设置 `parameters.duration: "auto"`。将 `aspect_ratio` 设为 `"auto"` 或省略；自动时长不接受固定画幅。上游模型根据提示词判断请求是否属于编辑。纯文本、首帧和仅含图片的参考输入不能使用此选项。
