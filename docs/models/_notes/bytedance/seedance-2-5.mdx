@@ -9,6 +9,8 @@
 | `edit` | Change the reference video, for example replace a subject. | A 4–30 second `reference_video`; `duration` and `aspect_ratio` follow it (omit them or pass `"auto"`). Runs on the APIMart and KIE channels. |
 | `extend` | Continue the reference video. | A `reference_video`; `aspect_ratio` follows it and `duration` is the length of the new part. Runs on the APIMart and KIE channels. |
 
+Reference videos must be 2–30 seconds each and at most 30 seconds in total; reference audio must be at most 30 seconds in total. Yir compares measured durations, so a clip of 30.03 seconds is rejected. Quote and Submit reject uploaded files that exceed these limits with `YIR_INVALID_REQUEST` on `input.references[i]`; URL references are measured after import and fail before any upstream submission.
+
 The model still reads the prompt. A prompt that sounds like an edit ("replace the dog in @video1", "copy @video1 exactly") can be rejected as `reference`, and under `reference` the model may keep the original subject. To swap a subject while keeping the motion, describe the motion and say where the subject comes from ("the dog from @image1 trots down the stairs like the dog in @video1"), or use `edit`.
 
 ## Follow the reference video duration

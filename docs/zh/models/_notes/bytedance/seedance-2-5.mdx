@@ -9,6 +9,8 @@
 | `edit` | 修改参考视频，例如替换其中的主体。 | 需要 4–30 秒的 `reference_video`；`duration` 与 `aspect_ratio` 跟随原视频（省略或传 `"auto"`）。走 APIMart 和 KIE 渠道。 |
 | `extend` | 延长参考视频。 | 需要 `reference_video`；`aspect_ratio` 跟随原视频，`duration` 为新增部分的秒数。走 APIMart 和 KIE 渠道。 |
 
+参考视频每段 2–30 秒、合计不超过 30 秒；参考音频合计不超过 30 秒。Yir 按实测时长比较，30.03 秒的素材也会被拒。超限的上传文件在报价与提交时返回 `YIR_INVALID_REQUEST`（字段 `input.references[i]`）；URL 素材在导入实测后失败，不会提交到上游。
+
 模型仍会读提示词。读起来像编辑的提示词（如 "replace the dog in @video1"、"copy @video1 exactly"）在 `reference` 下可能被拒，或保留原视频里的主体。想保留动作、换掉主体时，描述动作并说明主体来自哪里（如 "the dog from @image1 trots down the stairs like the dog in @video1"），或改用 `edit`。
 
 ## 时长跟随参考视频
