@@ -95,6 +95,7 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `bytedance/seedance-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
 | `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版与 KIE 渠道。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | `aspect_ratio` | 包含 `adaptive`。 | 只有固定比例。 |
+| `bytedance/seedance-2.0`、`-2.0-fast`、`-2.0-mini` | 参考视频与音频时长 | 每段 2–15 秒，同类合计不超过 15 秒。 | 限制相同，按实测时长判断：超限的上传文件在报价与提交时返回 `YIR_INVALID_REQUEST`（字段 `input.references[i]`），URL 素材在导入实测后失败，不会提交到上游。 |
 | `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生、图片、参考均可用 `480p`、`720p`、`1080p`。默认仍为 `720p`。 |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`，首帧与首尾帧只支持该值。 | 名为 `auto`。首帧与首尾帧只接受 `auto`，也是默认值。 |
 | `bytedance/seedance-2.5` | 任务类型（`omni_reference_task_type`）、纯音频参考、`output_format: mov` | 支持。 | `task_type` 可取 `auto`（默认）、`reference`、`edit`、`extend`。`edit` 的时长与画幅跟随参考视频，需要 4–30 秒的参考视频，可用渠道较少；`duration: "auto"` 加 `aspect_ratio: "auto"` 仍由模型自行判断。参考视频每段 2–30 秒、合计不超过 30 秒，参考音频合计不超过 30 秒。不提供 MOV 参数。纯音频参考（最多 10 段 `reference_audio`）只走 APIMart 渠道。 |
