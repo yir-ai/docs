@@ -2050,6 +2050,12 @@
                       "description": "人脸位于该点时对应的模板时间（秒）。"
                     }
                   }
+                },
+                "duration_seconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 600,
+                  "description": "仅用于报价：你为 url 参考视频或参考音频声明的时长，单位秒，最多 3 位小数。支持 bytedance/seedance-2.0、seedance-2.0-fast、seedance-2.0-mini、seedance-2.5、minimax/minimax-h3 和 minimax-h3-max；其他模型和 file_id 引用会拒绝该字段。Yir 报价时不下载 URL：所有计价的 url 引用都声明时长后，报价按这些值计算输入媒体费用，并返回 input_duration_source 为 declared。提交时忽略该值，Job 按导入后实测的时长准入和扣费。"
                 }
               },
               "oneOf": [
@@ -3013,6 +3019,13 @@
             "type": "integer",
             "format": "int64",
             "minimum": 1
+          },
+          "input_duration_source": {
+            "type": "string",
+            "enum": [
+              "declared"
+            ],
+            "description": "为 declared 时，primary 与 expected_amount 按你声明的 duration_seconds 而非实测文件计算 url 参考媒体费用。Job 按 Yir 导入 URL 后实测的时长准入和扣费，实际文件更长时费用更高。报价使用实测文件或不涉及输入媒体时长时省略。"
           },
           "expected_amount": {
             "type": "string",

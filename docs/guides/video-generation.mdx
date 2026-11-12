@@ -108,7 +108,7 @@ Replace the example file IDs with your own ready files.
 
 ## Quote before you submit
 
-Video prices depend on duration, resolution, audio, and references, so quote the exact request with `POST /v1/videos/quotes` first. A quote that includes video or audio references uses their measured durations. Check `supply.available`. The quoted price is an estimate and the final charge follows the actual cost; add `max_cost` on submission if you need a cap.
+Video prices depend on duration, resolution, audio, and references, so quote the exact request with `POST /v1/videos/quotes` first. A quote that includes uploaded (`file_id`) video or audio references uses their measured durations. Yir does not download `url` references to quote, so for Seedance 2.0, 2.0 Fast, 2.0 Mini, 2.5, MiniMax H3 and H3 Max you can add `duration_seconds` to a `url` reference_video or reference_audio: the quote prices input media from your value and returns `input_duration_source: "declared"`. Without it, a `url` reference video has no complete price. Submission ignores `duration_seconds`; the Job is admitted and charged by the duration measured after import. Check `supply.available`. The quoted price is an estimate and the final charge follows the actual cost; add `max_cost` on submission if you need a cap.
 
 Kling Motion Control (`reference_image` + `reference_video`) is priced by the measured length of the reference video, rounded down to whole seconds; the requested `duration` does not change the price. Upload the reference video and pass its `file_id` to get a quoted amount. A URL reference has no amount, so a request with `max_cost` is rejected. See [quotes and billing](/docs/concepts/billing).
 
