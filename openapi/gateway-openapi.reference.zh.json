@@ -4355,6 +4355,24 @@
             "items": {
               "$ref": "#/components/schemas/ModelSpecification"
             }
+          },
+          "released_at": {
+            "type": "string",
+            "format": "date",
+            "description": "厂商发布该模型的日期。仅用于展示，可按自己的时间窗口判断是否为新模型。"
+          },
+          "superseded_by": {
+            "type": "string",
+            "pattern": "^[a-z0-9._-]+/[a-z0-9._-]+$",
+            "description": "取代此模型的新模型规范 ID。仅用于展示。"
+          },
+          "is_hot": {
+            "type": "boolean",
+            "description": "Yir 标记为热门模型。仅用于展示，值为 false 时省略。"
+          },
+          "is_new": {
+            "type": "boolean",
+            "description": "Yir 额外标记为新模型，独立于按日期判断的规则。仅用于展示，值为 false 时省略。"
           }
         }
       },
