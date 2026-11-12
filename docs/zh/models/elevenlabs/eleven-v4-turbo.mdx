@@ -1,0 +1,48 @@
+---
+title: "ElevenLabs Eleven v4 Turbo"
+description: "ElevenLabs Eleven v4 的快速版文字转语音模型，价格是 v4 的一半，支持 90 多种语言"
+seo:
+  title: "ElevenLabs Eleven v4 Turbo API 文档：参数与调用示例"
+  description: "ElevenLabs Eleven v4 Turbo API 文档：模型 ID elevenlabs/eleven-v4-turbo、输入模式、参数取值与默认值，附请求示例。ElevenLabs Eleven v4 的快速版文字转语音模型，价格是 v4 的一半，支持 90 多种语言。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `elevenlabs/eleven-v4-turbo` | `eleven-v4-turbo`、`eleven_v4_turbo` | [音频生成](/zh/docs/guides/music-generation#文字转语音) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+
+提示词上限：5000 个字符，超出时返回 400。
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `voice` | 音色：本模型的预设音色 ID（如 MiniMax 系统音色、ElevenLabs 音色 ID），音色不影响价格。 | string | `JBFqnCBsd6RMkjVDRZzb` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "elevenlabs/eleven-v4-turbo",
+  "input": {
+    "type": "text",
+    "prompt": "Good morning. The city is still waking up."
+  },
+  "parameters": {
+    "voice": "JBFqnCBsd6RMkjVDRZzb",
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/elevenlabs/eleven-v4-turbo?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
