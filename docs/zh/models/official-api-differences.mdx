@@ -47,6 +47,10 @@ GPT Image 2.6 另外支持 `output_format: gif`（配合 `frame_count`、`frame_
 
 迁移时：把 `quality: "auto"` 改为具体档位或省略，把 `size` 改为 `resolution` 加 `aspect_ratio`。见 [GPT Image 2](/zh/docs/models/openai/gpt-image-2#与-openai-api-的差异) 和 [GPT Image 2.5](/zh/docs/models/openai/gpt-image-2-5-flare#与-openai-api-的差异)。
 
+### MiniMax H3 Image Highspeed
+
+`minimax/minimax-h3-image-highspeed` 编辑一张 `reference_image`，返回 4096 × 4096 JPEG。默认参数为 `resolution: "4K"` 和 `aspect_ratio: "1:1"`。MiniMax 自有 API 还提供文生图、多图编辑和其他尺寸及格式。 [MiniMax 图片 API](https://platform.minimax.io/docs/guides/image-generation)
+
 ### Gemini Omni 1.1 Flash
 
 模型：`google/gemini-omni-1.1-flash`。

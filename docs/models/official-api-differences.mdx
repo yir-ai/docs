@@ -45,6 +45,10 @@ GPT Image 2.6 also accepts `output_format: gif` with `frame_count`, `frame_durat
 
 Migrating: replace `quality: "auto"` with a tier or omit it, and replace `size` with `resolution` plus `aspect_ratio`. See [GPT Image 2](/docs/models/openai/gpt-image-2#differences-from-the-openai-api) and [GPT Image 2.5](/docs/models/openai/gpt-image-2-5-flare#differences-from-the-openai-api).
 
+### MiniMax H3 Image Highspeed
+
+Model `minimax/minimax-h3-image-highspeed` edits one `reference_image` and returns a 4096 × 4096 JPEG. The default parameters are `resolution: "4K"` and `aspect_ratio: "1:1"`. MiniMax's own API also offers text-to-image, multiple references, and other canvas sizes and formats. [MiniMax image API](https://platform.minimax.io/docs/guides/image-generation)
+
 ### Gemini Omni 1.1 Flash
 
 Model: `google/gemini-omni-1.1-flash`.
