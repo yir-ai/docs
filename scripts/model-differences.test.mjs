@@ -181,7 +181,15 @@ test('rules for every model hold across the contract', () => {
   const roles = new Set(['reference_image', 'first_frame', 'keyframe', 'last_frame', 'reference_video', 'reference_audio', 'front_view', 'left_view', 'back_view', 'right_view'])
   for (const model of c.models) {
     for (const op of model.operations) {
-      assert.deepEqual(op.parameters.find(p => p.name === 'n')?.values, model.id.startsWith('suno/') ? [2] : model.id.startsWith('midjourney/') ? [4] : [1], `${model.id}: n is 1 (Suno v6 family: 2, Midjourney: 4)`)
+      const n = op.parameters.find(p => p.name === 'n')
+      if (op.input_modes.includes('layer_decomposition')) {
+        assert.equal(model.id, 'bytedance/seedream-5.5')
+        assert.equal(n, undefined)
+        const maxImages = op.parameters.find(p => p.name === 'max_images')
+        assert.deepEqual([maxImages?.minimum, maxImages?.maximum, maxImages?.default], [2, 100, 30])
+      } else {
+        assert.deepEqual(n?.values, model.id.startsWith('suno/') ? [2] : model.id.startsWith('midjourney/') ? [4] : [1], `${model.id}: n is 1 (Suno v6 family: 2, Midjourney: 4)`)
+      }
       for (const constraint of Object.values(op.input_constraints)) {
         for (const role of constraint.allowed_reference_roles) assert.ok(roles.has(role), `${model.id}: ${role} is not a documented reference role`)
       }
