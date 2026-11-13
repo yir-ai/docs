@@ -49,7 +49,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | `YIR_BUDGET_EXCEEDED` | 422 | 请求的 `max_cost` 低于所有可用渠道的当前估价，消息给出最低估价。价格会变，之前能通过的上限现在可能失败。 | 重新报价；接受新价格就在新请求中调高 `max_cost`，否则换更便宜的模型或规格。 |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | 当前没有渠道能在约束内执行此请求。 | 稍后重试、放宽 `routing` 或调整参数；报价可查看 `supply`。 |
 | `YIR_FIDELITY_EXCLUDED` | 422 | 该规格的所有渠道都低于请求的 `routing.fidelity`。 | 降低 `fidelity`，或换模型、换规格。见[规格真实性](/zh/docs/concepts/routing#规格真实性)。 |
-| `YIR_RATE_LIMITED` | 429 | 该 API Key 超出每分钟请求上限（任意网关端点都可能返回），账户进行中的 Job 过多，或生成请求等不到参考 URL 的导入名额。 | 按响应头 `Retry-After` 的秒数等待后重试，见[请求频率上限](#请求频率上限)；进行中的 Job 过多时等待其结束；URL 导入见[公开 URL](/zh/docs/guides/input-files#公开-url)。 |
+| `YIR_RATE_LIMITED` | 429 | 该 API Key 超出每分钟请求上限（任意网关端点都可能返回），账户进行中的 Job 过多，生成请求等不到参考 URL 的导入名额，或账户多次触发内容安全拦截而暂停提交新 Job。 | 按响应头 `Retry-After` 的秒数等待后重试，见[请求频率上限](#请求频率上限)；进行中的 Job 过多时等待其结束；URL 导入见[公开 URL](/zh/docs/guides/input-files#公开-url)。 |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | 临时的服务问题。 | 退避重试；提交请求请复用同一个幂等键。 |
 
 ### 请求频率上限
@@ -63,6 +63,8 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | 写入：`POST /v1/images/generations`、`/v1/videos/generations`、`/v1/audio/generations`（及旧名 `/v1/music/generations`）、`/v1/3d/generations`、`/v1/files`、`/v1/files/{id}/complete`、`/v1/jobs/{id}/cancel` | 每分钟 600 次 |
 
 按固定的一分钟窗口计数。超出上限时返回 `429` 与 `YIR_RATE_LIMITED`（`retryable: true`，`action: retry_later`），并带以秒为单位的 `Retry-After` 响应头；不会创建任何资源，也不收费。进行中 Job 过多导致的 `429` 不带 `Retry-After`。URL 导入导致的 `429` 与这些每分钟上限无关，见[公开 URL](/zh/docs/guides/input-files#公开-url)。触发上限时先检查客户端是否有循环；正常流量确实需要更高上限请联系支持。
+
+Yir 内容安全审核多次确认拦截后，可能暂停提交新 Job 24 小时。错误消息给出自动恢复的 UTC 时间，`Retry-After` 给出重试前应等待的秒数。期间仍可登录、查看账单和查询已有 Job。
 
 ## Job 错误
 

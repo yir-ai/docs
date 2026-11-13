@@ -1514,14 +1514,14 @@
         "$ref": "#/components/responses/StandardError"
       },
       "RateLimited": {
-        "description": "进行中的 Job 过多，或该 API Key 超出此端点的每分钟请求上限（YIR_RATE_LIMITED）。",
+        "description": "进行中的 Job 过多、API Key 超出每分钟请求上限，或账户多次触发内容安全拦截而暂停提交新 Job（YIR_RATE_LIMITED）。",
         "headers": {
           "Retry-After": {
             "schema": {
               "type": "integer",
               "minimum": 1
             },
-            "description": "重试前需等待的秒数。仅在超出每分钟请求上限时返回。"
+            "description": "超出每分钟请求上限或暂停提交新 Job 时，重试前需等待的秒数。"
           }
         },
         "content": {
