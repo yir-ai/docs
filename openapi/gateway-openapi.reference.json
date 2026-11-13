@@ -1710,6 +1710,60 @@
           }
         }
       },
+      "StandardImageLayerDecompositionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "references"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "layer_decomposition"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "const": "reference_image"
+                },
+                "file_id": {
+                  "$ref": "#/components/schemas/FileID"
+                },
+                "url": {
+                  "$ref": "#/components/schemas/InputURL"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "file_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "url"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
       "Balance": {
         "type": "object",
         "required": [
@@ -1775,6 +1829,9 @@
               },
               {
                 "$ref": "#/components/schemas/StandardImageReferenceInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardImageLayerDecompositionInput"
               }
             ]
           },
@@ -1808,6 +1865,12 @@
               "aspect_ratio": {
                 "type": "string",
                 "minLength": 1
+              },
+              "max_images": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 100,
+                "description": "Layer decomposition only. Maximum number of files including the base image. Default 30."
               },
               "n": {
                 "type": "integer",
@@ -1852,6 +1915,9 @@
               },
               {
                 "$ref": "#/components/schemas/StandardImageReferenceInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardImageLayerDecompositionInput"
               }
             ]
           },
@@ -1879,6 +1945,12 @@
               "aspect_ratio": {
                 "type": "string",
                 "minLength": 1
+              },
+              "max_images": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 100,
+                "description": "Layer decomposition only. Maximum number of files including the base image. Default 30."
               },
               "n": {
                 "type": "integer",
@@ -3005,7 +3077,8 @@
               "text",
               "image",
               "reference",
-              "multiview"
+              "multiview",
+              "layer_decomposition"
             ]
           },
           "parameters": {
@@ -3211,10 +3284,20 @@
       "QuoteParameters": {
         "type": "object",
         "additionalProperties": true,
-        "required": [
-          "n"
+        "oneOf": [
+          {
+            "required": [
+              "n"
+            ]
+          },
+          {
+            "required": [
+              "resolution",
+              "max_images"
+            ]
+          }
         ],
-        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration, a silent video model carries no generate_audio, a music echo carries instrumental and lyrics_optimizer (plus duration for length-priced models) but no resolution or aspect_ratio, a sound-effect echo carries n and duration, and a text-to-speech echo carries n and voice. Image and video echoes always include resolution and aspect_ratio. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
+        "description": "The normalized parameters a request resolves to: every parameter the model contract declares for the operation, at its contract spelling, with omitted parameters at their published default. Parameters the model does not declare are absent, so an image echo carries no duration, a silent video model carries no generate_audio, a music echo carries instrumental and lyrics_optimizer (plus duration for length-priced models) but no resolution or aspect_ratio, a sound-effect echo carries n and duration, and a text-to-speech echo carries n and voice. Regular image and video echoes include resolution and aspect_ratio. Layer decomposition echoes resolution and max_images. Only the common parameters are documented here; model-specific parameters are echoed under their contract names.",
         "properties": {
           "size": {
             "type": "string",
@@ -3274,6 +3357,11 @@
           "n": {
             "type": "integer",
             "minimum": 1
+          },
+          "max_images": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 100
           }
         }
       },
@@ -3693,6 +3781,9 @@
           "swap_checks": {
             "$ref": "#/components/schemas/ResultFileSwapChecks"
           },
+          "layer": {
+            "$ref": "#/components/schemas/ResultFileLayer"
+          },
           "expires_at": {
             "type": "integer",
             "format": "int64",
@@ -3700,6 +3791,48 @@
           },
           "fidelity": {
             "$ref": "#/components/schemas/ResultFileFidelity"
+          }
+        }
+      },
+      "ResultFileLayer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "z_index"
+        ],
+        "description": "Layer decomposition only. Composite in ascending z_index. Zero is the base. A layer may omit its bounding box when the provider does not return coordinates.",
+        "properties": {
+          "z_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "bounding_box": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "absolute": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "description": "[left, top, right, bottom] in base-image pixels."
+              },
+              "normalized": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "description": "[left, top, right, bottom] mapped onto 0–1000."
+              }
+            }
           }
         }
       },
@@ -4409,7 +4542,8 @@
               "text",
               "image",
               "reference",
-              "multiview"
+              "multiview",
+              "layer_decomposition"
             ]
           },
           "specification_label": {
@@ -4651,7 +4785,8 @@
                 "text",
                 "image",
                 "reference",
-                "multiview"
+                "multiview",
+                "layer_decomposition"
               ]
             }
           },

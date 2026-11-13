@@ -1,0 +1,7 @@
+### Layer decomposition
+
+Send exactly one reference image to the image generation endpoint with `input.type: "layer_decomposition"`. The prompt is optional. Use `parameters.resolution` for the output tier and `parameters.max_images` to cap the total file count, including the base. The default is 30.
+
+Read the files from `result.files`. The base has `layer.z_index: 0`. Composite the PNG layers in ascending `z_index`, resizing each layer to its `bounding_box.absolute` on the base canvas. The four values are `[left, top, right, bottom]`. You can use `bounding_box.normalized` for a canvas of another size. Coordinates are optional because the channel can omit them.
+
+APIMart and KIE both support this input mode. The quote estimates the full requested cap plus one input image. The final charge follows the channel's reported task cost.

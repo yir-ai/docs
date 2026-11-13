@@ -1,0 +1,7 @@
+### 图层拆分
+
+在图片生成端点将 `input.type` 设为 `"layer_decomposition"`，传入一张参考图，提示词可省略。`parameters.resolution` 选择输出档位，`parameters.max_images` 控制最多返回多少个文件，含底图，默认 30。
+
+从 `result.files` 读取文件。底图的 `layer.z_index` 为 0。按 `z_index` 从小到大叠放 PNG 图层，用 `bounding_box.absolute` 把每个图层缩放并定位到底图。坐标格式是 `[left, top, right, bottom]`。合成到其他尺寸的画布时可用 `bounding_box.normalized`。上游可能省略坐标。
+
+APIMart 和 KIE 均支持这个输入模式。报价按输出上限加一张输入图估算，最终按渠道返回的任务实扣结算。

@@ -186,7 +186,7 @@ function exampleRequest(model, view, mode) {
       if (modes.includes(mode) && param.default !== undefined) parameters[param.name] = param.default
     }
   }
-  const promptless = PROMPTLESS_MODES[view.operation]?.includes(mode)
+  const promptless = mode === "layer_decomposition" || PROMPTLESS_MODES[view.operation]?.includes(mode)
   const input = promptless ? { type: mode } : { type: mode, prompt: EXAMPLE_PROMPT[view.operation] }
   if (AUTO_LYRICS_MODELS.has(model.id)) parameters.lyrics_optimizer = true
   else if (EXAMPLE_LYRICS[view.operation]) input.lyrics = EXAMPLE_LYRICS[view.operation]

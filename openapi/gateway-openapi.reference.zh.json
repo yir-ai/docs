@@ -1710,6 +1710,60 @@
           }
         }
       },
+      "StandardImageLayerDecompositionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "references"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "layer_decomposition"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "role"
+              ],
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "const": "reference_image"
+                },
+                "file_id": {
+                  "$ref": "#/components/schemas/FileID"
+                },
+                "url": {
+                  "$ref": "#/components/schemas/InputURL"
+                }
+              },
+              "oneOf": [
+                {
+                  "required": [
+                    "file_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "url"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
       "Balance": {
         "type": "object",
         "required": [
@@ -1775,6 +1829,9 @@
               },
               {
                 "$ref": "#/components/schemas/StandardImageReferenceInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardImageLayerDecompositionInput"
               }
             ]
           },
@@ -1808,6 +1865,12 @@
               "aspect_ratio": {
                 "type": "string",
                 "minLength": 1
+              },
+              "max_images": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 100,
+                "description": "仅用于图层拆分。限制返回文件总数，包含底图，默认 30。"
               },
               "n": {
                 "type": "integer",
@@ -1852,6 +1915,9 @@
               },
               {
                 "$ref": "#/components/schemas/StandardImageReferenceInput"
+              },
+              {
+                "$ref": "#/components/schemas/StandardImageLayerDecompositionInput"
               }
             ]
           },
@@ -1879,6 +1945,12 @@
               "aspect_ratio": {
                 "type": "string",
                 "minLength": 1
+              },
+              "max_images": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 100,
+                "description": "仅用于图层拆分。限制返回文件总数，包含底图，默认 30。"
               },
               "n": {
                 "type": "integer",
@@ -3005,7 +3077,8 @@
               "text",
               "image",
               "reference",
-              "multiview"
+              "multiview",
+              "layer_decomposition"
             ]
           },
           "parameters": {
@@ -3211,10 +3284,20 @@
       "QuoteParameters": {
         "type": "object",
         "additionalProperties": true,
-        "required": [
-          "n"
+        "oneOf": [
+          {
+            "required": [
+              "n"
+            ]
+          },
+          {
+            "required": [
+              "resolution",
+              "max_images"
+            ]
+          }
         ],
-        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio，音乐回显有 instrumental 和 lyrics_optimizer（按时长计价的模型另有 duration），但没有 resolution 和 aspect_ratio，音效回显有 n 和 duration，文字转语音回显有 n 和 voice。图片和视频回显始终包含 resolution 和 aspect_ratio。这里只记录通用参数；模型专属参数按合同名回显。",
+        "description": "请求规范化后的参数：模型合同为该操作声明的每个参数，按合同写法，省略的参数取已发布默认值。模型未声明的参数不出现，因此图片回显没有 duration，无音轨的视频模型没有 generate_audio，音乐回显有 instrumental 和 lyrics_optimizer（按时长计价的模型另有 duration），但没有 resolution 和 aspect_ratio，音效回显有 n 和 duration，文字转语音回显有 n 和 voice。常规图片和视频回显始终包含 resolution 和 aspect_ratio。图层拆分回显 resolution 和 max_images。这里只记录通用参数；模型专属参数按合同名回显。",
         "properties": {
           "size": {
             "type": "string",
@@ -3274,6 +3357,11 @@
           "n": {
             "type": "integer",
             "minimum": 1
+          },
+          "max_images": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 100
           }
         }
       },
@@ -3693,6 +3781,9 @@
           "swap_checks": {
             "$ref": "#/components/schemas/ResultFileSwapChecks"
           },
+          "layer": {
+            "$ref": "#/components/schemas/ResultFileLayer"
+          },
           "expires_at": {
             "type": "integer",
             "format": "int64",
@@ -3700,6 +3791,48 @@
           },
           "fidelity": {
             "$ref": "#/components/schemas/ResultFileFidelity"
+          }
+        }
+      },
+      "ResultFileLayer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "z_index"
+        ],
+        "description": "仅用于图层拆分。按 z_index 从小到大叠放图层。0 表示底图。上游没有提供坐标时省略边界框。",
+        "properties": {
+          "z_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          },
+          "bounding_box": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "absolute": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "description": "底图像素坐标 [left, top, right, bottom]。"
+              },
+              "normalized": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000
+                },
+                "description": "映射至 0–1000 的坐标 [left, top, right, bottom]。"
+              }
+            }
           }
         }
       },
@@ -4409,7 +4542,8 @@
               "text",
               "image",
               "reference",
-              "multiview"
+              "multiview",
+              "layer_decomposition"
             ]
           },
           "specification_label": {
@@ -4651,7 +4785,8 @@
                 "text",
                 "image",
                 "reference",
-                "multiview"
+                "multiview",
+                "layer_decomposition"
               ]
             }
           },
