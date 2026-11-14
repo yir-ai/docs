@@ -16,7 +16,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)、[音乐生成](/zh/docs/guides/music-generation)和 [3D 生成](/zh/docs/guides/3d-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
-| 输出数量 | 很多 API 允许 `n` 大于 1。 | `n` 为 `1`；Suno v6 系列（`suno/suno-v6`、`suno/suno-v6-wild`、`suno/suno-v6-mini`）例外，每次固定生成两首（`n: 2`）。Seedream 5.5 图层拆分使用 `max_images`（2–100，默认 30）。分别生成时，每个 Job 使用独立幂等键。 |
+| 输出数量 | 很多 API 允许 `n` 大于 1。 | Suno v6 系列和 `suno/suno-speech` 每次返回两个音频文件（`n: 2`）。`midjourney/midjourney-v8.2` 每次返回四张图（`n: 4`）。Seedream 5.5 图层拆分使用 `max_images`（2–100，默认 30）。其他模型使用 `n: 1`。分别生成时，每个 Job 使用独立幂等键。 |
 | 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`，3D 多视角输入为 `front_view`、`left_view`、`back_view`、`right_view`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
 | 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
@@ -160,7 +160,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `klingai/kling-2.6` | 音色 | 支持。 | 不可用。 |
 | `klingai/kling-2.6`、`klingai/kling-3.0` | 动作控制的 `character_orientation`、保留原声 | 可选 `image` 或 `video`；默认保留参考视频的声音。 | 朝向固定跟随视频；不提供保留原声。 |
 | `klingai/kling-3.0` | `multi_shot`、主体元素、音色 | 支持。 | 不可用。 |
-| `klingai/kling-3.0` | Kling 3.0 Omni（多图参考、视频编辑） | 独立端点。 | 未提供。 |
+| `klingai/kling-3.0-omni` | Kling 3.0 Omni（多图参考、视频编辑） | 独立端点。 | [Kling 3.0 Omni](/zh/docs/models/klingai/kling-3-0-omni) 支持文生、首尾帧图生，以及参考图和照片主体生成。暂未开放视频编辑。 |
 | `minimax/hailuo-2.3`、`minimax/hailuo-2.3-fast` | `prompt_optimizer`、`fast_pretreatment` | 支持。 | 不可用。与 MiniMax 一致，`1080p` 只能配 6 秒。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 为 `480p`（MiniMax 的 H3 Max 默认 `768P`）、5 秒。 |
 | `minimax/minimax-h3` | `resolution` | `768P` 或 `2K`。 | 另支持 `480p`、`1080p`，只由秘塔渠道承接（没有备用渠道）。需要 MiniMax 原厂的 480p 请用 `minimax/minimax-h3-max`。 |
@@ -174,7 +174,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `elevenlabs/music-v2`、`elevenlabs/music-v2.5` | `composition_plan`（自定义歌词与段落） | 可用。 | 不可用，也不接收 `lyrics`。人声用 `lyrics_optimizer: true` 由提示词写词，或用 `instrumental: true`。 |
 | `elevenlabs/sound-effects-v2` | `duration_seconds` | 0.5–30 秒；省略时由模型决定。 | `1` 到 `22` 的整数秒，默认 `5`。 |
 | `elevenlabs/sound-effects-v2` | `loop`、`prompt_influence` | 可用。 | 不可用。 |
-| `suno/suno-v6`、`suno/suno-v6-wild`、`suno/suno-v6-mini` | 官方 API | Suno 没有官方 API。 | 经第三方渠道非官方接入。只支持基础生成，不支持续写、翻唱或分轨。每次生成两首。 |
+| `suno/suno-v6`、`suno/suno-v6-wild`、`suno/suno-v6-mini` | 官方 API | Suno 没有官方 API。 | 经第三方渠道支持基础生成和[上传原曲翻唱](/zh/docs/guides/music-generation#上传原曲翻唱)，每次生成两首。暂未开放续写和分轨。 |
 
 ### xAI Grok Imagine
 

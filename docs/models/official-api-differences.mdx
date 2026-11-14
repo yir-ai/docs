@@ -14,7 +14,7 @@ The model contract (`GET /v1/models/{creator}/{model}?view=contract`) is always 
 | Request shape | Each provider has its own endpoint and body. | One body for all models: `model`, `input` (prompt and references), `parameters`. See [image generation](/docs/guides/image-generation), [video generation](/docs/guides/video-generation), [music generation](/docs/guides/music-generation) and [3D generation](/docs/guides/3d-generation). |
 | Execution | Often synchronous, sometimes streamed. | Always an asynchronous Job. Poll, long-poll or use a Webhook; there is no streaming or partial-image output. See [Job lifecycle](/docs/concepts/task-lifecycle). |
 | Output size | Usually pixel sizes (`size`, `width`/`height`) or provider-specific presets. | `resolution` (a tier such as `1K`, `2K`, `4K`, or `480p`, `720p`, `1080p`) plus `aspect_ratio`. Yir translates them into each channel's native size, so exact pixel dimensions can differ by channel. |
-| Number of outputs | Many APIs accept `n` greater than 1. | `n` is `1`, except the Suno v6 models (`suno/suno-v6`, `suno/suno-v6-wild`, `suno/suno-v6-mini`), which always make two tracks (`n: 2`). Seedream 5.5 layer decomposition uses `max_images` (2–100, default 30). For separate generations, submit a Job with its own idempotency key. |
+| Number of outputs | Many APIs accept `n` greater than 1. | The Suno v6 family and `suno/suno-speech` return two audio files (`n: 2`). `midjourney/midjourney-v8.2` returns four images (`n: 4`). Seedream 5.5 layer decomposition uses `max_images` (2–100, default 30). Other models use `n: 1`. For separate generations, submit a Job with its own idempotency key. |
 | Reference inputs | URLs, base64 data or multipart uploads, with provider-specific field names. | A `file_id` from the [Files API](/docs/guides/input-files) or a public HTTPS `url`, with a role such as `reference_image`, `first_frame`, `last_frame`, `reference_video`, `reference_audio`, or `front_view`, `left_view`, `back_view` and `right_view` for 3D multi-view input. Base64, data URLs and multipart bodies are rejected. |
 | Unlisted parameters | Provider-specific options such as `seed`, `negative_prompt`, `style`, `output_format`, `background`, `moderation` or `user`. | Not accepted. `parameters` only takes the names in the model's contract; anything else fails with `400 YIR_INVALID_REQUEST`. Yir never forwards unknown fields to a channel. |
 | Defaults | The provider's defaults, sometimes "let the model decide". | The `default` in Yir's contract. An omitted parameter means that default, which can differ from the provider's (see the model sections below). |
@@ -158,7 +158,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `klingai/kling-2.6` | Voices | Available. | Not available. |
 | `klingai/kling-2.6`, `klingai/kling-3.0` | Motion control `character_orientation`, original audio | Choose `image` or `video`; keeps the reference video's sound by default. | Orientation is fixed to the video; keeping the original sound is not offered. |
 | `klingai/kling-3.0` | `multi_shot`, elements, voices | Available. | Not available. |
-| `klingai/kling-3.0` | Kling 3.0 Omni (multi-image reference, video editing) | A separate endpoint. | Not offered. |
+| `klingai/kling-3.0-omni` | Kling 3.0 Omni (multi-image reference, video editing) | A separate endpoint. | [Kling 3.0 Omni](/docs/models/klingai/kling-3-0-omni) supports text, first and last frames, and generation from reference images and photo subjects. Video editing is unavailable. |
 | `minimax/hailuo-2.3`, `minimax/hailuo-2.3-fast` | `prompt_optimizer`, `fast_pretreatment` | Available. | Not available. `1080p` is available only with 6-second videos, as with MiniMax. |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` (MiniMax's H3 Max default is `768P`) and 5 s. |
 | `minimax/minimax-h3` | `resolution` | `768P` or `2K`. | Also `480p` and `1080p`, served by the Metaso channel only (no fallback channel). For 480p from MiniMax itself, use `minimax/minimax-h3-max`. |
@@ -172,7 +172,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `elevenlabs/music-v2`, `elevenlabs/music-v2.5` | `composition_plan` (custom lyrics and sections) | Available. | Not available, and `lyrics` is not accepted. Use `lyrics_optimizer: true` for vocals written from the prompt or `instrumental: true`. |
 | `elevenlabs/sound-effects-v2` | `duration_seconds` | 0.5 to 30 s; omitted lets the model choose. | Whole seconds from `1` to `22`, default `5`. |
 | `elevenlabs/sound-effects-v2` | `loop`, `prompt_influence` | Available. | Not available. |
-| `suno/suno-v6`, `suno/suno-v6-wild`, `suno/suno-v6-mini` | Official API | Suno has none. | Unofficial access through third-party channels. Basic generation only: no extend, cover or stems. Two tracks per request. |
+| `suno/suno-v6`, `suno/suno-v6-wild`, `suno/suno-v6-mini` | Official API | Suno has none. | Third-party channels support basic generation and [covers from uploaded songs](/docs/guides/music-generation#cover-an-uploaded-song), with two tracks per request. Extend and stem separation are unavailable. |
 
 ### xAI Grok Imagine
 

@@ -1,8 +1,10 @@
 ### 各渠道的提示词长度
 
-文生图和图片编辑的 `input.prompt` 须包含 3–5000 个 Unicode 字符，按去除首尾空白后的长度计算。KIE 需要 5–5000 个字符。3–4 个字符的提示词只会匹配 APIMart。APIMart 的 3–5000 字符是 Yir 的路由校验范围。APIMart 的接口文档声明提示词必填。
+文生图和图片编辑的 `input.prompt` 须包含 3–5000 个 Unicode 字符，按去除首尾空白后的长度计算。经 Yir 调用 APIMart 和 fal 时接受 3–5000 个字符，KIE 需要 5–5000 个字符。
 
 提示词超出可选渠道的允许范围时，报价返回 HTTP 400 和 `YIR_INVALID_REQUEST`。`error.details[].field` 为 `input.prompt`，`expected` 给出允许范围。例如 `routing.only` 仅选 KIE 时，3–4 个字符的提示词会收到该错误。
+
+fal 的基础价格按输出分辨率计。图片编辑对每张参考图另收费用，第一张也计费。按完整请求报价可查看当前金额。
 
 ### 图层拆分
 
