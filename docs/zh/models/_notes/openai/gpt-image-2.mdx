@@ -10,9 +10,10 @@
 | --- | --- |
 | 官方渠道（`openai`） | `medium`、`high` |
 | APIMart `official` 版本 | `medium`、`high` |
-| APIMart 标准版本、KIE | `low`、`medium` |
+| fal | `low`、`medium`、`high` |
+| APIMart 标准版本、KIE、Reth（仅文生图） | `low`、`medium` |
 
-APIMart 标准版本和 KIE 没有画质开关，以不低于 `medium` 的固定画质出图，因此按各自的每张价格承接 `low` 和 `medium`。`high` 只会走官方渠道或 APIMart `official` 版本。
+APIMart 标准版本、KIE 和 Reth 没有画质开关，以不低于 `medium` 的固定画质出图，因此按各自的每张价格承接 `low` 和 `medium`。`high` 只会走官方渠道、APIMart `official` 版本或 fal。
 
 ```json
 {
@@ -42,7 +43,7 @@ APIMart 标准版本和 KIE 没有画质开关，以不低于 `medium` 的固定
 
 ## 计费
 
-- 按 Token 计费的渠道（官方渠道与 APIMart `official` 版本）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
+- 按 Token 计费的渠道（官方渠道、APIMart `official` 版本与 fal）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
 - 按 Token 计费的渠道会把参考图另按图片输入 Token 计费。OpenAI 大致按 32×32 像素块计算输入图 Token，单张有上限；估价不包含这部分。
 - 按张固定计价的渠道返回 `kind: fixed`，档位不影响价格。
 - 最终费用为每次渠道计了费的尝试的上游实际费用 × 你的折扣之和，通常只有交付结果的那次，见[报价与计费](/zh/docs/concepts/billing)。

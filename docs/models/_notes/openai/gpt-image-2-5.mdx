@@ -15,9 +15,10 @@ GPT Image 2.5 comes in two versions with separate model IDs:
 | --- | --- |
 | Official (`openai`) | `low`, `medium`, `high`, `xhigh`, `max` |
 | APIMart standard version | `low`, `medium`, `high`, `xhigh`, `max` |
-| APIMart `ext` version, KIE | `low`, `medium` |
+| PackyAPI | `low`, `medium`, `high`, `xhigh`, `max` |
+| APIMart `ext` version, KIE, Reth (text to image only) | `low`, `medium` |
 
-APIMart's `ext` version and KIE render at a fixed quality of at least `medium` and charge a fixed price per image. Requests for `high` or above run on the official channel or APIMart's standard version, which send the tier upstream.
+APIMart's `ext` version, KIE and Reth render at a fixed quality of at least `medium`. Requests for `high` or above run on the official channel, APIMart's standard version or PackyAPI, which send the tier upstream.
 
 ```json
 {
@@ -45,7 +46,7 @@ Requests use Yir's [common request shape](/docs/models/official-api-differences)
 
 ## Billing
 
-- Token-billed channels (official and APIMart's standard version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
+- Token-billed channels (official, APIMart's standard version and PackyAPI) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
 - Reference images on token-billed channels are billed separately as image input tokens. OpenAI counts input image tokens roughly by 32×32-pixel patches, with a per-image cap; the quote does not include them, so editing with several large references can cost noticeably more than the quoted amount.
 - APIMart's `ext` version and KIE charge a fixed price per output image by resolution, with no extra charge for references.
 - The final charge is the sum of every channel-billed attempt's actual upstream cost × your discount, usually just the delivering attempt. See [quotes and billing](/docs/concepts/billing).

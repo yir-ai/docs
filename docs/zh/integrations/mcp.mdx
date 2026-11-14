@@ -1,9 +1,9 @@
 ---
 title: MCP 服务器
-description: 把 claude.ai、ChatGPT、Claude Desktop、Cursor 等 MCP 客户端连接到 Yir，在对话里生成图片、视频和音频。
+description: 把 claude.ai、ChatGPT、Claude Desktop、Cursor 等 MCP 客户端连接到 Yir，在对话里生成图片、视频、音频和 3D 模型。
 ---
 
-Yir 提供远程 [Model Context Protocol](https://modelcontextprotocol.io) 服务器。连接后，AI 助手可以列出模型、报价、生成图片/视频/音频并取回结果，费用从你的 Yir 钱包扣除。
+Yir 提供远程 [Model Context Protocol](https://modelcontextprotocol.io) 服务器。连接后，AI 助手可以列出模型、报价、生成图片/视频/音频/3D 模型并取回结果，费用从你的 Yir 钱包扣除。
 
 | | |
 | --- | --- |
@@ -53,7 +53,7 @@ claude mcp add --transport http yir https://gateway.yir.ai/mcp --header "Authori
 
 | 工具 | 作用 |
 | --- | --- |
-| `list_models` | 列出模型及其操作与输入方式。可选 `type`（`image`、`video`、`audio`）与 `query` 筛选。 |
+| `list_models` | 列出模型及其操作与输入方式。可选 `type`（`image`、`video`、`audio`、`3d`；`music` 是 `audio` 的别名）与 `query` 筛选。 |
 | `get_model` | 返回单个模型的参数合同与各渠道当前价格。 |
 | `get_balance` | 返回钱包余额（美元）。 |
 | `quote` | 估算请求费用，不创建 Job。参数为 `type`、`model`、`input`、`parameters`，可选 `routing`。 |
@@ -64,7 +64,7 @@ claude mcp add --transport http yir https://gateway.yir.ai/mcp --header "Authori
 
 `input` 是 Standard 输入对象 `{type, prompt, references}`。参考素材写成 `{role, url}`（HTTPS 地址）或 `{role, file_id}`（来自 `upload_file`）。参数名与 `get_model` 返回的完全一致。各字段示例见[图片生成](/zh/docs/guides/image-generation)与[视频生成](/zh/docs/guides/video-generation)。
 
-工具结果就是 Standard API 返回的 JSON。结果是短期签名链接，不内联文件内容。API 错误以工具错误返回并保留 `YIR_*` 错误码，见[错误码](/zh/docs/production/error-codes)。`status: "failed"` 的 Job 属于查询成功，读它的 `error` 与 `billing` 即可。
+工具结果就是 Standard API 返回的 JSON。结果文件是短期签名链接；`generate` 与 `get_job` 返回成功的图片 Job 时还会附带内联预览图。API 错误以工具错误返回并保留 `YIR_*` 错误码，见[错误码](/zh/docs/production/error-codes)。`status: "failed"` 的 Job 属于查询成功，读它的 `error` 与 `billing` 即可。
 
 ## 费用与重试
 

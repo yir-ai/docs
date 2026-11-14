@@ -24,8 +24,9 @@ Vocal music needs `lyrics`. Set `lyrics_optimizer: true` and omit `lyrics` to ha
 | [MiniMax Music 3](/docs/models/minimax/music-3) | Own lyrics required | Ends with the lyrics, up to 300 s | 1 |
 | [ElevenLabs Music v2](/docs/models/elevenlabs/music-v2) and [v2.5](/docs/models/elevenlabs/music-v2-5) | Auto lyrics or instrumental; no own lyrics | `duration`: 30 to 300 s, default 60 | 1 |
 | [Suno v6](/docs/models/suno/suno-v6), [v6 Wild](/docs/models/suno/suno-v6-wild) and [v6 Mini](/docs/models/suno/suno-v6-mini) | Own lyrics, auto lyrics or instrumental | Model decides | 2 |
+| [Suno Speech](/docs/models/suno/suno-speech) (narration) | Own lyrics or auto lyrics; no instrumental | Model decides | 2 |
 
-Suno has no official API; Yir accesses the Suno v6 models unofficially through third-party channels. There is no tempo or key control. Prices and billing rules are on each model page.
+Suno has no official API; Yir accesses the Suno models unofficially through third-party channels. There is no tempo or key control. Prices and billing rules are on each model page.
 
 ## Cover an uploaded song
 
@@ -57,7 +58,7 @@ Suno v6, v6 Wild and v6 Mini can cover a song you provide: the result keeps the 
 
 ## Text-to-speech
 
-[MiniMax Speech 2.8 HD](/docs/models/minimax/speech-2-8-hd) (up to 10000 characters) and [ElevenLabs v3](/docs/models/elevenlabs/eleven-v3) (up to 5000 characters) read `input.prompt` aloud. `parameters` take only `n` (`1`) and `voice`, a preset voice ID of the model; omit it for the model default. The voice does not change the price. Lyrics, `instrumental`, `lyrics_optimizer` and `duration` are rejected. Text-to-speech is priced per character of the prompt, spaces, punctuation and audio tags included, and the quote reports operation `generate_speech`. The Job delivers one MP3.
+[MiniMax Speech 2.8 HD](/docs/models/minimax/speech-2-8-hd) (up to 10000 characters), and [ElevenLabs v3](/docs/models/elevenlabs/eleven-v3), [v4](/docs/models/elevenlabs/eleven-v4) and [v4 Turbo](/docs/models/elevenlabs/eleven-v4-turbo) (up to 5000 characters) read `input.prompt` aloud. `parameters` take only `n` (`1`) and `voice`, a preset voice ID of the model; omit it for the model default. The voice does not change the price. Lyrics, `instrumental`, `lyrics_optimizer` and `duration` are rejected. Text-to-speech is priced per character of the prompt, spaces, punctuation and audio tags included, and the quote reports operation `generate_speech`. The Job delivers one MP3.
 
 ```json
 {

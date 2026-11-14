@@ -10,9 +10,10 @@
 | --- | --- |
 | Official (`openai`) | `medium`, `high` |
 | APIMart `official` version | `medium`, `high` |
-| APIMart standard version, KIE | `low`, `medium` |
+| fal | `low`, `medium`, `high` |
+| APIMart standard version, KIE, Reth (text to image only) | `low`, `medium` |
 
-APIMart's standard version and KIE have no quality setting. They render at a fixed quality of at least `medium`, so they serve `low` and `medium` requests at their per-image price. A `high` request runs only on the official channel or APIMart's `official` version.
+APIMart's standard version, KIE and Reth have no quality setting. They render at a fixed quality of at least `medium`, so they serve `low` and `medium` requests at their per-image price. A `high` request runs only on the official channel, APIMart's `official` version or fal.
 
 ```json
 {
@@ -42,7 +43,7 @@ Requests use Yir's [common request shape](/docs/models/official-api-differences)
 
 ## Billing
 
-- Channels billed by tokens (official and APIMart's `official` version) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
+- Channels billed by tokens (official, APIMart's `official` version and fal) return an output-only estimate: the price `kind` is `estimate` and `estimate.scope` is `output_only`. The estimate uses the requested tier, or `medium` when `quality` is omitted.
 - Reference images on token-billed channels are billed separately as image input tokens. OpenAI counts input image tokens roughly by 32×32-pixel patches, with a per-image cap; the estimate does not include them.
 - Channels with a fixed per-image price return `kind: fixed`; the tier does not change that price.
 - The final charge is the sum of every channel-billed attempt's actual upstream cost × your discount, usually just the delivering attempt. See [quotes and billing](/docs/concepts/billing).

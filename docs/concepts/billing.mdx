@@ -44,7 +44,7 @@ The values above are illustrative. Amounts are USD decimal strings; use decimal 
 | `price_difference_percent` | Optional comparison with `official`. Negative means this channel is below the official price. |
 | `supply.available` | `false` with `issues: ["no_matching_supply"]` when no channel can run this request right now. |
 
-`max`, `single_attempt_upper_bound`, `has_verifiable_upper_bound`, and `supply.requires_max_cost` are deprecated and kept only for compatibility with earlier clients: `max` repeats `primary`, and the others are always `null`, `false`, and `false`. Do not base decisions on them.
+Earlier versions also returned `max`, `single_attempt_upper_bound`, `has_verifiable_upper_bound`, and `supply.requires_max_cost`. These fields have been removed; use `primary` instead of `max`.
 
 Each price has one of three kinds:
 
@@ -76,7 +76,7 @@ The price of the same request can go up: a cheaper channel goes offline or cools
 
 ## How a Job is charged
 
-1. **Admission** checks your live available balance against the first channel's estimate. Nothing is reserved. Before each later attempt, the balance is checked again against that channel's estimate. While your available balance is below US$5 and another of your Jobs is running, a new Job waits in `queued` and rechecks every 10 seconds; if it still cannot start after 30 minutes, it fails with `YIR_INSUFFICIENT_BALANCE`.
+1. **Admission** checks your live available balance against the first channel's estimate plus the estimates of your other running and queued Jobs; if it falls short, the request fails right away with `402`. Nothing is reserved. Before each attempt, the balance is checked again against that channel's estimate. If the balance covers this Job but not your other running Jobs as well, the Job waits in `queued` and rechecks every 10 seconds; if it still cannot start after 30 minutes, it fails with `YIR_INSUFFICIENT_BALANCE`.
 2. **Each attempt the channel billed** is charged when it ends: the channel's actual upstream cost × your discount, rounded up to US$0.000001. This includes the delivered attempt, an attempt that failed before a fallback, and a `YIR_CONTENT_REJECTED` attempt the provider billed, whether it rejected the prompt or generated a result that was not delivered. The Job's total is capped by `max_cost` when set.
 3. **Attempts the channel never billed** cost nothing. Yir also absorbs its own failures: a result Yir could not deliver (`YIR_RESULT_DELIVERY_FAILED`), an attempt whose outcome the channel never confirmed (`YIR_OUTCOME_TIMEOUT`), and an attempt still running when the Job reaches its maximum run time (`YIR_JOB_TIMEOUT`). A failed attempt is charged only from a confirmed channel bill; if the bill never arrives, Yir absorbs it.
 4. **Stop requested** during an attempt: that attempt may still succeed and be charged. See [cancellation](/docs/concepts/task-lifecycle#cancellation).
@@ -90,7 +90,7 @@ New requests settle from actual channel bills by default; no billing mode select
 
 A quote can return `supply.available: true` with `primary.amount: null` and no `expected_amount`. An unknown price is neither zero nor a spending ceiling. Routes without a reliable estimate cannot accept `max_cost`; choose a channel with an estimate when you need a cap.
 
-Your wallet must have a positive available balance and no outstanding debt. Actual charges can exceed estimates; an unpaid amount becomes debt, repaid first by a later manual top-up. Outstanding debt blocks new Jobs. Existing requests and Jobs retain their original validation and billing terms.
+Your wallet must have an available balance of at least US$5 and no outstanding debt; this is checked at admission and before each attempt. Actual charges can exceed estimates; an unpaid amount becomes debt, repaid first by a later manual top-up. Outstanding debt blocks new Jobs. Existing requests and Jobs retain their original validation and billing terms.
 
 ## Read the final charge
 
@@ -109,7 +109,7 @@ Read the Job's `billing` object for charges. Results may already be available wh
 
 ## Account and key limits
 
-- **Balance.** A Job is rejected with `402 YIR_INSUFFICIENT_BALANCE` when your available balance does not cover the first channel's estimate, or while your balance is negative. Top up in Console. You can set a low-balance email alert on the Billing page.
+- **Balance.** A Job is rejected with `402 YIR_INSUFFICIENT_BALANCE` when your available balance does not cover the first channel's estimate plus the estimates of your other running and queued Jobs, or while your balance is negative. Top up in Console. You can set a low-balance email alert on the Billing page.
 - **Monthly spend limit per API Key.** Optional, set in [Console → API Keys](/docs/console#api-keys). Admission adds the new Job's estimate to the key's settled charges for the current UTC month. If the total would exceed the limit, the request fails with `403 YIR_SPEND_LIMIT_EXCEEDED` and no Job is created. Jobs still running are not counted, so concurrent Jobs can take a key slightly past its limit. Running Jobs are never interrupted.
 
 ## Pricing your own product

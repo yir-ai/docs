@@ -30,7 +30,7 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 
 ## 图片
 
-`POST /v1/images/generations`（JSON）与 `POST /v1/images/edits`（multipart，`image` 或 `image[]`，最多 16 张）。
+`POST /v1/images/generations`（JSON）与 `POST /v1/images/edits`（multipart 用 `image` 或 `image[]`，JSON 用 `images: [{image_url}]`；最多 16 张）。JSON 中的图片可用 HTTPS URL 或 Base64 data URL，请求体上限 16 MB。
 
 | 参数 | 说明 |
 |---|---|
@@ -66,7 +66,7 @@ Yir 在 `https://gateway.yir.ai/openai` 提供 OpenAI Images 与 Sora `/v1/video
 - 结果链接有效至结果过期（任务创建后 7 天）；需要更久保存请用 `b64_json` 或自行转存。
 - 图片同步等待超过 10 分钟会返回 `200` 且带 `error`（`yir_wait_timeout`），Job 仍会继续，成功后照常计费；终端中途断开也一样。请凭响应头 `X-Yir-Job-Id` 对账。
 - new-api 非流式中转在出图完成前不会向终端发送数据。出图较慢时，终端客户端的超时应设到 10 分钟以上，或改用 `stream: true`（v1.0 RC 会转成流式返回）。
-- 暂不支持 `n > 1`、`mask` 和 JSON 格式的图片编辑。
+- 暂不支持 `n > 1` 和 `mask`。
 - 输入图片须为 PNG、JPEG 或 WebP，每张不超过 25 MB；multipart 请求体总计不超过 32 MB。
 - 结果链接与响应头里能看出 Yir；不希望暴露时请用 `b64_json`。
 

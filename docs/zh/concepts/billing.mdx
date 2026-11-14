@@ -44,7 +44,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 | `price_difference_percent` | 可选，与 `official` 的对比，负数表示该渠道低于官方价。 |
 | `supply.available` | 当前没有渠道能执行此请求时为 `false`，并带有 `issues: ["no_matching_supply"]`。 |
 
-`max`、`single_attempt_upper_bound`、`has_verifiable_upper_bound` 和 `supply.requires_max_cost` 已弃用，仅为兼容早期客户端保留：`max` 与 `primary` 相同，其余三个始终为 `null`、`false`、`false`。不要据此做判断。
+早期版本还会返回 `max`、`single_attempt_upper_bound`、`has_verifiable_upper_bound` 和 `supply.requires_max_cost`，这些字段已移除；原来读 `max` 的请改读 `primary`。
 
 每个价格属于以下三类之一：
 
@@ -76,7 +76,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 
 ## Job 如何计费
 
-1. **准入**时用首选渠道的估价核对实时可用余额，不预留任何金额。之后每次尝试前，再用该渠道的估价核对一次余额。可用余额低于 5 美元且你还有其他 Job 在执行时，新 Job 停在 `queued`，每 10 秒重新核对；30 分钟后仍无法开始，则以 `YIR_INSUFFICIENT_BALANCE` 失败。
+1. **准入**时用首选渠道的估价加上你其他执行中和排队中 Job 的估价核对实时可用余额，不够则当场以 `402` 拒绝，不预留任何金额。每次尝试前，再用该渠道的估价核对一次余额。余额够本 Job 但不够同时覆盖其他执行中的 Job 时，本 Job 停在 `queued`，每 10 秒重新核对；30 分钟后仍无法开始，则以 `YIR_INSUFFICIENT_BALANCE` 失败。
 2. **渠道计了费的每次尝试**在其结束时收费：渠道上游实际费用 × 你的折扣，向上取整到 0.000001 美元。包括交付结果的尝试、切换渠道前失败的尝试，以及渠道计了费的 `YIR_CONTENT_REJECTED` 尝试（无论是拒绝提示词，还是生成了不交付的结果）。设置了 `max_cost` 时，Job 累计收费以其封顶。
 3. **渠道没有计费的尝试**不收费。Yir 自身的故障也由 Yir 承担：Yir 无法交付的结果（`YIR_RESULT_DELIVERY_FAILED`），渠道始终未确认结果的尝试（`YIR_OUTCOME_TIMEOUT`），以及 Job 到达最长运行时限时仍在进行的尝试（`YIR_JOB_TIMEOUT`）。失败的尝试只按已确认的渠道账单收费，账单一直没有到达时由 Yir 承担。
 4. 尝试进行中**请求停止**：该次尝试仍可能成功并收费。见[取消](/zh/docs/concepts/task-lifecycle#取消)。
@@ -90,7 +90,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 
 报价的 `supply.available` 可以为 `true`，而 `primary.amount` 为 `null`、`expected_amount` 缺省。未知价格不等于零，也不是费用上限。缺少可靠估价的路线不能接受 `max_cost`；需要费用上限时请选择有估价的渠道。
 
-钱包必须有正的可用余额且没有未偿欠款。实扣可能高于估价；余额不足形成欠款，后续手动充值先偿还欠款，未偿清时不能提交新 Job。已有请求与 Job 保留原来的校验和计费约定。
+钱包可用余额须不低于 5 美元且没有未偿欠款，准入时和每次尝试前都会核对。实扣可能高于估价；余额不足形成欠款，后续手动充值先偿还欠款，未偿清时不能提交新 Job。已有请求与 Job 保留原来的校验和计费约定。
 
 ## 读取最终费用
 
@@ -109,7 +109,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 
 ## 账户与 Key 的限制
 
-- **余额。** 可用余额不足以覆盖首选渠道估价，或余额为负时，Job 以 `402 YIR_INSUFFICIENT_BALANCE` 拒绝。请在 Console 充值。可以在钱包页设置低余额邮件提醒。
+- **余额。** 可用余额不足以覆盖首选渠道估价加上其他执行中和排队中 Job 的估价，或余额为负时，Job 以 `402 YIR_INSUFFICIENT_BALANCE` 拒绝。请在 Console 充值。可以在钱包页设置低余额邮件提醒。
 - **每个 API Key 的月度支出上限。** 可选，在 [Console → API Key](/zh/docs/console#api-keys) 设置。准入时把新 Job 的估价加上该 Key 当前 UTC 自然月已结算费用；超过上限时请求以 `403 YIR_SPEND_LIMIT_EXCEEDED` 失败，不创建 Job。仍在执行的 Job 不计入，因此并发 Job 可能让 Key 略超上限。进行中的 Job 不会被中断。
 
 ## 为自己的产品定价

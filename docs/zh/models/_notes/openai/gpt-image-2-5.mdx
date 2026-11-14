@@ -15,9 +15,10 @@ GPT Image 2.5 有两个版本，各自使用独立的模型 ID：
 | --- | --- |
 | 官方渠道（`openai`） | `low`、`medium`、`high`、`xhigh`、`max` |
 | APIMart 标准版本 | `low`、`medium`、`high`、`xhigh`、`max` |
-| APIMart `ext` 版本、KIE | `low`、`medium` |
+| PackyAPI | `low`、`medium`、`high`、`xhigh`、`max` |
+| APIMart `ext` 版本、KIE、Reth（仅文生图） | `low`、`medium` |
 
-APIMart `ext` 版本和 KIE 以不低于 `medium` 的固定画质出图，按张固定计价。`high` 及以上的请求只会走官方渠道或 APIMart 标准版本，这两条渠道会把档位发给上游。
+APIMart `ext` 版本、KIE 和 Reth 以不低于 `medium` 的固定画质出图。`high` 及以上的请求只会走官方渠道、APIMart 标准版本或 PackyAPI，这些渠道会把档位发给上游。
 
 ```json
 {
@@ -45,7 +46,7 @@ APIMart `ext` 版本和 KIE 以不低于 `medium` 的固定画质出图，按张
 
 ## 计费
 
-- 按 Token 计费的渠道（官方渠道与 APIMart 标准版本）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
+- 按 Token 计费的渠道（官方渠道、APIMart 标准版本与 PackyAPI）返回仅含输出的估价：价格 `kind` 为 `estimate`，`estimate.scope` 为 `output_only`。估价按请求的档位计算，不传 `quality` 时按 `medium`。
 - 按 Token 计费的渠道会把参考图另按图片输入 Token 计费。OpenAI 大致按 32×32 像素块计算输入图 Token，单张有上限；报价不包含这部分，因此使用多张大尺寸参考图编辑时，实际费用可能明显高于报价金额。
 - APIMart `ext` 版本和 KIE 按输出分辨率每张固定计价，参考图不另收费。
 - 最终费用为每次渠道计了费的尝试的上游实际费用 × 你的折扣之和，通常只有交付结果的那次，见[报价与计费](/zh/docs/concepts/billing)。

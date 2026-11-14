@@ -30,7 +30,7 @@ When calling directly with an OpenAI SDK, set `base_url` to `https://gateway.yir
 
 ## Images
 
-`POST /v1/images/generations` (JSON) and `POST /v1/images/edits` (multipart, `image` or `image[]`, up to 16 files).
+`POST /v1/images/generations` (JSON) and `POST /v1/images/edits` (multipart with `image` or `image[]`, or JSON with `images: [{image_url}]`; up to 16 images). In JSON, image URLs can be HTTPS URLs or Base64 data URLs, and the request body is limited to 16 MB.
 
 | Parameter | Behavior |
 |---|---|
@@ -66,7 +66,7 @@ Submission returns an `id` (the Yir Job ID) immediately. new-api polls it and do
 - Result links stay valid until the result expires, 7 days after the Job was created; use `b64_json` or copy the file if you need it longer.
 - An image that takes longer than the 10-minute wait returns `200` with an `error` body (`yir_wait_timeout`), but the Job continues and is charged if it succeeds. The same applies when the end client disconnects. Reconcile with the `X-Yir-Job-Id` response header.
 - new-api's non-streaming relay sends nothing to the end client until the image is ready. For slow models, set the client timeout above 10 minutes, or use `stream: true` (the v1.0 RC relays it as a stream).
-- `n > 1`, `mask`, and JSON image edits are not supported.
+- `n > 1` and `mask` are not supported.
 - Input images must be PNG, JPEG, or WebP, up to 25 MB each; a multipart request body is limited to 32 MB.
 - Result links and response headers reveal Yir; use `b64_json` if that matters.
 

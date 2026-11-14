@@ -10,13 +10,13 @@ description: 使用 Yir Standard API 从文本或参考图生成图片：选择�
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `model` | 是 | 模型 ID，例如 `openai/gpt-image-2`。见[模型与参数](/zh/docs/models)。 |
-| `input` | 是 | `{ "type": "text", "prompt": ... }` 或 `{ "type": "image", "prompt": ..., "references": [...] }`；Seedream 5.5 另支持 `layer_decomposition`。提示词 1–20,000 个字符。 |
+| `input` | 是 | `{ "type": "text", "prompt": ... }` 或 `{ "type": "image", "prompt": ..., "references": [...] }`；Seedream 5.5 另支持 `layer_decomposition`。提示词长度上限因模型而异，见各模型页。 |
 | `parameters` | 是 | 模型参数，例如 `resolution`、`aspect_ratio`、`quality` 和 `n`。 |
 | `max_cost` | 否 | 可选，整个 Job 的美元费用上限；估价超过它的渠道会被跳过，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
 | `routing` | 否 | 渠道偏好、白名单、版本与切换，见[路由](/zh/docs/concepts/routing)。 |
 | `webhook_url` | 否 | 接收终态 Job 的 HTTPS 地址，见 [Webhook](/zh/docs/production/webhooks)。 |
 
-每个请求产出一个结果（`n` 固定为 `1`）。需要多张图片时，请提交多个 Job，每个 Job 使用独立的幂等键。
+多数模型每个请求产出一张图片（`n` 为 `1`）；[Midjourney V8.2](/zh/docs/models/midjourney/midjourney-v8-2) 固定返回四张（`n` 为 `4`）。各模型页列出允许的 `n`。需要更多图片时，请提交多个 Job，每个 Job 使用独立的幂等键。
 
 ## 文生图
 

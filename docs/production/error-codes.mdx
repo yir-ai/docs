@@ -37,7 +37,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_INVALID_ROUTING_OVERRIDE` | 400 | The `routing` object is invalid, for example an empty `only` or a variant outside `only`. | Fix `routing`. See [routing](/docs/concepts/routing). |
 | `YIR_ROUTING_OVERRIDE_NOT_ALLOWED` | — | Reserved in the contract and not returned today. An invalid `routing` returns `YIR_INVALID_ROUTING_OVERRIDE`. | Handle it like `YIR_INVALID_ROUTING_OVERRIDE` if you match on every code. |
 | `YIR_UNAUTHORIZED` | 401 | Missing, wrong, rotated, revoked, or expired key, or a disallowed source IP. | Check the key and its settings in Console. Do not retry unchanged. |
-| `YIR_INSUFFICIENT_BALANCE` | 402 | The available balance does not cover the first channel's estimate, or the balance is negative. | Add funds, then submit again. |
+| `YIR_INSUFFICIENT_BALANCE` | 402 | The available balance does not cover the first channel's estimate plus the estimates of your other running and queued Jobs, or the balance is negative. | Add funds, then submit again. |
 | `YIR_SPEND_LIMIT_EXCEEDED` | 403 | The key's monthly spend limit would be exceeded. | Raise the limit or wait for the next UTC month. |
 | `YIR_MODEL_NOT_FOUND` | 404 | Unknown model ID in a model path. | Use a canonical ID from `GET /v1/models`. |
 | `YIR_JOB_NOT_FOUND` | 404 | No such Job for this account, or it is older than 90 days. | Check the Job ID and the key's account. |

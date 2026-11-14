@@ -7,7 +7,7 @@
 | `auto`（默认） | 模型根据素材和提示词自行判断。 | 上游明确拒绝编辑参数时，Yir 返回 `YIR_INPUT_REJECTED` 并停止兜底。 |
 | `reference` | 参照图片、视频、音频生成新视频。 | `duration` 与 `aspect_ratio` 照常取固定值。 |
 | `edit` | 修改参考视频，例如替换其中的主体。 | 需要 4–30 秒的 `reference_video`；`duration` 与 `aspect_ratio` 跟随原视频（省略或传 `"auto"`）。走 APIMart 和 KIE 渠道。 |
-| `extend` | 延长参考视频。 | 需要 `reference_video`；`aspect_ratio` 跟随原视频，`duration` 为新增部分的秒数。走 APIMart 和 KIE 渠道。 |
+| `extend` | 延长参考视频。 | 需要 `reference_video`；`aspect_ratio` 跟随原视频，`duration` 为新增部分的秒数。走 APIMart、KIE 和 NanoAPI 渠道。 |
 
 参考视频每段 2–30 秒、合计不超过 30 秒；参考音频合计不超过 30 秒。Yir 按实测时长比较，30.03 秒的素材也会被拒。超限的上传文件在报价与提交时返回 `YIR_INVALID_REQUEST`（字段 `input.references[i]`）；URL 素材在导入实测后失败，不会提交到上游。
 
@@ -23,4 +23,4 @@ Quote 接受公开 HTTPS 参考视频 URL，但不会下载素材。设置 `dura
 
 省略 `duration` 仍使用默认 4 秒；显式整数时长保持既有行为。不要向 Yir 传入上游的 `-1` 值。
 
-文生视频新增 `parameters.resolution: "1080p"`，仅通过官方渠道执行；省略时仍为 `720p`，图片与参考模式仍只支持 `480p`/`720p`。官方 1080p 无视频输入费率为每百万视频 token 11.70 美元；16:9、24 fps、4 秒的输出估价为 2.27448 美元，最终按任务实际费用结算。该文生路线同时支持精确尺寸 `parameters.size: "1920x1080"`（AI SDK 的 `resolution: "1920x1080"`），绑定 1080p、16:9；与此冲突的画幅／档位及其他像素尺寸会明确拒绝。
+所有模式都支持 `parameters.resolution: "1080p"`：文生视频走官方渠道、APIMart 和 KIE，图片与参考模式走 APIMart、KIE 和 fal；省略时仍为 `720p`。官方 1080p 无视频输入费率为每百万视频 token 11.70 美元；16:9、24 fps、4 秒的输出估价为 2.27448 美元，最终按任务实际费用结算。该文生路线同时支持精确尺寸 `parameters.size: "1920x1080"`（AI SDK 的 `resolution: "1920x1080"`），绑定 1080p、16:9；与此冲突的画幅／档位及其他像素尺寸会明确拒绝。

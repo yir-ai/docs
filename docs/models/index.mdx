@@ -27,9 +27,9 @@ curl "https://gateway.yir.ai/v1/models/bytedance/seedance-2.0?view=contract" \
   --header "Authorization: Bearer $YIR_API_KEY"
 ```
 
-A contract describes, for each operation (`generate_image`, `generate_video`, `generate_music` or `generate_sound_effect`):
+A contract describes, for each operation (`generate_image`, `generate_video`, `generate_music`, `generate_sound_effect`, `generate_speech` or `generate_3d`):
 
-- **Input modes** (`text`, `image`, `reference`) and, for each, the allowed reference roles and their minimum and maximum counts.
+- **Input modes** (`text`, `image`, `reference`, `layer_decomposition`, `multiview`) and, for each, the allowed reference roles and their minimum and maximum counts.
 - **Parameters** with type, whether required, allowed `values` or `minimum`/`maximum`, and `default`.
 - **Labels and descriptions** in English and Simplified Chinese, for building forms.
 

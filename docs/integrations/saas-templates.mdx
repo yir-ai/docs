@@ -91,7 +91,7 @@ Each failed Job and API error carries a stable `code` and a suggested `action`:
 | `action` | Meaning | Show to the user? |
 | --- | --- | --- |
 | `fix_request`, `modify_input` | The prompt, parameters, or input were rejected, for example `YIR_INPUT_REJECTED` or `YIR_CONTENT_REJECTED` | Yes, ask them to change the input |
-| `add_funds` | Your Yir balance or spend limit is exhausted, for example `YIR_INSUFFICIENT_BALANCE` | No. Alert yourself and show a generic retry message |
+| `add_funds` | Your Yir balance is exhausted (`YIR_INSUFFICIENT_BALANCE`) | No. Alert yourself and show a generic retry message |
 | `retry_later` | Temporary capacity or rate limits | Offer a retry |
 | `contact_support` | Anything else | Generic message |
 
@@ -131,5 +131,5 @@ if (operation) {
 - Every submit and upload uses a key derived from your task ID.
 - Results are copied to your storage before their URLs expire.
 - Failed tasks refund credits from the server side.
-- `add_funds` errors alert you, not your users.
+- `add_funds` errors and `YIR_SPEND_LIMIT_EXCEEDED` (your key's monthly spend limit, returned with `fix_request`) alert you, not your users.
 - Options without a price in your table are hidden.

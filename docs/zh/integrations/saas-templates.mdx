@@ -91,7 +91,7 @@ references.push({ role: "reference_image", file_id: file.id });
 | `action` | 含义 | 是否展示给用户 |
 | --- | --- | --- |
 | `fix_request`、`modify_input` | 提示词、参数或输入被拒，例如 `YIR_INPUT_REJECTED`、`YIR_CONTENT_REJECTED` | 是，请用户修改输入 |
-| `add_funds` | 你的 Yir 余额或消费上限用尽，例如 `YIR_INSUFFICIENT_BALANCE` | 否。告警给自己，向用户显示通用的重试提示 |
+| `add_funds` | 你的 Yir 余额用尽（`YIR_INSUFFICIENT_BALANCE`） | 否。告警给自己，向用户显示通用的重试提示 |
 | `retry_later` | 临时容量不足或限流 | 提供重试 |
 | `contact_support` | 其他情况 | 通用提示 |
 
@@ -131,5 +131,5 @@ if (operation) {
 - 每次提交和上传都使用由任务 ID 派生的键。
 - 结果在链接过期前复制到自己的存储。
 - 失败任务由服务端退还积分。
-- `add_funds` 类错误告警给你，而不是你的用户。
+- `add_funds` 类错误和 `YIR_SPEND_LIMIT_EXCEEDED`（Key 的月度消费上限，`action` 为 `fix_request`）告警给你，而不是你的用户。
 - 价格表未定价的选项已隐藏。
