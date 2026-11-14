@@ -1,3 +1,9 @@
+### 各渠道的提示词长度
+
+文生图和图片编辑的 `input.prompt` 须包含 3–5000 个 Unicode 字符，按去除首尾空白后的长度计算。KIE 需要 5–5000 个字符。3–4 个字符的提示词只会匹配 APIMart。APIMart 的 3–5000 字符是 Yir 的路由校验范围。APIMart 的接口文档声明提示词必填。
+
+提示词超出可选渠道的允许范围时，报价返回 HTTP 400 和 `YIR_INVALID_REQUEST`。`error.details[].field` 为 `input.prompt`，`expected` 给出允许范围。例如 `routing.only` 仅选 KIE 时，3–4 个字符的提示词会收到该错误。
+
 ### 图层拆分
 
 在图片生成端点将 `input.type` 设为 `"layer_decomposition"`，传入一张参考图，提示词可省略。`parameters.resolution` 选择输出档位，`parameters.max_images` 控制最多返回多少个文件，含底图，默认 30。
