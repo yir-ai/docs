@@ -1159,7 +1159,7 @@
       "get": {
         "operationId": "getModel",
         "summary": "获取模型",
-        "description": "不带查询参数时返回模型详情，它反映实时价格与可用性，不缓存。view=contract 要求使用规范的 creator/model ID，返回与模型列表同一内容版本的公开参数合同，不查询价格或当前供应；它带与模型列表相同的 ETag 与 Cache-Control，并对 If-None-Match 回 304。别名可用于生成请求，但不是资源路径。",
+        "description": "不带查询参数时返回模型详情，展示实时价格与可用性，不缓存。view=contract 返回公开参数合同，不查询价格或供应。它与模型列表使用相同的内容版本、ETag 和 Cache-Control，并对 If-None-Match 回 304。请使用正式的 creator/model ID。旧正式 ID 仍可用于资源路径，响应返回所请求的旧 ID。短别名可用于生成和报价请求。",
         "tags": [
           "Models"
         ],
