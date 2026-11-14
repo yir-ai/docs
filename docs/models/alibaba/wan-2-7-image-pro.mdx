@@ -17,6 +17,7 @@ seo:
 | Mode | References | Reference roles |
 | --- | --- | --- |
 | `text` Text only | — | — |
+| `image` Image input | 1 to 9 | `reference_image` |
 
 Prompt limit: 5,000 characters; longer prompts are rejected with 400.
 
@@ -24,8 +25,10 @@ Prompt limit: 5,000 characters; longer prompts are rejected with 400.
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `resolution` | Resolution: Output resolution. | `1K`, `2K`, `4K` | `2K` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | `1:1` | No |
+| `resolution` | Resolution: Output resolution. Only in `text`. | `1K`, `2K`, `4K` | `2K` | No |
+| `resolution` | Resolution: Output resolution. Only in `image`. | `1K`, `2K` | `2K` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | `1:1` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `auto` | `auto` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
@@ -42,6 +45,29 @@ Prompt limit: 5,000 characters; longer prompts are rejected with 400.
   "parameters": {
     "resolution": "2K",
     "aspect_ratio": "1:1",
+    "n": 1
+  }
+}
+```
+
+`image` input:
+
+```json
+{
+  "model": "alibaba/wan-2.7-image-pro",
+  "input": {
+    "type": "image",
+    "prompt": "A watercolor fox reading a map in a pine forest",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "resolution": "2K",
+    "aspect_ratio": "auto",
     "n": 1
   }
 }

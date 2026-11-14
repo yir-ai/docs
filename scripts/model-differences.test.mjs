@@ -88,13 +88,14 @@ check('happyhorse duration 3..15 default 5', P(hh, 'duration')?.minimum === 3 &&
 check('happyhorse reference: 1-9 images, 5 ratios, default 1080p', C(hh, 'reference')?.max_references === 9 && sameSet(vals(hh, 'aspect_ratio', 'reference'), ['16:9', '9:16', '1:1', '4:3', '3:4']) && def(hh, 'resolution', 'reference') === '1080p', [C(hh, 'reference'), vals(hh, 'aspect_ratio', 'reference'), def(hh, 'resolution', 'reference')])
 check('happyhorse res 720p/1080p, text 16:9 only', sameSet(vals(hh, 'resolution'), ['720p', '1080p']) && sameSet(vals(hh, 'aspect_ratio'), ['16:9']), [vals(hh, 'resolution'), vals(hh, 'aspect_ratio')])
 check('qwen-image-2.1 1K/2K with 7 ratios', sameSet(vals('alibaba/qwen-image-2.1', 'resolution'), ['1K', '2K']) && vals('alibaba/qwen-image-2.1', 'aspect_ratio').length === 7, [vals('alibaba/qwen-image-2.1', 'resolution'), vals('alibaba/qwen-image-2.1', 'aspect_ratio')?.length])
-check('qwen-image-3.0-pro text only, 5 ratios', eq(modes('alibaba/qwen-image-3.0-pro'), ['text']) && vals('alibaba/qwen-image-3.0-pro', 'aspect_ratio').length === 5, [modes('alibaba/qwen-image-3.0-pro'), vals('alibaba/qwen-image-3.0-pro', 'aspect_ratio')])
+const qwen30 = 'alibaba/qwen-image-3.0-pro'
+check('qwen-image-3.0-pro editing: 1–3 references, 5 ratios, 1K or 2K', sameSet(modes(qwen30), ['image', 'text']) && C(qwen30, 'image')?.min_references === 1 && C(qwen30, 'image')?.max_references === 3 && vals(qwen30, 'aspect_ratio', 'image').length === 5 && sameSet(vals(qwen30, 'resolution', 'image'), ['1K', '2K']), C(qwen30, 'image'))
 const w26 = 'alibaba/wan-2.6'
 check('wan-2.6 duration 5..15 (text)', Math.min(...(vals(w26, 'duration') ?? [P(w26, 'duration').minimum])) === 5 && Math.max(...(vals(w26, 'duration') ?? [P(w26, 'duration').maximum])) === 15, [vals(w26, 'duration'), P(w26, 'duration').minimum, P(w26, 'duration').maximum])
 check('wan-2.6 references: 5 or 10', sameSet(vals(w26, 'duration', 'reference'), [5, 10]), vals(w26, 'duration', 'reference'))
 check('wan-2.6 res 720p/1080p; text 16:9/9:16/1:1', sameSet(vals(w26, 'resolution'), ['720p', '1080p']) && sameSet(vals(w26, 'aspect_ratio'), ['16:9', '9:16', '1:1']), [vals(w26, 'resolution'), vals(w26, 'aspect_ratio')])
 check('wan-2.7 image, text and reference', eq(modes('alibaba/wan-2.7'), ['image', 'reference', 'text']), modes('alibaba/wan-2.7'))
-for (const w of ['wan-2.7-image', 'wan-2.7-image-pro']) check(`${w} text only`, eq(modes('alibaba/' + w), ['text']), modes('alibaba/' + w))
+for (const w of ['alibaba/wan-2.7-image', 'alibaba/wan-2.7-image-pro']) check(`${w} editing: 1–9 references, automatic ratio and 2K default`, sameSet(modes(w), ['image', 'text']) && C(w, 'image')?.min_references === 1 && C(w, 'image')?.max_references === 9 && sameSet(vals(w, 'aspect_ratio', 'image'), ['auto']) && sameSet(vals(w, 'resolution', 'image'), ['1K','2K']) && def(w, 'resolution', 'image') === '2K', C(w, 'image'))
 check('wan-2.7-image default 1K', def('alibaba/wan-2.7-image', 'resolution') === '1K', def('alibaba/wan-2.7-image', 'resolution'))
 const w30 = 'alibaba/wan-3.0'
 check('wan-3.0 duration 2..30', P(w30, 'duration')?.minimum === 2 && P(w30, 'duration')?.maximum === 30, P(w30, 'duration'))
@@ -103,9 +104,9 @@ check('wan-3.0 generate_audio default false', def(w30, 'generate_audio') === fal
 check('wan-3.0 references: images, videos and audio', sameSet(C(w30, 'reference')?.allowed_reference_roles ?? [], ['reference_image', 'reference_video', 'reference_audio']), C(w30, 'reference')?.allowed_reference_roles)
 check('z-image-turbo default 1K 1:1, 7 ratios', def('alibaba/z-image-turbo', 'resolution') === '1K' && def('alibaba/z-image-turbo', 'aspect_ratio') === '1:1' && vals('alibaba/z-image-turbo', 'aspect_ratio').length === 7, vals('alibaba/z-image-turbo', 'aspect_ratio'))
 // BFL / Prodia
-check('flux-2-flex text only', eq(modes('bfl/flux-2-flex'), ['text']), modes('bfl/flux-2-flex'))
+for (const f of ['bfl/flux-2-flex', 'bfl/flux-2-max']) check(`${f} square 1MP editing with up to 8 images`, sameSet(modes(f), ['image', 'text']) && C(f, 'image')?.max_references === 8 && sameSet(vals(f, 'resolution', 'image'), ['1MP']) && sameSet(vals(f, 'aspect_ratio', 'image'), ['1:1']), C(f, 'image'))
 for (const f of ['flux-2-flex', 'flux-2-pro', 'flux-pro-1.1']) check(`${f} 1MP with 5 ratios`, sameSet(vals('bfl/' + f, 'resolution'), ['1MP']) && vals('bfl/' + f, 'aspect_ratio').length === 5, [vals('bfl/' + f, 'resolution'), vals('bfl/' + f, 'aspect_ratio')])
-check('flux-2-max 1MP 1:1 text only', sameSet(vals('bfl/flux-2-max', 'resolution'), ['1MP']) && sameSet(vals('bfl/flux-2-max', 'aspect_ratio'), ['1:1']) && eq(modes('bfl/flux-2-max'), ['text']), [vals('bfl/flux-2-max', 'resolution'), vals('bfl/flux-2-max', 'aspect_ratio'), modes('bfl/flux-2-max')])
+check('flux-2-max 1MP 1:1 text', sameSet(vals('bfl/flux-2-max', 'resolution'), ['1MP']) && sameSet(vals('bfl/flux-2-max', 'aspect_ratio'), ['1:1']), [vals('bfl/flux-2-max', 'resolution'), vals('bfl/flux-2-max', 'aspect_ratio')])
 check('flux-kontext-pro 9 ratios default 1:1', vals('bfl/flux-kontext-pro', 'aspect_ratio').length === 9 && def('bfl/flux-kontext-pro', 'aspect_ratio') === '1:1', vals('bfl/flux-kontext-pro', 'aspect_ratio'))
 check('flux-pro-1.1 text only', eq(modes('bfl/flux-pro-1.1'), ['text']), modes('bfl/flux-pro-1.1'))
 check('flux-pro-1.1-ultra 5 ratios default 1:1, has 2K', vals('bfl/flux-pro-1.1-ultra', 'aspect_ratio').length === 5 && def('bfl/flux-pro-1.1-ultra', 'aspect_ratio') === '1:1' && vals('bfl/flux-pro-1.1-ultra', 'resolution').includes('2K'), [vals('bfl/flux-pro-1.1-ultra', 'aspect_ratio'), vals('bfl/flux-pro-1.1-ultra', 'resolution')])
@@ -150,7 +151,8 @@ check('grok-video no 4:3/3:4, default 16:9', !vals(gv, 'aspect_ratio').includes(
 // Other image
 for (const g of ['gpt-image-1.5']) check(`${g} aspect 1:1/2:3/3:2 default 1:1`, sameSet(vals('openai/' + g, 'aspect_ratio'), ['1:1', '2:3', '3:2']) && def('openai/' + g, 'aspect_ratio') === '1:1', vals('openai/' + g, 'aspect_ratio'))
 check('recraft-v3 5 ratios default 1:1, text only', vals('recraft/recraft-v3', 'aspect_ratio').length === 5 && def('recraft/recraft-v3', 'aspect_ratio') === '1:1' && eq(modes('recraft/recraft-v3'), ['text']), [vals('recraft/recraft-v3', 'aspect_ratio'), modes('recraft/recraft-v3')])
-check('muse 1:1 only, text only', sameSet(vals('meta/muse-image-1.0', 'aspect_ratio'), ['1:1']) && eq(modes('meta/muse-image-1.0'), ['text']), [vals('meta/muse-image-1.0', 'aspect_ratio'), modes('meta/muse-image-1.0')])
+const muse = 'meta/muse-image-1.0'
+check('muse square text and native edit size with up to 10 images', sameSet(vals(muse, 'aspect_ratio'), ['1:1']) && sameSet(modes(muse), ['image', 'text']) && sameSet(vals(muse, 'resolution', 'image'), ['auto']) && def(muse, 'aspect_ratio', 'image') === 'auto' && C(muse, 'image')?.max_references === 10, C(muse, 'image'))
 const rv = 'reve/reve-2.1'
 check('reve same 7 ratios as Reve v1, default 1:1, no auto', sameSet(vals(rv, 'aspect_ratio'), ['16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16']) && def(rv, 'aspect_ratio') === '1:1', [vals(rv, 'aspect_ratio'), def(rv, 'aspect_ratio')])
 check('reve edits take exactly 1 reference_image', C(rv, 'image')?.min_references === 1 && C(rv, 'image')?.max_references === 1 && sameSet(C(rv, 'image')?.allowed_reference_roles, ['reference_image']), C(rv, 'image'))

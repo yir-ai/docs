@@ -119,14 +119,14 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | `alibaba/happyhorse-1.1` | `resolution`、`aspect_ratio` | `480P` 到 `1080P`；文生与参考生视频 9 种比例。 | `720p` 或 `1080p`；文生视频只有 `16:9`；参考生视频可选 `16:9`、`9:16`、`1:1`、`4:3`、`3:4`。 |
 | `alibaba/happyhorse-1.1` | 参考生视频 | 1–9 张参考图。 | 1–9 个 `reference_image`，只走 APIMart 渠道；默认值随阿里巴巴（`1080p`、`16:9`、5 秒）。 |
 | `alibaba/qwen-image-2.1` | 尺寸 | 面积 512² 到 2048² 任意，比例 1:8 到 8:1。 | `1K` 或 `2K`，7 种比例。 |
-| `alibaba/qwen-image-3.0-pro` | 图片编辑 | 1–3 张输入图。 | 只支持文生图；5 种比例。 |
+| `alibaba/qwen-image-3.0-pro` | 图片编辑 | 1–3 张输入图。 | 接收 1–3 张参考图，输出一张 1K 或 2K 图，支持 5 种画幅。 |
 | `alibaba/wan-2.6` | `duration` | 2–15 秒（有参考素材时 2–10 秒）。 | 5–15 秒；有参考素材时 `5` 或 `10`。 |
 | `alibaba/wan-2.6` | `resolution`、`aspect_ratio` | 文生视频另有 `480P`、`4:3`、`3:4`。 | `720p` 或 `1080p`；文生视频为 `16:9`、`9:16` 或 `1:1`。 |
 | `alibaba/wan-2.6` | `shot_type`、`audio_url` | 支持。 | 不可用。 |
 | `alibaba/wan-2.7` | 图生视频（首帧、首尾帧、续写） | 支持，可带 `driving_audio`。 | 支持首帧或首尾帧，可用 `reference_audio` 传驱动音频；续写（`first_clip`）不可用。 |
 | `alibaba/wan-2.7` | `reference_voice`（参考生视频）、`audio_url`（文生视频） | 支持。 | 不可用。 |
-| `alibaba/wan-2.7-image`、`-image-pro` | 图片编辑 | 0–9 张输入图。 | 只支持文生图。 |
-| `alibaba/wan-2.7-image`、`-image-pro` | 组图、`color_palette`、`bbox_list`、自定义尺寸 | 支持。 | 不可用。`wan-2.7-image` 默认 `1K` 而非 `2K`。 |
+| `alibaba/wan-2.7-image`、`-image-pro` | 图片编辑 | 0–9 张输入图。 | 接收 1–9 张参考图，输出一张 1K 或 2K 图，默认 2K，画幅跟随最后一张参考图。 |
+| `alibaba/wan-2.7-image`、`-image-pro` | 组图、`color_palette`、`bbox_list`、自定义尺寸 | 支持。 | 不可用。`wan-2.7-image` 文生默认 `1K`。 |
 | `alibaba/wan-3.0` | `duration` | 2–30 之间任意整数，或 `-1` 由模型决定。 | 2–30 之间任意整数；不提供由模型决定的时长，因为报价需要确定的时长。 |
 | `alibaba/wan-3.0` | `aspect_ratio` | 含 `21:9`；默认 `adaptive`。 | 没有 `21:9`；默认 `16:9`（可选 `adaptive`）。 |
 | `alibaba/wan-3.0` | 音频 | 默认开启。 | `generate_audio` 默认 `false`。 |
@@ -140,10 +140,10 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 
 | 模型 | 参数或功能 | 官方 API | Yir |
 | --- | --- | --- | --- |
-| `bfl/flux-2-flex` | 最多 8 张输入图的编辑 | 支持。 | 只支持文生图。 |
+| `bfl/flux-2-flex` | 最多 8 张输入图的编辑 | 支持。 | 接收 1–8 张参考图，输出一张 1MP 方图。 |
 | `bfl/flux-2-flex` | `steps`、`guidance`、`prompt_upsampling` | 支持。 | 不可用。 |
-| `bfl/flux-2-flex`、`bfl/flux-2-pro` | 尺寸 | 最高 4 MP。 | `1MP`，5 种比例。 |
-| `bfl/flux-2-max` | 尺寸、编辑 | 最高 4 MP，最多 8 张输入图编辑。 | 只有 `1MP` `1:1`；只支持文生图。 |
+| `bfl/flux-2-flex`、`bfl/flux-2-pro` | 尺寸 | 最高 4 MP。 | 文生为 `1MP`，支持 5 种画幅。FLUX.2 Flex 编辑为 `1:1`。 |
+| `bfl/flux-2-max` | 尺寸、编辑 | 最高 4 MP，最多 8 张输入图编辑。 | 输出一张 `1MP` `1:1` 图片。编辑接收 1–8 张参考图。 |
 | `bfl/flux-2-pro`、`bfl/flux-2-max` | `disable_pup` | 可关闭提示词扩写。 | 不可用；扩写始终开启。 |
 | `bfl/flux-kontext-pro` | `aspect_ratio` | 21:9 到 9:21 之间任意比例；编辑时省略则保持输入图形状。 | 9 种预设比例；默认 `1:1`。 |
 | `bfl/flux-kontext-pro`、`bfl/flux-pro-1.1`、`bfl/flux-pro-1.1-ultra` | `prompt_upsampling` | 支持。 | 不可用。 |
@@ -201,7 +201,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `openai/gpt-image-1.5` | `input_fidelity`、透明背景 | 支持。 | 不可用。 |
 | `recraft/recraft-v3` | 尺寸 | 14 种比例；省略时按提示词选择。 | 5 种比例；默认 `1:1`。 |
 | `recraft/recraft-v3` | `style`、自定义风格、`controls`（颜色、背景、艺术程度）、`text_layout`、矢量输出、图片输入 | 支持。 | 不可用。只支持文生位图。 |
-| `meta/muse-image-1.0` | 尺寸、编辑与参考图 | 任意尺寸（默认 `auto`）；支持编辑和多图合成。 | 只有 `1:1`；只支持文生图。 |
+| `meta/muse-image-1.0` | 尺寸、编辑与参考图 | 任意尺寸（默认 `auto`）；支持编辑和多图合成。 | 文生为 `1:1`。编辑接收 1–10 张参考图，输出一张 WebP，可选择画幅或由模型自动选择，分辨率由模型决定。 |
 | `meta/muse-image-1.0` | `reasoning_strength`、内置搜索工具开关 | 支持。 | 不可用。 |
 | `reve/reve-2.1` | `aspect_ratio` | `auto`（默认）加固定比例：v1 API 与 Yir 的 7 种比例相同，v2 API 有从 `4:1` 到 `1:4` 的 17 种。 | 7 种比例，默认 `1:1`；没有 `auto`。 |
 | `reve/reve-2.1` | 参考图 | Remix 可传多张参考图；v2 API 接受有序参考列表。 | 编辑时只接受 1 张 `reference_image`。 |

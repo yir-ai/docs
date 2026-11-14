@@ -4,7 +4,7 @@
 
 | 取值 | 用途 | 约束 |
 | --- | --- | --- |
-| `auto`（默认） | 模型根据素材和提示词自行判断。 | 提交时不校验；判断结果与参数冲突时，任务提交后才失败。 |
+| `auto`（默认） | 模型根据素材和提示词自行判断。 | 上游明确拒绝编辑参数时，Yir 返回 `YIR_INPUT_REJECTED` 并停止兜底。 |
 | `reference` | 参照图片、视频、音频生成新视频。 | `duration` 与 `aspect_ratio` 照常取固定值。 |
 | `edit` | 修改参考视频，例如替换其中的主体。 | 需要 4–30 秒的 `reference_video`；`duration` 与 `aspect_ratio` 跟随原视频（省略或传 `"auto"`）。走 APIMart 和 KIE 渠道。 |
 | `extend` | 延长参考视频。 | 需要 `reference_video`；`aspect_ratio` 跟随原视频，`duration` 为新增部分的秒数。走 APIMart 和 KIE 渠道。 |

@@ -1,9 +1,9 @@
 ---
 title: "Muse Image 1.0"
-description: "Meta 开源前沿图像生成模型，采用离散标记预测架构"
+description: "Meta 图像生成与参考图编辑模型，采用掩码离散标记架构"
 seo:
   title: "Muse Image 1.0 API 文档：参数与调用示例"
-  description: "Muse Image 1.0 API 文档：模型 ID meta/muse-image-1.0、输入模式、参数取值与默认值，附请求示例。Meta 开源前沿图像生成模型，采用离散标记预测架构。"
+  description: "Muse Image 1.0 API 文档：模型 ID meta/muse-image-1.0、输入模式、参数取值与默认值，附请求示例。Meta 图像生成与参考图编辑模型，采用掩码离散标记架构。"
 ---
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
@@ -17,13 +17,16 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
+| `image` 图片输入 | 1–10 | `reference_image` |
 
 ## 参数
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `resolution` | 分辨率：输出内容的分辨率。 | `1K` | `1K` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 | `1:1` | `1:1` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `text` 模式。 | `1K` | `1K` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `image` 模式。 | `auto` | `auto` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `1:1` | `1:1` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto`、`1:1`、`4:3`、`3:4`、`3:2`、`2:3`、`16:9`、`9:16` | `auto` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
 ## 示例
@@ -40,6 +43,29 @@ seo:
   "parameters": {
     "resolution": "1K",
     "aspect_ratio": "1:1",
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "meta/muse-image-1.0",
+  "input": {
+    "type": "image",
+    "prompt": "A watercolor fox reading a map in a pine forest",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "resolution": "auto",
+    "aspect_ratio": "auto",
     "n": 1
   }
 }

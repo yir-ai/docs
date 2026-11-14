@@ -17,6 +17,7 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
+| `image` 图片输入 | 1–9 | `reference_image` |
 
 提示词上限：5000 个字符，超出时返回 400。
 
@@ -24,8 +25,10 @@ seo:
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `resolution` | 分辨率：输出内容的分辨率。 | `1K`、`2K`、`4K` | `2K` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 | `1:1`、`16:9`、`9:16`、`4:3`、`3:4`、`3:2`、`2:3` | `1:1` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `text` 模式。 | `1K`、`2K`、`4K` | `2K` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `image` 模式。 | `1K`、`2K` | `2K` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `1:1`、`16:9`、`9:16`、`4:3`、`3:4`、`3:2`、`2:3` | `1:1` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
 ## 示例
@@ -42,6 +45,29 @@ seo:
   "parameters": {
     "resolution": "2K",
     "aspect_ratio": "1:1",
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "alibaba/wan-2.7-image-pro",
+  "input": {
+    "type": "image",
+    "prompt": "A watercolor fox reading a map in a pine forest",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "resolution": "2K",
+    "aspect_ratio": "auto",
     "n": 1
   }
 }

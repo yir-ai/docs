@@ -117,14 +117,14 @@ Where Alibaba defaults to `1080P` (Wan 2.6, Wan 2.7, Wan 3.0, HappyHorse 1.1) Yi
 | `alibaba/happyhorse-1.1` | `resolution`, `aspect_ratio` | `480P` to `1080P`; 9 ratios for text-to-video and reference-to-video. | `720p` or `1080p`; text-to-video is `16:9` only; reference-to-video offers `16:9`, `9:16`, `1:1`, `4:3`, `3:4`. |
 | `alibaba/happyhorse-1.1` | Reference to video | 1 to 9 reference images. | 1 to 9 `reference_image` references, on the APIMart channel only; defaults follow Alibaba (`1080p`, `16:9`, 5 s). |
 | `alibaba/qwen-image-2.1` | Size | Any area from 512² to 2048², ratios from 1:8 to 8:1. | `1K` or `2K` with 7 ratios. |
-| `alibaba/qwen-image-3.0-pro` | Image editing | 1 to 3 input images. | Text to image only; 5 ratios. |
+| `alibaba/qwen-image-3.0-pro` | Image editing | 1 to 3 input images. | One output in 1K or 2K, with 1 to 3 reference images and 5 ratios. |
 | `alibaba/wan-2.6` | `duration` | 2 to 15 seconds (2 to 10 with references). | 5 to 15 seconds; `5` or `10` with references. |
 | `alibaba/wan-2.6` | `resolution`, `aspect_ratio` | Text to video also offers `480P`, `4:3` and `3:4`. | `720p` or `1080p`; text to video is `16:9`, `9:16` or `1:1`. |
 | `alibaba/wan-2.6` | `shot_type`, `audio_url` | Available. | Not available. |
 | `alibaba/wan-2.7` | Image to video (first frame, first and last frame, continuation) | Available, with optional `driving_audio`. | First frame or first and last frame, with optional driving audio as `reference_audio`; continuation (`first_clip`) is not available. |
 | `alibaba/wan-2.7` | `reference_voice` (reference to video), `audio_url` (text to video) | Available. | Not available. |
-| `alibaba/wan-2.7-image`, `-image-pro` | Image editing | 0 to 9 input images. | Text to image only. |
-| `alibaba/wan-2.7-image`, `-image-pro` | Image sets, `color_palette`, `bbox_list`, custom sizes | Available. | Not available. `wan-2.7-image` defaults to `1K` instead of `2K`. |
+| `alibaba/wan-2.7-image`, `-image-pro` | Image editing | 0 to 9 input images. | 1 to 9 reference images, with one output in 1K or 2K (default 2K). The aspect ratio follows the last reference image. |
+| `alibaba/wan-2.7-image`, `-image-pro` | Image sets, `color_palette`, `bbox_list`, custom sizes | Available. | Unavailable. For text input, `wan-2.7-image` defaults to `1K`. |
 | `alibaba/wan-3.0` | `duration` | Any integer from 2 to 30, or `-1` for model-chosen. | Any integer from 2 to 30; model-chosen length is not available because a fixed length is needed to quote the price. |
 | `alibaba/wan-3.0` | `aspect_ratio` | Includes `21:9`; default `adaptive`. | No `21:9`; default `16:9` (`adaptive` is available). |
 | `alibaba/wan-3.0` | Audio | On by default. | `generate_audio` defaults to `false`. |
@@ -138,10 +138,10 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 
 | Model | Parameter or feature | Official API | Yir |
 | --- | --- | --- | --- |
-| `bfl/flux-2-flex` | Editing with up to 8 input images | Available. | Text to image only. |
+| `bfl/flux-2-flex` | Editing with up to 8 input images | Available. | 1 to 8 reference images, with one square 1MP output. |
 | `bfl/flux-2-flex` | `steps`, `guidance`, `prompt_upsampling` | Available. | Not available. |
-| `bfl/flux-2-flex`, `bfl/flux-2-pro` | Size | Up to 4 MP. | `1MP` with 5 ratios. |
-| `bfl/flux-2-max` | Size, editing | Up to 4 MP, editing with up to 8 input images. | `1MP` at `1:1` only; text to image only. |
+| `bfl/flux-2-flex`, `bfl/flux-2-pro` | Size | Up to 4 MP. | `1MP` with 5 ratios for text input. FLUX.2 Flex editing uses `1:1`. |
+| `bfl/flux-2-max` | Size, editing | Up to 4 MP, editing with up to 8 input images. | One `1MP` output at `1:1`. Editing accepts 1 to 8 reference images. |
 | `bfl/flux-2-pro`, `bfl/flux-2-max` | `disable_pup` | Turns prompt upsampling off. | Not available; upsampling stays on. |
 | `bfl/flux-kontext-pro` | `aspect_ratio` | Any ratio from 21:9 to 9:21; edits keep the input's shape when omitted. | 9 preset ratios; default `1:1`. |
 | `bfl/flux-kontext-pro`, `bfl/flux-pro-1.1`, `bfl/flux-pro-1.1-ultra` | `prompt_upsampling` | Available. | Not available. |
@@ -199,7 +199,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `openai/gpt-image-1.5` | `input_fidelity`, transparent background | Available. | Not available. |
 | `recraft/recraft-v3` | Size | 14 ratios; chosen from the prompt when omitted. | 5 ratios; default `1:1`. |
 | `recraft/recraft-v3` | `style`, custom styles, `controls` (colors, background, artistic level), `text_layout`, vector output, image inputs | Available. | Not available. Text to raster image only. |
-| `meta/muse-image-1.0` | Size, editing and references | Any size (default `auto`); edits and multi-image composition. | `1:1` only; text to image only. |
+| `meta/muse-image-1.0` | Size, editing and references | Any size (default `auto`); edits and multi-image composition. | Text input uses `1:1`. Editing accepts 1 to 10 reference images and outputs one WebP, with native resolution and automatic or explicit aspect ratio. |
 | `meta/muse-image-1.0` | `reasoning_strength`, built-in search tool switches | Available. | Not available. |
 | `reve/reve-2.1` | `aspect_ratio` | `auto` (the default) plus fixed ratios: the v1 API has the same 7 ratios as Yir, the v2 API 17 ratios from `4:1` to `1:4`. | 7 ratios, default `1:1`; no `auto`. |
 | `reve/reve-2.1` | Reference images | Remix with several reference images; the v2 API takes an ordered list of references. | Editing with exactly 1 `reference_image`. |

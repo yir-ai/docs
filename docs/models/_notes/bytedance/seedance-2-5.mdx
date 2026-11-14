@@ -4,7 +4,7 @@
 
 | Value | Use | Constraints |
 | --- | --- | --- |
-| `auto` (default) | The model decides from the references and the prompt. | None up front; a mismatch fails after submission. |
+| `auto` (default) | The model decides from the references and the prompt. | If the upstream model explicitly rejects the edit parameters, Yir returns `YIR_INPUT_REJECTED` and stops fallback. |
 | `reference` | Generate a new video guided by the images, videos and audio. | Fixed `duration` and `aspect_ratio` as usual. |
 | `edit` | Change the reference video, for example replace a subject. | A 4–30 second `reference_video`; `duration` and `aspect_ratio` follow it (omit them or pass `"auto"`). Runs on the APIMart and KIE channels. |
 | `extend` | Continue the reference video. | A `reference_video`; `aspect_ratio` follows it and `duration` is the length of the new part. Runs on the APIMart and KIE channels. |
