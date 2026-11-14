@@ -10,7 +10,7 @@ Submit image Jobs to `POST /v1/images/generations`. The request shape is the sam
 | Field | Required | Description |
 | --- | --- | --- |
 | `model` | Yes | Model ID such as `openai/gpt-image-2`. See [models and parameters](/docs/models). |
-| `input` | Yes | `{ "type": "text", "prompt": ... }` or `{ "type": "image", "prompt": ..., "references": [...] }`. Prompts are 1–20,000 characters. |
+| `input` | Yes | `{ "type": "text", "prompt": ... }` or `{ "type": "image", "prompt": ..., "references": [...] }`; Seedream 5.5 also accepts `layer_decomposition`. Prompts are 1–20,000 characters. |
 | `parameters` | Yes | Model parameters, for example `resolution`, `aspect_ratio`, `quality`, and `n`. |
 | `max_cost` | No | Optional cap on the whole Job's charge in USD; channels whose estimate exceeds it are skipped. See [billing](/docs/concepts/billing#set-a-spending-limit). |
 | `routing` | No | Channel preference, allowlist, variants, and fallback. See [routing](/docs/concepts/routing). |
@@ -51,6 +51,25 @@ Set `input.type` to `image` and list references in order. Every reference uses t
 ```
 
 Replace the example file IDs with your own ready files. The model contract sets the maximum number of references; many models accept more than one.
+
+## Layer decomposition
+
+Seedream 5.5 can split one image into a base plus separate PNG layers. Set `input.type` to `layer_decomposition` and send exactly one `reference_image`; the prompt is optional. `parameters.max_images` caps the total file count including the base.
+
+```json
+{
+  "model": "bytedance/seedream-5.5",
+  "input": {
+    "type": "layer_decomposition",
+    "references": [
+      { "role": "reference_image", "file_id": "file_44444444-4444-4444-8444-444444444444" }
+    ]
+  },
+  "parameters": { "resolution": "auto", "max_images": 30 }
+}
+```
+
+Each file in `result.files` carries `layer` metadata: the base has `z_index` 0, and you composite layers in ascending `z_index` at their `bounding_box`. See [Seedream 5.5](/docs/models/bytedance/seedream-5-5#layer-decomposition) for coordinates and billing.
 
 ## Model-specific parameters
 

@@ -10,7 +10,7 @@ description: 使用 Yir Standard API 从文本或参考图生成图片：选择�
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `model` | 是 | 模型 ID，例如 `openai/gpt-image-2`。见[模型与参数](/zh/docs/models)。 |
-| `input` | 是 | `{ "type": "text", "prompt": ... }` 或 `{ "type": "image", "prompt": ..., "references": [...] }`。提示词 1–20,000 个字符。 |
+| `input` | 是 | `{ "type": "text", "prompt": ... }` 或 `{ "type": "image", "prompt": ..., "references": [...] }`；Seedream 5.5 另支持 `layer_decomposition`。提示词 1–20,000 个字符。 |
 | `parameters` | 是 | 模型参数，例如 `resolution`、`aspect_ratio`、`quality` 和 `n`。 |
 | `max_cost` | 否 | 可选，整个 Job 的美元费用上限；估价超过它的渠道会被跳过，见[计费](/zh/docs/concepts/billing#设置支出上限)。 |
 | `routing` | 否 | 渠道偏好、白名单、版本与切换，见[路由](/zh/docs/concepts/routing)。 |
@@ -51,6 +51,25 @@ description: 使用 Yir Standard API 从文本或参考图生成图片：选择�
 ```
 
 请把示例文件 ID 替换为你自己的 ready 文件。参考图数量上限由模型合同决定，许多模型支持多张。
+
+## 图层拆分
+
+Seedream 5.5 可以把一张图拆成底图和若干独立的 PNG 图层。把 `input.type` 设为 `layer_decomposition`，并且只传一张 `reference_image`；提示词可省略。`parameters.max_images` 限制文件总数（含底图）。
+
+```json
+{
+  "model": "bytedance/seedream-5.5",
+  "input": {
+    "type": "layer_decomposition",
+    "references": [
+      { "role": "reference_image", "file_id": "file_44444444-4444-4444-8444-444444444444" }
+    ]
+  },
+  "parameters": { "resolution": "auto", "max_images": 30 }
+}
+```
+
+`result.files` 中每个文件都带 `layer` 元数据：底图的 `z_index` 为 0，按 `z_index` 升序把各图层合成到其 `bounding_box` 位置。坐标与计费细节见 [Seedream 5.5](/zh/docs/models/bytedance/seedream-5-5#图层拆分)。
 
 ## 模型特有参数
 

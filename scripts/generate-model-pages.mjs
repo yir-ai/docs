@@ -139,6 +139,8 @@ const AUTO_LYRICS_MODELS = new Set(['elevenlabs/music-v2', 'elevenlabs/music-v2.
 
 const code = value => `\`${typeof value === 'string' ? value : JSON.stringify(value)}\``
 const cell = text => String(text).replace(/\|/g, '\\|').replace(/\n/g, ' ')
+// Wraps CLI flags such as Midjourney `--stylize` in code so the site does not typeset `--` as a dash.
+const flags = text => String(text).replace(/(^|[\s(])(--[a-z][a-z-]*)/g, '$1`$2`')
 
 /** `openai/gpt-image-2.5-flare` → { creator: 'openai', slug: 'gpt-image-2-5-flare' }. */
 export function pagePath(id) {
@@ -323,7 +325,7 @@ export function renderPage(model, lang, notesFile) {
       for (const { param, modes } of slot.values()) {
         const label = param.locales[locale.contract] ?? param.locales.en
         const scoped = modes.length < view.modes.length ? ` ${t.onlyIn(modes.map(code).join(t.sep))}` : ''
-        lines.push(`| \`${name}\` | ${cell(`${label.label}${t.colon}${label.description}${scoped}`)} | ${cell(valuesCell(param, t))} | ${param.default === undefined ? t.notSet : code(param.default)} | ${param.required ? t.yes : t.no} |`)
+        lines.push(`| \`${name}\` | ${cell(`${label.label}${t.colon}${flags(label.description)}${scoped}`)} | ${cell(valuesCell(param, t))} | ${param.default === undefined ? t.notSet : code(param.default)} | ${param.required ? t.yes : t.no} |`)
       }
     }
     if (retired) continue
