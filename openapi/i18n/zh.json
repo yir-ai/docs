@@ -30,6 +30,7 @@
   "Temporary redirect to a short-lived signed URL": "临时重定向到短效签名 URL",
   "List models": "列出模型",
   "Expand public parameter contracts. Other or repeated query parameters are rejected.": "展开公开参数合同。其他或重复的查询参数会被拒绝。",
+  "Return full historical public contracts, including retired identities and aliases, for request translation and replay. Use alone, without include. The default discovery list excludes retired models. This view does not authorize new jobs.": "返回完整历史公开合同，包括已退役的模型标识和别名，供请求转换与幂等重放使用。单独使用此参数，不与 include 合用。默认发现目录排除已退役模型；历史视图不授予创建新任务的资格。",
   "Compact or expanded model contracts": "精简或展开的模型合同",
   "Get a model": "获取模型",
   "Returns the public parameter contract; no other query parameters are accepted.": "返回公开参数合同；不接受其他查询参数。",
