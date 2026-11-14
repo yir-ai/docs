@@ -1,0 +1,7 @@
+## 源视频与计费
+
+设置 `input.type: "reference"`，传一段 4–30 秒的 MP4 作为 `reference_video`，再传 1–10 张 `reference_image`。提示词可用 `@video_1` 和 `@image_1` 指明源视频与替换图。
+
+Yir 通过 NanoAPI 执行，支持 720p 或 1080p。需要金额估价时，先用 [Files](/zh/docs/guides/input-files) 上传源视频。估价取实测音频轨和视频轨中较长的一条并向上取整到整秒，最终按渠道的任务实扣结算。
+
+Higgsfield 的 Genjutsu Light API 处理源视频前 15 秒，按输出秒数计费。NanoAPI 接收 4–30 秒的源视频，按源视频秒数计费。[Higgsfield Light](https://open.higgsfield.ai/models/higgsfield/genjutsu-light/object-swap/v1.0/playground) · [NanoAPI Lite](https://nanoapi.ai/docs/genjutsu-lite)
