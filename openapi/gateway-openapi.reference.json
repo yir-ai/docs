@@ -4822,6 +4822,11 @@
             "type": "boolean",
             "description": "When true, this input mode may omit text on channels that explicitly support it. Absent means a prompt is required."
           },
+          "min_prompt_characters": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minimum number of Unicode characters after trimming leading and trailing whitespace. A shorter prompt is rejected with 400. Selected channels may require a higher minimum."
+          },
           "max_prompt_characters": {
             "type": "integer",
             "minimum": 1,

@@ -4822,6 +4822,11 @@
             "type": "boolean",
             "description": "为 true 时，该输入模式可在明确支持的渠道省略文字；未声明则提示词必填。"
           },
+          "min_prompt_characters": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "去除首尾空白后所需的最少 Unicode 字符数。提示词过短时返回 400。所选渠道可能要求更高的最小长度。"
+          },
           "max_prompt_characters": {
             "type": "integer",
             "minimum": 1,

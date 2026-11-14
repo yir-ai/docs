@@ -1,3 +1,9 @@
+### Prompt length by channel
+
+For text-to-image and image editing, pass 3–5000 Unicode characters in `input.prompt`. Yir counts the text after trimming leading and trailing whitespace. KIE requires 5–5000 characters. Prompts of 3–4 characters can only use APIMart. The 3–5000 range for APIMart is Yir’s routing limit. APIMart’s API reference marks the prompt as required.
+
+A quote outside the allowed range returns HTTP 400 with `YIR_INVALID_REQUEST`. Read `error.details[].field` for `input.prompt` and `expected` for the valid range. This also applies when `routing.only` selects KIE and the prompt is 3–4 characters long.
+
 ### Layer decomposition
 
 Send exactly one reference image to the image generation endpoint with `input.type: "layer_decomposition"`. The prompt is optional. Use `parameters.resolution` for the output tier and `parameters.max_images` to cap the total file count, including the base. The default is 30.

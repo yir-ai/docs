@@ -1,4 +1,5 @@
 {
+  "Minimum number of Unicode characters after trimming leading and trailing whitespace. A shorter prompt is rejected with 400. Selected channels may require a higher minimum.": "去除首尾空白后所需的最少 Unicode 字符数。提示词过短时返回 400。所选渠道可能要求更高的最小长度。",
   "Layer decomposition only. Maximum number of files including the base image. Default 30.": "仅用于图层拆分。限制返回文件总数，包含底图，默认 30。",
   "Layer decomposition only. Composite in ascending z_index. Zero is the base. A layer may omit its bounding box when the provider does not return coordinates.": "仅用于图层拆分。按 z_index 从小到大叠放图层。0 表示底图。上游没有提供坐标时省略边界框。",
   "[left, top, right, bottom] in base-image pixels.": "底图像素坐标 [left, top, right, bottom]。",
