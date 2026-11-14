@@ -2,4 +2,6 @@
 
 Use `input.type: "reference"` with one 4–30 second MP4 as `reference_video` and 1–10 `reference_image` inputs. In your prompt, use `@video_1` and `@image_1` to identify the source and replacement.
 
+To have the person in the reference photos perform the source video's movements, use [Genjutsu 1.0 motion transfer](/docs/models/nanoapi/genjutsu-1-0). See [the Genjutsu request examples](/docs/guides/video-generation#genjutsu-motion-transfer-and-object-swap).
+
 Yir uses NanoAPI for this model. The output length follows the source clip. The request's `duration` does not trim the clip, and the model has no audio switch. For a numeric quote, upload the source through [Files](/docs/guides/input-files). Estimates round up the longer measured audio or video track to whole seconds. Final billing uses the channel's actual task charge.

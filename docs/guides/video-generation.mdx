@@ -19,6 +19,59 @@ Reference each image, video, or audio input by `role` plus either a `file_id` fr
 
 Which modes, roles, and counts a model accepts is defined in its contract. For example, Seedance 2.0 accepts `first_frame` plus an optional `last_frame` in `image` mode, and in `reference` mode up to 9 images, 3 videos, and 3 audio clips (at least one image or video). Kling 4.0 also accepts up to 8 `keyframe` references in `image` mode; keyframes play in the order they appear in `references`.
 
+## Genjutsu motion transfer and object swap
+
+Choose the operation with `model` and use `input.type: "reference"` on `POST /v1/videos/generations`. The model ID selects the mode automatically.
+
+| Operation | Yir model ID | What the reference images show | Source MP4 | Output resolution |
+| --- | --- | --- | --- | --- |
+| Motion transfer | [`nanoapi/genjutsu-1.0`](/docs/models/nanoapi/genjutsu-1-0) | The person who should perform the movements from the source video | 1–30 seconds | `480p`, `720p`, `1080p` |
+| Object swap | [`higgsfield/genjutsu-1.0-object-swap`](/docs/models/higgsfield/genjutsu-1-0-object-swap) | The replacement object to insert into the source video | 4–30 seconds | `480p`, `720p`, `1080p` |
+| Object swap (Lite) | [`higgsfield/genjutsu-lite-1.0`](/docs/models/higgsfield/genjutsu-lite-1-0) | The replacement object to insert into the source video | 4–30 seconds | `720p`, `1080p` |
+
+All three accept exactly one `reference_video` and 1–10 `reference_image` inputs. The default is `720p`. The Standard API accepts an optional prompt of up to 5,000 characters. If your SDK requires a prompt, use one like the examples below. For a numeric quote, upload the source MP4 with the [Files API](/docs/guides/input-files) and use its ready `file_id`.
+
+<Tabs>
+<Tab title="Motion transfer">
+
+```json
+{
+  "model": "nanoapi/genjutsu-1.0",
+  "input": {
+    "type": "reference",
+    "prompt": "Have the person in the reference photo perform the dance in the source video.",
+    "references": [
+      { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
+      { "role": "reference_image", "file_id": "file_66666666-6666-4666-8666-666666666666" }
+    ]
+  },
+  "parameters": { "resolution": "720p" }
+}
+```
+
+</Tab>
+<Tab title="Object swap">
+
+```json
+{
+  "model": "higgsfield/genjutsu-1.0-object-swap",
+  "input": {
+    "type": "reference",
+    "prompt": "Replace the red mug in @video_1 with the blue mug from @image_1.",
+    "references": [
+      { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
+      { "role": "reference_image", "file_id": "file_66666666-6666-4666-8666-666666666666" }
+    ]
+  },
+  "parameters": { "resolution": "720p" }
+}
+```
+
+</Tab>
+</Tabs>
+
+In an object-swap prompt, `@video_1` refers to the source video and `@image_1`, `@image_2`, and so on refer to the replacement images in their order in `references`. Use `higgsfield/genjutsu-lite-1.0` in the same request for Lite. Replace the example file IDs with your own ready files.
+
 ## Common parameters
 
 | Parameter | Description |

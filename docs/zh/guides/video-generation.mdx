@@ -20,6 +20,59 @@ seo:
 
 模型支持哪些输入方式、角色和数量由其合同决定。例如 Seedance 2.0 在 `image` 模式下接受一个 `first_frame` 和可选的 `last_frame`；在 `reference` 模式下最多接受 9 张图片、3 段视频和 3 段音频（至少一张图片或一段视频）。Kling 4.0 在 `image` 模式下还接受最多 8 个 `keyframe`，按在 `references` 中出现的先后顺序排列。
 
+## 幻术动作迁移与对象替换
+
+调用 `POST /v1/videos/generations`，将 `input.type` 设为 `"reference"`。Yir 根据 `model` 选择动作迁移、标准对象替换或 Lite 对象替换。
+
+| 模式 | Yir 模型 ID | 参考图的用途 | 源 MP4 时长 | 输出分辨率 |
+| --- | --- | --- | --- | --- |
+| 动作迁移 | [`nanoapi/genjutsu-1.0`](/zh/docs/models/nanoapi/genjutsu-1-0) | 提供目标人物的照片，让其复现源视频里的动作 | 1–30 秒 | `480p`、`720p`、`1080p` |
+| 对象替换 | [`higgsfield/genjutsu-1.0-object-swap`](/zh/docs/models/higgsfield/genjutsu-1-0-object-swap) | 提供替换物的图片，用它替换源视频中指定的对象 | 4–30 秒 | `480p`、`720p`、`1080p` |
+| 对象替换（Lite） | [`higgsfield/genjutsu-lite-1.0`](/zh/docs/models/higgsfield/genjutsu-lite-1-0) | 提供替换物的图片，用它替换源视频中指定的对象 | 4–30 秒 | `720p`、`1080p` |
+
+三种模式都需要恰好一段 `reference_video` 和 1–10 张 `reference_image`，默认分辨率为 `720p`。Standard API 的提示词可省略，最多 5000 个字符。若所用 SDK 要求提示词，可参考下面的写法。需要有金额的报价时，先用 [Files API](/zh/docs/guides/input-files) 上传源 MP4，再传已就绪的 `file_id`。
+
+<Tabs>
+<Tab title="动作迁移">
+
+```json
+{
+  "model": "nanoapi/genjutsu-1.0",
+  "input": {
+    "type": "reference",
+    "prompt": "让参考照片里的人复现源视频中的舞蹈动作。",
+    "references": [
+      { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
+      { "role": "reference_image", "file_id": "file_66666666-6666-4666-8666-666666666666" }
+    ]
+  },
+  "parameters": { "resolution": "720p" }
+}
+```
+
+</Tab>
+<Tab title="对象替换">
+
+```json
+{
+  "model": "higgsfield/genjutsu-1.0-object-swap",
+  "input": {
+    "type": "reference",
+    "prompt": "把 @video_1 里的红色马克杯换成 @image_1 里的蓝色马克杯。",
+    "references": [
+      { "role": "reference_video", "file_id": "file_22222222-2222-4222-8222-222222222222" },
+      { "role": "reference_image", "file_id": "file_66666666-6666-4666-8666-666666666666" }
+    ]
+  },
+  "parameters": { "resolution": "720p" }
+}
+```
+
+</Tab>
+</Tabs>
+
+在对象替换的提示词里，`@video_1` 指源视频，`@image_1`、`@image_2` 等按图片在 `references` 中的顺序对应替换图。用 Lite 时把示例中的 `model` 换为 `higgsfield/genjutsu-lite-1.0`。请把示例文件 ID 换成你自己的已就绪文件。
+
 ## 常用参数
 
 | 参数 | 说明 |

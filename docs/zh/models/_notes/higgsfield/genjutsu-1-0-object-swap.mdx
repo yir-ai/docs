@@ -2,4 +2,6 @@
 
 设置 `input.type: "reference"`，传一段 4–30 秒的 MP4 作为 `reference_video`，再传 1–10 张 `reference_image`。提示词可用 `@video_1` 和 `@image_1` 指明源视频与替换图。
 
+要让参考图中的人物复现源视频的动作，请用 [Genjutsu 1.0 动作迁移](/zh/docs/models/nanoapi/genjutsu-1-0)。请求写法见[幻术动作迁移与对象替换](/zh/docs/guides/video-generation#幻术动作迁移与对象替换)。
+
 Yir 通过 NanoAPI 执行。成片时长跟随源视频，`duration` 不会裁剪素材，模型没有音频开关。需要金额估价时，先用 [Files](/zh/docs/guides/input-files) 上传源视频。估价取实测音频轨和视频轨中较长的一条并向上取整到整秒，最终按渠道的任务实扣结算。
