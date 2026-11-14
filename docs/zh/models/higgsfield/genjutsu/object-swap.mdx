@@ -10,9 +10,9 @@ seo:
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/higgsfield/genjutsu-1-0-object-swap.mdx */}
 
-| 模型 ID | 别名 | 接口 |
-| --- | --- | --- |
-| `higgsfield/genjutsu-1.0-object-swap` | `genjutsu-1.0-object-swap` | [视频生成](/zh/docs/guides/video-generation) |
+| 调用时的 `model` | 接口 |
+| --- | --- |
+| `higgsfield/genjutsu-1.0-object-swap` | [视频生成](/zh/docs/guides/video-generation) |
 
 ## 输入模式
 
@@ -68,3 +68,7 @@ seo:
 完整合同以 `GET /v1/models/higgsfield/genjutsu-1.0-object-swap?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
 
 <include>/zh/models/_notes/higgsfield/genjutsu-1-0-object-swap.mdx</include>
+
+## 兼容调用名
+
+提交和报价也接受 `genjutsu-1.0-object-swap`。

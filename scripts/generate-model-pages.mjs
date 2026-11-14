@@ -37,9 +37,9 @@ const GENJUTSU_VERSIONS = {
 }
 
 const GENJUTSU_PAGES = {
-  'nanoapi/genjutsu-1.0': { version: 'genjutsu', slug: 'motion-transfer' },
+  'nanoapi/genjutsu-1.0': { version: 'genjutsu', slug: 'motion-transfer', requestModel: 'higgsfield/genjutsu-1.0-motion-transfer' },
   'higgsfield/genjutsu-1.0-object-swap': { version: 'genjutsu', slug: 'object-swap' },
-  'higgsfield/genjutsu-lite-1.0': { version: 'genjutsu-light', slug: 'object-swap' },
+  'higgsfield/genjutsu-lite-1.0': { version: 'genjutsu-light', slug: 'object-swap', requestModel: 'higgsfield/genjutsu-light-1.0-object-swap' },
 }
 
 const GENJUTSU_OPERATIONS = {
@@ -58,6 +58,15 @@ function modelPageTitle(model, lang) {
   const genjutsu = GENJUTSU_PAGES[model.id]
   if (genjutsu) return `${GENJUTSU_VERSIONS[genjutsu.version]} ${GENJUTSU_OPERATIONS[genjutsu.slug][lang]}`
   return (model.locales[LOCALES[lang].contract] ?? model.locales.en).label
+}
+
+function requestModelId(model) {
+  const requestModel = GENJUTSU_PAGES[model.id]?.requestModel
+  if (!requestModel) return model.id
+  if (!model.aliases?.includes(requestModel)) {
+    throw new Error(`${requestModel} must be a published alias of ${model.id}`)
+  }
+  return requestModel
 }
 
 const TEXT = {
@@ -236,7 +245,7 @@ function exampleRequest(model, view, mode) {
     }
     input.references = picked.map(role => ({ role, file_id: 'file_...' }))
   }
-  return { model: model.id, input, parameters }
+  return { model: requestModelId(model), input, parameters }
 }
 
 /** Ends a contract description with sentence punctuation so it reads after the lead-in. */
@@ -249,6 +258,7 @@ export function renderPage(model, lang, notesFile) {
   const text = model.locales[locale.contract] ?? model.locales.en
   const title = modelPageTitle(model, lang)
   const genjutsu = GENJUTSU_PAGES[model.id]
+  const requestModel = requestModelId(model)
   const views = operationViews(model)
   const aliases = model.aliases ?? []
   const lines = [
@@ -258,16 +268,28 @@ export function renderPage(model, lang, notesFile) {
     ...(genjutsu ? ['sidebar:', `  label: ${JSON.stringify(GENJUTSU_OPERATIONS[genjutsu.slug][lang])}`] : []),
     'seo:',
     `  title: ${JSON.stringify(t.seoTitle(title))}`,
-    `  description: ${JSON.stringify(t.seoDescription(title, model.id, sentence(text.description, lang)))}`,
+    `  description: ${JSON.stringify(t.seoDescription(title, requestModel, sentence(text.description, lang)))}`,
     '---',
     '',
     `{/* ${t.generated} ${notesFile ? notesFile.replace(/^\//, 'docs/') : `docs${locale.notesRoot}/`} */}`,
     '',
-    `| ${t.modelId} | ${aliases.length > 1 ? t.aliases : t.alias} | ${t.endpoint} |`,
-    '| --- | --- | --- |',
-    `| \`${model.id}\` | ${aliases.map(code).join(t.sep) || t.none} | ${views.map(view => t.operations[view.operation]).join(t.sep)} |`,
-    '',
   ]
+  const endpoints = views.map(view => t.operations[view.operation]).join(t.sep)
+  if (genjutsu) {
+    lines.push(
+      `| ${lang === 'zh' ? '调用时的 `model`' : 'Request `model`'} | ${t.endpoint} |`,
+      '| --- | --- |',
+      `| ${code(requestModel)} | ${endpoints} |`,
+      '',
+    )
+  } else {
+    lines.push(
+      `| ${t.modelId} | ${aliases.length > 1 ? t.aliases : t.alias} | ${t.endpoint} |`,
+      '| --- | --- | --- |',
+      `| ${code(model.id)} | ${aliases.map(code).join(t.sep) || t.none} | ${endpoints} |`,
+      '',
+    )
+  }
   if (model.lifecycle) {
     const at = model.lifecycle.retired_at
     lines.push(lang === 'zh'
@@ -319,6 +341,11 @@ export function renderPage(model, lang, notesFile) {
   }
   lines.push(t.contract(model.id), '')
   if (notesFile) lines.push(`<include>${notesFile}</include>`, '')
+  if (genjutsu) {
+    const compatible = [model.id, ...aliases].filter(id => id !== requestModel).map(code).join(t.sep)
+    lines.push(lang === 'zh' ? '## 兼容调用名' : '## Compatible request names', '',
+      lang === 'zh' ? `提交和报价也接受 ${compatible}。` : `Submit and quote requests also accept ${compatible}.`, '')
+  }
   return lines.join('\n')
 }
 
@@ -343,7 +370,7 @@ function renderCatalog(models, lang) {
     if (model.lifecycle?.retired_at && Date.parse(model.lifecycle.retired_at) <= Date.now()) continue
     const label = modelPageTitle(model, lang)
     const types = [...new Set(model.operations.map(op => t.types[op.operation]))].join(t.sep)
-    lines.push(`| [${label}](${locale.docs}/models/${modelPageRoute(model.id)}) | \`${model.id}\` | ${types} |`)
+    lines.push(`| [${label}](${locale.docs}/models/${modelPageRoute(model.id)}) | ${code(requestModelId(model))} | ${types} |`)
   }
   return lines.join('\n') + '\n'
 }

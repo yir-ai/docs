@@ -312,9 +312,9 @@ test(
 
     for (const locale of ['docs', 'zh/docs']) {
       for (const [oldPath, newPath, modelId] of [
-        ['nanoapi/genjutsu-1-0', 'higgsfield/genjutsu/motion-transfer', 'nanoapi/genjutsu-1.0'],
+        ['nanoapi/genjutsu-1-0', 'higgsfield/genjutsu/motion-transfer', 'higgsfield/genjutsu-1.0-motion-transfer'],
         ['higgsfield/genjutsu-1-0-object-swap', 'higgsfield/genjutsu/object-swap', 'higgsfield/genjutsu-1.0-object-swap'],
-        ['higgsfield/genjutsu-lite-1-0', 'higgsfield/genjutsu-light/object-swap', 'higgsfield/genjutsu-lite-1.0'],
+        ['higgsfield/genjutsu-lite-1-0', 'higgsfield/genjutsu-light/object-swap', 'higgsfield/genjutsu-light-1.0-object-swap'],
       ]) {
         const oldPage = await readFile(path.join(blumeRoot, 'dist', locale, 'models', oldPath, 'index.html'), 'utf8')
         const newPage = await readFile(path.join(blumeRoot, 'dist', locale, 'models', newPath, 'index.html'), 'utf8')
