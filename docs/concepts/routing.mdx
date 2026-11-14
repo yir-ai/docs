@@ -88,7 +88,7 @@ For example, for a GPT Image 2.5 model that supports APIMart's standard variant:
 }
 ```
 
-This excludes APIMart's `ext` variant. It **does not force APIMart to run first** or exclude other channels, which still participate in speed ranking and fallback. To use only APIMart's standard variant, also add `"only": ["apimart"]`; doing so removes cross-channel fallback.
+This limits APIMart to its standard variant for the selected model. Other channels still participate in speed ranking and fallback. Add `"only": ["apimart"]` to use APIMart exclusively.
 
 ### Prefer speed within a chosen set of channels
 
@@ -122,6 +122,8 @@ Some channels offer more than one version of a model, for example a standard and
 - **Another variant name:** only that variant. If it is unknown or unavailable, Yir does not substitute another variant of the same channel; other allowed channels still follow the fallback rules.
 
 When `only` is present, every channel in `variants` must also be in `only`.
+
+Variant IDs are specific to the model and channel. Look up the selected model before reusing a routing setting. For example, Yir exposes APIMart's fixed-price route for `google/nano-banana-pro` as `standard`. The upstream alias `nano-banana-pro-ext` maps to that route. Use `"variants": { "apimart": "standard" }` to select it. The APIMart `ext` variant in the GPT Image 2.5 example below is a different model's variant.
 
 ### Variants can serve different requests
 
