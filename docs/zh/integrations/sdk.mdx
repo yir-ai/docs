@@ -124,22 +124,25 @@ Go 代码片段是一个返回 `error` 的函数体，需要导入 `context`、`
 
 | 能力 | TypeScript | Go |
 | --- | --- | --- |
-| 报价 | `quoteImage`、`quoteVideo`、`quoteBatch` | `QuoteImage`、`QuoteVideo`、`QuoteBatch` |
-| 提交 | `submitImage`、`submitVideo` | `SubmitImage`、`SubmitVideo` |
-| Job | `getJob`、`getJobStatus`、`cancelJob`、`waitForJob` | `GetJob`、`GetJobStatus`、`CancelJob`、`WaitJob` |
+| 报价 | `quoteImage`、`quoteVideo`、`quoteAudio`、`quote3D`、`quoteBatch` | `QuoteImage`、`QuoteVideo`、`QuoteAudio`、`Quote3D`、`QuoteBatch` |
+| 提交 | `submitImage`、`submitVideo`、`submitAudio`、`submit3D`、`isSubmissionNotAccepted` | `SubmitImage`、`SubmitVideo`、`SubmitAudio`、`Submit3D`、`SubmissionNotAccepted` |
+| Job | `getJob`、`getJobStatus`、`cancelJob`、`waitForJob`、`pollJob` | `GetJob`、`GetJobStatus`、`CancelJob`、`WaitJob`、`PollJob` |
 | 文件 | `createFiles`、`uploadFile`、`createAndUploadFile`、`getFile`、`completeFile`、`waitForFileReady`、`getFileContentURL` | `CreateFiles`、`UploadFile`、`CreateAndUploadFile`、`GetFile`、`CompleteFile`、`WaitForFileReady`、`GetFileContentURL` |
 | Webhook | `verifyWebhookSignature`、`constructWebhookEvent` | `VerifyWebhookSignature`、`ConstructWebhookEvent` |
 | 模型 | `getModelContracts`、`getModelContract`、`getModel` | `GetModelContracts`、`GetModelContract`、`GetModel` |
+| 账户与金额 | `getBalance`、`createAccountClient`、`usdMicros` | `GetBalance`、`NewAccountClient`、`USDMicros` |
 
-TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady` 是从 `@yir-ai/sdk/server` 导出的函数，不是 client 方法，调用时把 client 作为第一个参数传入，例如 `createAndUploadFile(client, metadata, data, key)`。Go 中它们是 client 方法。见[输入文件](/zh/docs/guides/input-files#使用-sdk)。
+TypeScript 中的 `uploadFile`、`createAndUploadFile`、`waitForFileReady`、`pollJob` 是从 `@yir-ai/sdk/server` 导出的函数，不是 client 方法，调用时把 client 作为第一个参数传入，例如 `createAndUploadFile(client, metadata, data, key)`。Go 中它们是 client 方法。见[输入文件](/zh/docs/guides/input-files#使用-sdk)。
 
 ## 需要了解的行为
 
-- **幂等键。** API 要求每个生成请求都携带幂等键。省略键参数时，SDK 会为这次调用生成随机键，它只能保护这一次 HTTP 调用；再次无键调用可能创建另一笔收费 Job。请传入自己持久化的键，并在进程崩溃或结果未知后与完整请求一起复用。SDK 不会自动重试提交。
-- **等待。** `waitForJob` / `WaitJob` 长轮询状态接口（每次最多挂起 20 秒；Gateway 不挂起时回退为 5 秒、10 秒、20 秒退避），结束时读取一次完整 Job。超时或中止只停止本地等待，Job 继续运行；用保存的 ID 继续即可。
+- **幂等键。** API 要求每个生成请求都携带幂等键。省略键参数时，SDK 会为这次调用生成随机键，它只能保护这一次 HTTP 调用；再次无键调用可能创建另一笔收费 Job。请传入自己持久化的键，并在进程崩溃或结果未知后与完整请求一起复用。单次调用内，网络失败与 502/503/504 会用同一请求体和同一键最多重试三次；已失败的 Job 不会被重新提交。
+- **结果未知。** 提交在某次尝试结果未知后仍失败时，抛出 `YirSubmissionUncertainError`（TypeScript）或包含 `*SubmissionUncertainError`（Go）：可能已经产生收费 Job，请用原幂等键重新提交完全相同的请求。只有 `isSubmissionNotAccepted` / `SubmissionNotAccepted` 返回 true 时，才能释放你自己的预留额度或给用户退款。
+- **等待。** `waitForJob` / `WaitJob` 长轮询状态接口（每次最多挂起 20 秒；Gateway 不挂起时回退为 5 秒、10 秒、20 秒退避），结束时读取一次完整 Job。超时或中止只停止本地等待，Job 继续运行；用保存的 ID 继续即可。自行调度轮询的应用（如持久化工作流）可用 `pollJob` / `PollJob` 做单次检查。对已结束的 Job 调用 `cancelJob` / `CancelJob` 会返回该 Job，请读取其 `status`。
 - **错误。** API 错误提供 `status`、`code`、`retryable`、`action`；字段级的 `YIR_INVALID_REQUEST` 还带 `details`，给出无效字段、稳定原因码和允许值。失败或取消的 Job 会抛出携带完整 Job 的 `YirJobError`（TypeScript）或 `JobError`（Go）。请按 `code` 分支，不要依赖错误消息。见[错误码](/zh/docs/production/error-codes)。
 - **校验。** SDK 不内置模型目录。用 `getModelContracts` / `GetModelContracts` 获取（或据此生成 `models.ts`）并传入后做本地校验，否则由 Gateway 校验。新增模型无需发布 SDK。见[模型与参数](/zh/docs/models)。
 - **Job ID** 是不透明字符串，按返回值保存，不要解析。
+- **演示模式。** `demo: true`（TypeScript，或设置 `YIR_DEMO=1`）/ `ClientOptions.Demo`（Go）会免费校验并报价，但从不真正提交；返回的 `demo_` Job 在本地回放固定样例结果。仍需 API Key 和网络，不模拟准入、幂等重放、主动取消、Webhook 或结算。场景说明见 SDK README。
 
 ## 发布给他人部署的应用
 
@@ -183,7 +186,15 @@ client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{Referra
 
 **TypeScript 0.10.1 / Go 0.11.1。** 兼容。`Quote.parameters`（TypeScript 类型 `QuoteParameters`）只回显模型合同声明的参数，图片报价和没有该参数的视频模型不再出现 `duration`、`generate_audio`；`Job.parameters` 自创建起携带同样的回显。模型合同参数只有没有默认值时才 `required`，本地校验不变。模型合同接口返回 `ETag` 与 `Cache-Control: private, max-age=300`，并对 `If-None-Match` 回 304。
 
-**TypeScript 0.11.0（不兼容）。** 报价与提交不再按传入的目录拒绝请求，非法参数由 Gateway 以带 `details` 的 `YIR_INVALID_REQUEST` 返回；需要本地严格校验时调用 `validateGeneration(operation, request, catalog)`。Vercel 适配器透传 `seed`、视频 `fps` 与像素 `size`，不再丢弃。另新增：保持幂等键的自动重试、`getBalance`、Account API 客户端、`provider_error`、`YIR_INPUT_REJECTED`、`billing.status`，以及按模型合同描述参数控件与参考图上限的函数（见 [SaaS 模板](/zh/docs/integrations/saas-templates)）。
+**TypeScript 0.11.0 / Go 0.12.0（不兼容）。** 报价与提交不再按传入的目录拒绝请求，非法参数由 Gateway 以带 `details` 的 `YIR_INVALID_REQUEST` 返回；需要本地严格校验时调用 `validateGeneration(operation, request, catalog)`。Vercel 适配器透传 `seed`、视频 `fps` 与像素 `size`，不再丢弃。另新增：保持幂等键的自动重试、`getBalance`、Account API 客户端、`provider_error`、`YIR_INPUT_REJECTED`、`billing.status`，以及按模型合同描述参数控件与参考图上限的函数（见 [SaaS 模板](/zh/docs/integrations/saas-templates)）。Go 中提交失败返回携带 `IdempotencyKey` 的 `*SubmissionError`，需用 `errors.As` 取得 `*APIError`。Go 0.12.0 同时包含 TypeScript 0.12.0 的音乐与推广码新增项，以及 `Routing.Fidelity`、`Routing.Accelerate`。
+
+**TypeScript 0.12.0。** 新增 `quoteMusic` / `submitMusic` 与 `quoteBatch` 的 `generate_music` 项、`JobResultFile.duration_ms`、`referralCode` 客户端选项，Account API 类型新增路由配置 `excluded_model_providers`。自行实现 `YirClient` 的代码需要补上新方法。音乐报价不回显 `resolution`、`aspect_ratio`，因此 `QuoteParameters` 中这两项在类型上变为可选。
+
+**TypeScript 0.13.0 / Go 0.13.0。** `quoteAudio` / `submitAudio` / `QuoteAudio` / `SubmitAudio` 覆盖音乐、音效和文字转语音（`quoteMusic` / `submitMusic` 保留为别名），并支持 `voice` 参数。新增演示模式、`keyframe` 参考角色、混合主体、主体声音与视频主体的主体参考，以及参数提示处置 `exceeded`。TypeScript 中自行实现 `YirClient` 的代码需要补上新方法；`Quote.operation` 取值放宽，穷举的 `switch` 需要 default 分支。
+
+**TypeScript 0.14.0 / Go 0.14.0（行为变化）。** 带键提交在某次尝试结果未知后失败时，抛出 `YirSubmissionUncertainError` / `*SubmissionUncertainError`，不再直接返回最后一次的错误；Go 中它不解包，`errors.As(err, &apiErr)` 取不到最后一次尝试的错误。请用其中的幂等键重新提交。对已成功或已失败的 Job 调用 `cancelJob` / `CancelJob` 会返回该 Job，不再返回 `409 YIR_JOB_NOT_CANCELLABLE`。新增 `isSubmissionNotAccepted` / `SubmissionNotAccepted`、`pollJob` / `PollJob` 与 `usdMicros` / `USDMicros`（Go 另有 `JobBilling.TotalChargedMicros`）。
+
+**TypeScript 0.15.0 / Go 0.15.0（演示模式不兼容）。** 取消未结束的演示 Job 现在返回 `demo_cancel_unsupported`，不再假装成功；如需测试已取消的 Job，请使用 `cancel` 场景。真实 Job 的取消不变。新的演示 Job ID 可能超过 64 个字符，请勿截断。新增 Seedream 5.5 图层分解所需的图片 `layer_decomposition` 输入与结果 `layer` 元数据；URL 参考可声明 `duration_seconds`，报价据此估算（`input_duration_source: "declared"`），实际 Job 仍按实测时长计费。
 
 完整发布说明见 [TypeScript](https://github.com/yir-ai/sdk/blob/main/typescript/CHANGELOG.md) 与 [Go](https://github.com/yir-ai/sdk/blob/main/go/CHANGELOG.md) 更新日志。
 
