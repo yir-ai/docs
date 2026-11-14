@@ -361,7 +361,7 @@ function renderMeta(title, pages, icon) {
 function renderCatalog(models, lang) {
   const t = TEXT[lang]
   const locale = LOCALES[lang]
-  const lines = [`{/* ${t.generated.split(';')[0]} */}`, '', `| ${t.model} | ID | ${t.type} |`, '| --- | --- | --- |']
+  const lines = [`{/* ${t.generated.split(/[;；]/)[0]} */}`, '', `| ${t.model} | ID | ${t.type} |`, '| --- | --- | --- |']
   for (const model of models) {
     if (model.lifecycle?.retired_at && Date.parse(model.lifecycle.retired_at) <= Date.now()) continue
     const label = modelPageTitle(model, lang)

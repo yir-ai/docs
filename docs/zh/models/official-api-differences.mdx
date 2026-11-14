@@ -15,7 +15,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | --- | --- | --- |
 | 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)、[音乐生成](/zh/docs/guides/music-generation)和 [3D 生成](/zh/docs/guides/3d-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
-| 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而略有不同。 |
+| 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而不同。 |
 | 输出数量 | 很多 API 允许 `n` 大于 1。 | Suno v6 系列和 `suno/suno-speech` 每次返回两个音频文件（`n: 2`）。`midjourney/midjourney-v8.2` 每次返回四张图（`n: 4`）。Seedream 5.5 图层拆分使用 `max_images`（2–100，默认 30）。其他模型使用 `n: 1`。分别生成时，每个 Job 使用独立幂等键。 |
 | 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`，3D 多视角输入为 `front_view`、`left_view`、`back_view`、`right_view`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
@@ -169,7 +169,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `minimax/minimax-h3-max` | 参考视频与音频 | 支持。 | 最多 3 个 `reference_video`、3 个 `reference_audio`，参考素材合计 15 个；音频须搭配图或视频。参考视频只走 APIMart 渠道，按实测秒数计价。 |
 | `minimax/music-2.6` | `audio_setting`（`sample_rate`、`bitrate`、`format`） | 可配置。 | 不可用。输出固定为 MP3，结果文件返回实测 `duration_ms`。 |
 | `minimax/music-2.6` | 自带 `lyrics` 同时开启 `lyrics_optimizer` | 可同时传。 | 不允许。`lyrics_optimizer: true` 时须省略 `lyrics`；否则人声音乐必须提供 `lyrics`。 |
-| `minimax/music-3` | `lyrics`、`is_instrumental`、`lyrics_optimizer` | 纯音乐或自动写词时歌词可省略。 | `lyrics` 必填，不支持纯音乐和自动写词。上游时长上限固定为 300 秒，随歌词结束。输出为 WAV。 |
+| `minimax/music-3` | `lyrics`、`is_instrumental`、`lyrics_optimizer` | 纯音乐或自动写词时歌词可省略。 | `lyrics` 必填，不支持纯音乐和自动写词。上游时长上限为 300 秒，歌曲随歌词结束。输出为 WAV。 |
 | `elevenlabs/music-v2`、`elevenlabs/music-v2.5` | `music_length_ms` | 3 秒到 10 分钟；省略时由模型决定。 | `duration` 取 `30`、`60`、`120`、`180`、`240` 或 `300` 秒，默认 `60`。 |
 | `elevenlabs/music-v2`、`elevenlabs/music-v2.5` | `composition_plan`（自定义歌词与段落） | 可用。 | 不可用，也不接收 `lyrics`。人声用 `lyrics_optimizer: true` 由提示词写词，或用 `instrumental: true`。 |
 | `elevenlabs/sound-effects-v2` | `duration_seconds` | 0.5–30 秒；省略时由模型决定。 | `1` 到 `22` 的整数秒，默认 `5`。 |

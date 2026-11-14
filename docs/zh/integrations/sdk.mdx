@@ -168,7 +168,7 @@ client, err := yir.NewClient(os.Getenv("YIR_API_KEY"), yir.ClientOptions{Referra
 
 **TypeScript 0.3.2 / Go 0.4.2。** TypeScript 按 Unicode 码点计算 20,000 字符的提示词上限，含 emoji 的提示词不再被提前拒绝。Go 的 `Quote.Validate` 会拒绝 `supply` 与价格不一致的报价，与 TypeScript 一致。调用签名不变。
 
-**TypeScript 0.4.0 / Go 0.5.0（URL 参考不再可用）。** 每个媒体参考都必须使用 `file_id`，当时外部参考 URL 会被拒绝（Gateway 现已重新接受公开 HTTPS `url` 参考，见[输入文件](/zh/docs/guides/input-files#公开-url)）。请先通过 [Files API](/zh/docs/guides/input-files) 上传原始字节。上传辅助函数会等待文件变为 `ready`（默认超时五分钟），可用 `waitForFileReady` / `WaitForFileReady` 按已保存的文件 ID 继续等待。Vercel AI SDK 适配器只接受字节，URL 输入需先在应用中下载。报价校验也接受服务端授权的无上限供应。
+**TypeScript 0.4.0 / Go 0.5.0（URL 参考不兼容）。** 每个媒体参考都必须使用 `file_id`，当时外部参考 URL 会被拒绝（Gateway 现已重新接受公开 HTTPS `url` 参考，见[输入文件](/zh/docs/guides/input-files#公开-url)）。请先通过 [Files API](/zh/docs/guides/input-files) 上传原始字节。上传辅助函数会等待文件变为 `ready`（默认超时五分钟），可用 `waitForFileReady` / `WaitForFileReady` 按已保存的文件 ID 继续等待。Vercel AI SDK 适配器只接受字节，URL 输入需先在应用中下载。报价校验也接受服务端授权的无上限供应。
 
 **TypeScript 0.4.1 / Go 0.5.1。** 与上一版兼容。Go 的 `Job` 新增 `FinalProvider`、`URLs`、`Usage`，`JobBilling` 新增费用明细，与 TypeScript 一致。新增错误码常量（`YIR_ERROR_CODES` / `ErrCode*`），User-Agent 会报告 SDK 版本。TypeScript 的 `cancelJob` 支持中断信号，返回的不是所请求的 Job 时会拒绝。内置模型合同与当前服务端一致：新增 `alibaba/qwen-image-2.1`，Gemini Omni 接受 `duration`，`wan-2.6` 最多 5 个参考，移除 `kie/gemini-omni-video` 别名。只影响基于内置目录的校验。
 

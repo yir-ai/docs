@@ -98,7 +98,7 @@ Yir 把渠道的实际账单照实转给你。渠道实际计了费的每次尝�
 
 | 字段 | 含义 |
 | --- | --- |
-| `billing.status` | `pending`：费用尚未结清；`settled`：费用已结清。 |
+| `billing.status` | `pending`：后续可能还有费用入账；`settled`：费用已结清。 |
 | `billing.total_charged_by_yir` | 当前已收金额；`billing.status` 为 `settled` 时才是最终金额。 |
 | `billing.compute_charges` | 算力费用明细。新 Job 有一条由 `yir` 计费的 `managed` 条目，汇总所有已收费的尝试，`status` 为 `settled`；没有任何收费时为 `waived`，金额为 `0.000`。数组可以为空。 |
 | `billing.currency` | 固定为 `USD`。 |

@@ -6,11 +6,11 @@ seo:
   description: "Yir Console 使用指南：创建和管理 API Key 与 Routing Profile，在调试台试用图片和视频模型并查看报价，在日志中查看 Job，及时处理余额与渠道告警。"
 ---
 
-[Yir Console](https://yir.ai/zh/console) 用于管理 Key 与路由、查看 Job。本页按页面说明各项功能；Webhook 端点见 [Webhook](/zh/docs/production/webhooks#endpoints-and-delivery-history)。
+[Yir Console](https://yir.ai/zh/console) 用于管理 Key 与路由、查看 Job。[Account API](/zh/docs/account-api) 提供账户分析数据与设置接口；Key 管理、支付和身份变更仍需登录 Console。Webhook 端点见 [Webhook](/zh/docs/production/webhooks#endpoints-and-delivery-history)。
 
 ## API Key [#api-keys]
 
-在 [Console → API Key](https://yir.ai/zh/console/api-keys) 中统一管理两种 Key：**网关 Key**用于生成请求；**账户 Key**用于读取账户数据，也可选择允许修改设置。账户 Key 默认只读，没有路由绑定和生成消费额度，不能调用网关或内部 Admin API。见[身份认证](/zh/docs/getting-started/authentication)和 [Account API](/zh/docs/account-api)。Key 管理、支付和身份变更仍需登录 Console。
+在 [Console → API Key](https://yir.ai/zh/console/api-keys) 中统一管理两种 Key：**网关 Key**用于生成请求；**账户 Key**用于读取账户数据，也可选择允许修改设置。账户 Key 默认只读，没有路由绑定和生成消费额度，不能调用网关或内部 Admin API。见[身份认证](/zh/docs/getting-started/authentication)和 [Account API](/zh/docs/account-api)。
 
 ### 默认 Key
 
@@ -102,7 +102,7 @@ Secret 可能泄露时，请立即轮换或吊销。IP 白名单能降低泄露�
 
 ### 内容拦截
 
-Job 被内容安全检测拒绝时（Yir 在提交前对参考图的检测、渠道的审核，或 Yir 对无审核渠道图片结果的检测），Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/production/error-codes)。通常不收费；若渠道对该尝试计了费（部分渠道拒绝提示词或参考图时也计费，有的只对生成后被拒的结果计费），则按上游费用收费且不交付结果。日志将这类 Job 标为「内容拦截」而不是「失败」，时间分布图中单独成段：点击「失败」图例只筛选执行失败，点击「内容拦截」只筛选被拦截的 Job。分析页的成功率不计入这类 Job。请修改提示词或参考素材后再提交。
+Job 被内容安全检测拒绝时（Yir 在提交前对参考图的检测、渠道的审核，或 Yir 对无审核渠道图片结果的检测），Job 以 `failed` 结束，错误码为 [`YIR_CONTENT_REJECTED`](/zh/docs/production/error-codes)。这类 Job 不收费，除非渠道对该尝试计了费（部分渠道拒绝提示词或参考图时也计费，有的只对生成后被拒的结果计费）；此时按上游费用收费，且不交付结果。日志将这类 Job 标为「内容拦截」而不是「失败」，时间分布图中单独成段：点击「失败」图例只筛选执行失败，点击「内容拦截」只筛选被拦截的 Job。分析页的成功率不计入这类 Job。请修改提示词或参考素材后再提交。
 
 成功的 Job 在详情的结果文件旁显示[内容安全](/zh/docs/concepts/task-lifecycle#内容安全)结论：已通过（上游）、已通过（Yir）或未检测。
 
@@ -125,6 +125,6 @@ Console 顶栏的铃铛显示尚未看过的告警与未读公告数量，点开
 | Key 已过期 | 严重 | 某个 API Key 已过期，其请求被拒绝。 |
 | Key 即将过期 | 警告 | 某个 API Key 将在 7 天内过期。 |
 | Webhook 投递失败 | 警告 | 某个回调地址最近一次投递失败。 |
-| 请求持续被拒 | 严重 | 同一模型的请求因同一可修正原因持续失败：路由设置排除了全部渠道、估价高于 `max_cost` 或请求无效（24 小时内至少 5 次且最近 1 小时仍在发生），或被内容安全拦截的 Job 至少 10 个且占该模型 Job 的 30% 以上。重试不会成功，请修改请求或设置。 |
+| 请求持续被拒 | 严重 | 同一模型的请求因同一可修正原因持续失败：路由设置排除了全部渠道、估价高于 `max_cost` 或请求无效（24 小时内至少 5 次且最近 1 小时仍在发生），或被内容安全拦截的 Job 至少 10 个且至少占该模型 Job 的 30%。重试不会成功，请修改请求或设置。 |
 
 问题解决后告警会自动消失。Job 失败不单独告警：路由与兜底由 Yir 负责，渠道故障由 Yir 自行监控处理。API Key 达到支出上限、即将过期或已过期，请求持续被拒，或 Webhook 投递失败时，每条告警会发送一封邮件，可在通知页关闭。低余额阈值在钱包页设置，并可在每次余额不足时发送一封提醒邮件。Yir 不会自动充值或自动扣款。
