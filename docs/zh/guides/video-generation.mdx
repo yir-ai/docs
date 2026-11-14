@@ -26,9 +26,9 @@ seo:
 
 | 模式 | Yir 模型 ID | 参考图的用途 | 源 MP4 时长 | 输出分辨率 |
 | --- | --- | --- | --- | --- |
-| 动作迁移 | [`nanoapi/genjutsu-1.0`](/zh/docs/models/nanoapi/genjutsu-1-0) | 提供目标人物的照片，让其复现源视频里的动作 | 1–30 秒 | `480p`、`720p`、`1080p` |
-| 对象替换 | [`higgsfield/genjutsu-1.0-object-swap`](/zh/docs/models/higgsfield/genjutsu-1-0-object-swap) | 提供替换物的图片，用它替换源视频中指定的对象 | 4–30 秒 | `480p`、`720p`、`1080p` |
-| 对象替换（Lite） | [`higgsfield/genjutsu-lite-1.0`](/zh/docs/models/higgsfield/genjutsu-lite-1-0) | 提供替换物的图片，用它替换源视频中指定的对象 | 4–30 秒 | `720p`、`1080p` |
+| 动作迁移 | [`nanoapi/genjutsu-1.0`](/zh/docs/models/higgsfield/genjutsu/motion-transfer) | 提供目标人物的照片，让其复现源视频里的动作 | 1–30 秒 | `480p`、`720p`、`1080p` |
+| 对象替换 | [`higgsfield/genjutsu-1.0-object-swap`](/zh/docs/models/higgsfield/genjutsu/object-swap) | 提供替换物的图片，用它替换源视频中指定的对象 | 4–30 秒 | `480p`、`720p`、`1080p` |
+| Genjutsu Light 对象替换 | [`higgsfield/genjutsu-lite-1.0`](/zh/docs/models/higgsfield/genjutsu-light/object-swap) | 提供替换物的图片，用它替换源视频中指定的对象 | 4–30 秒 | `720p`、`1080p` |
 
 三种模式都需要恰好一段 `reference_video` 和 1–10 张 `reference_image`，默认分辨率为 `720p`。Standard API 的提示词可省略，最多 5000 个字符。若所用 SDK 要求提示词，可参考下面的写法。需要有金额的报价时，先用 [Files API](/zh/docs/guides/input-files) 上传源 MP4，再传已就绪的 `file_id`。
 

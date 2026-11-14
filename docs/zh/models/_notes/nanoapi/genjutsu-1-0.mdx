@@ -2,7 +2,7 @@
 
 Genjutsu 将一段源视频的动作迁移到 1–10 张参考图中的人物。通过 [Files](/zh/docs/guides/input-files) 上传 1–30 秒的 MP4。
 
-要替换源视频里的对象，可用 [Genjutsu 1.0 Object Swap](/zh/docs/models/higgsfield/genjutsu-1-0-object-swap) 或 [Genjutsu Lite 1.0](/zh/docs/models/higgsfield/genjutsu-lite-1-0)。请求写法见[幻术动作迁移与对象替换](/zh/docs/guides/video-generation#幻术动作迁移与对象替换)。
+要替换源视频里的对象，可用 [Genjutsu Object Swap](/zh/docs/models/higgsfield/genjutsu/object-swap) 或 [Genjutsu Light Object Swap](/zh/docs/models/higgsfield/genjutsu-light/object-swap)。请求写法见[幻术动作迁移与对象替换](/zh/docs/guides/video-generation#幻术动作迁移与对象替换)。
 
 成片时长与画幅跟随源视频。`duration` 是目录代表值，不发送给模型，也不会据此截断视频。音频不可控制：`generate_audio: true` 会被拒绝，`false` 也不保证静音，实际音轨以交付文件为准。
 

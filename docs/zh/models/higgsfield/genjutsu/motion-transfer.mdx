@@ -1,16 +1,18 @@
 ---
-title: "Genjutsu 1.0 Object Swap"
-description: "用参考图替换源视频中的物体"
+title: "Genjutsu 动作迁移"
+description: "幻术动作迁移：让参考照片中的人物复现源视频的动作"
+sidebar:
+  label: "动作迁移"
 seo:
-  title: "Genjutsu 1.0 Object Swap API 文档：参数与调用示例"
-  description: "Genjutsu 1.0 Object Swap API 文档：模型 ID higgsfield/genjutsu-1.0-object-swap、输入模式、参数取值与默认值，附请求示例。用参考图替换源视频中的物体。"
+  title: "Genjutsu 动作迁移 API 文档：参数与调用示例"
+  description: "Genjutsu 动作迁移 API 文档：模型 ID nanoapi/genjutsu-1.0、输入模式、参数取值与默认值，附请求示例。幻术动作迁移：让参考照片中的人物复现源视频的动作。"
 ---
 
-{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/higgsfield/genjutsu-1-0-object-swap.mdx */}
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/nanoapi/genjutsu-1-0.mdx */}
 
 | 模型 ID | 别名 | 接口 |
 | --- | --- | --- |
-| `higgsfield/genjutsu-1.0-object-swap` | `genjutsu-1.0-object-swap` | [视频生成](/zh/docs/guides/video-generation) |
+| `nanoapi/genjutsu-1.0` | `genjutsu-1.0` | [视频生成](/zh/docs/guides/video-generation) |
 
 ## 输入模式
 
@@ -26,7 +28,7 @@ seo:
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `duration` | 时长：输出视频的秒数。 | `4`–`30` | `5` | 否 |
+| `duration` | 时长：输出视频的秒数。 | `1`–`30` | `5` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p`、`1080p` | `720p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 | `auto` | `auto` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 | `false` | `false` | 否 |
@@ -38,7 +40,7 @@ seo:
 
 ```json
 {
-  "model": "higgsfield/genjutsu-1.0-object-swap",
+  "model": "nanoapi/genjutsu-1.0",
   "input": {
     "type": "reference",
     "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
@@ -63,6 +65,6 @@ seo:
 }
 ```
 
-完整合同以 `GET /v1/models/higgsfield/genjutsu-1.0-object-swap?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
+完整合同以 `GET /v1/models/nanoapi/genjutsu-1.0?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
 
-<include>/zh/models/_notes/higgsfield/genjutsu-1-0-object-swap.mdx</include>
+<include>/zh/models/_notes/nanoapi/genjutsu-1-0.mdx</include>

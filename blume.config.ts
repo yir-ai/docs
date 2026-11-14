@@ -23,6 +23,9 @@ const movedPages: Record<string, string> = {
   "console/webhooks": "production/webhooks#endpoints-and-delivery-history",
   "models/gpt-image-2": "models/openai/gpt-image-2",
   "models/gpt-image-2-5": "models/openai/gpt-image-2-5-flare",
+  "models/nanoapi/genjutsu-1-0": "models/higgsfield/genjutsu/motion-transfer",
+  "models/higgsfield/genjutsu-1-0-object-swap": "models/higgsfield/genjutsu/object-swap",
+  "models/higgsfield/genjutsu-lite-1-0": "models/higgsfield/genjutsu-light/object-swap",
   // Retired models send readers to their successors.
 };
 
