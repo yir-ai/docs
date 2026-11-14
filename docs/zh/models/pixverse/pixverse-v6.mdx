@@ -1,9 +1,9 @@
 ---
 title: "PixVerse V6"
-description: "从指定首帧和尾帧生成 720p 转场视频，可选原生音频。"
+description: "用首尾帧生成转场，或用参考图生成新场景。支持 720p 和可选原生音频。"
 seo:
   title: "PixVerse V6 API 文档：参数与调用示例"
-  description: "PixVerse V6 API 文档：模型 ID pixverse/pixverse-v6、输入模式、参数取值与默认值，附请求示例。从指定首帧和尾帧生成 720p 转场视频，可选原生音频。"
+  description: "PixVerse V6 API 文档：模型 ID pixverse/pixverse-v6、输入模式、参数取值与默认值，附请求示例。用首尾帧生成转场，或用参考图生成新场景。支持 720p 和可选原生音频。"
 ---
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/pixverse/pixverse-v6.mdx */}
@@ -17,6 +17,7 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `image` 图片输入 | 2 | `first_frame`、`last_frame` |
+| `reference` 参考素材 | 1–7 | `reference_image` |
 
 提示词上限：5000 个字符，超出时返回 400。
 
@@ -24,9 +25,11 @@ seo:
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
-| `duration` | 时长：输出视频的秒数。 | `5`、`8` | `5` | 否 |
+| `duration` | 时长：输出视频的秒数。 仅 `image` 模式。 | `5`、`8` | `5` | 否 |
+| `duration` | 时长：输出视频的秒数。 仅 `reference` 模式。 | `1`–`15` | `5` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 | `720p` | `720p` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 | `auto` | `auto` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `reference` 模式。 | `16:9`、`4:3`、`1:1`、`3:4`、`9:16`、`2:3`、`3:2`、`21:9` | `16:9` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 | `false`、`true` | `false` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
@@ -55,6 +58,31 @@ seo:
     "duration": 5,
     "resolution": "720p",
     "aspect_ratio": "auto",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+`reference` 输入：
+
+```json
+{
+  "model": "pixverse/pixverse-v6",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
     "generate_audio": false,
     "n": 1
   }

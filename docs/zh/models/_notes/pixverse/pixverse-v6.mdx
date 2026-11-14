@@ -1,3 +1,5 @@
 将 `input.type` 设为 `"image"`，各提供一张 `first_frame` 和 `last_frame` 图片。APIMart 支持 720p、5 秒或 8 秒的转场，画幅由输入图片决定。
 
 将 `parameters.generate_audio` 设为 `true` 可生成音轨。报价取决于时长和是否生成音轨，Yir 根据渠道的逐任务费用结算。
+
+参考生将 `input.type` 设为 `"reference"`，传入 1–7 个 `reference_image`。APIMart 支持 720p、1–15 秒，默认画幅为 16:9。参考图片包含在输出秒价内，秒价随音轨开关变化。

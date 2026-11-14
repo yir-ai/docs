@@ -1,3 +1,5 @@
 Use `input.type: "image"` and provide one `first_frame` image and one `last_frame` image. APIMart supports 5- and 8-second transitions at 720p. The source images determine the aspect ratio.
 
 Set `parameters.generate_audio` to `true` to generate audio. Quote accounts for the audio setting and duration. Yir settles from the provider's task-level charge.
+
+For Fusion, set `input.type` to `"reference"` and pass 1–7 `reference_image` entries. APIMart supports 1–15 seconds at 720p, with 16:9 as the default aspect ratio. The output-second rate includes the reference images and depends on whether audio is enabled.
