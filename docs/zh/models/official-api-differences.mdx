@@ -82,7 +82,7 @@ GPT Image 2.6 另外支持 `output_format: gif`（配合 `frame_count`、`frame_
 | `google/nano-banana-2.1` | 网页与图片搜索、`thinking_level`、视频输入 | 支持。 | 不可用。 |
 | `google/nano-banana-pro` | Google 搜索 Grounding | 支持。 | 不可用（该模型不提供 `web_search`）。 |
 | `google/nano-banana-pro` | `aspect_ratio` | Vertex AI 另列出 `1:4`、`4:1`、`1:8`、`8:1`、`9:21`。 | 10 种标准比例加 `auto`。 |
-| `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 尾帧 | 支持。 | `image` 模式接受 `first_frame`，可选再加 `last_frame`，价格与首帧图生相同。首尾帧只走 APIMart 渠道，其 Ext 版只支持 8 秒有声。 |
+| `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 尾帧 | 支持。 | `image` 模式接受 `first_frame`，可选再加 `last_frame`，价格与首帧图生相同。首尾帧走官方渠道与 APIMart，Fast 还可走 KIE；APIMart Ext 版与 KIE 只支持 8 秒有声（KIE 为 720p）。 |
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | 参考图、视频延长 | 支持。 | 不可用。 |
 | `google/veo-3.1-generate-001`、`google/veo-3.1-fast-generate-001` | `personGeneration`、`resizeMode` | 支持。 | 不可用。 |
 
@@ -97,7 +97,7 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 | 模型 | 参数或功能 | 字节跳动 API | Yir |
 | --- | --- | --- | --- |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
-| `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版与 KIE 渠道。 |
+| `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版、KIE 与 fal 渠道。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | `aspect_ratio` | 包含 `adaptive`。 | 只有固定比例。 |
 | `bytedance/seedance-2.0`、`-2.0-fast`、`-2.0-mini` | 参考视频与音频时长 | 每段 2–15 秒，同类合计不超过 15 秒。 | 限制相同，按实测时长判断：超限的上传文件在报价与提交时返回 `YIR_INVALID_REQUEST`（字段 `input.references[i]`），URL 素材在导入实测后失败，不会提交到上游。 |
 | `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生、图片、参考均可用 `480p`、`720p`、`1080p`。默认仍为 `720p`。 |
@@ -162,8 +162,8 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `klingai/kling-3.0` | `multi_shot`、主体元素、音色 | 支持。 | 不可用。 |
 | `klingai/kling-3.0-omni` | Kling 3.0 Omni（多图参考、视频编辑） | 独立端点。 | [Kling 3.0 Omni](/zh/docs/models/klingai/kling-3-0-omni) 支持文生、首尾帧图生，以及参考图和照片主体生成。暂未开放视频编辑。 |
 | `minimax/hailuo-2.3`、`minimax/hailuo-2.3-fast` | `prompt_optimizer`、`fast_pretreatment` | 支持。 | 不可用。与 MiniMax 一致，`1080p` 只能配 6 秒。 |
-| `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 为 `480p`（MiniMax 的 H3 Max 默认 `768P`）、5 秒。 |
-| `minimax/minimax-h3` | `resolution` | `768P` 或 `2K`。 | 另支持 `480p`、`1080p`，只由秘塔渠道承接（没有备用渠道）。需要 MiniMax 原厂的 480p 请用 `minimax/minimax-h3-max`。 |
+| `minimax/minimax-h3`、`minimax/minimax-h3-max` | `resolution`、`duration` | 必填。 | 可省略，有默认值：H3 为 `768P`、6 秒；H3 Max 文生与图生为 `480p`、参考生为 `768P`（MiniMax 的 H3 Max 默认 `768P`），5 秒。 |
+| `minimax/minimax-h3` | `resolution` | `768P` 或 `2K`。 | 另支持 `480p`、`1080p`，只由秘塔渠道承接（没有备用渠道）。需要有备用渠道的 480p 请用 `minimax/minimax-h3-max`（fal 与 APIMart）。 |
 | `minimax/minimax-h3`、`minimax/minimax-h3-max` | 有首帧时的 `aspect_ratio` | 任何取值都按 `adaptive` 处理。 | 只接受 `adaptive`。 |
 | `minimax/minimax-h3-max` | `prompt_expansion_mode` | 支持。 | 不可用。 |
 | `minimax/minimax-h3-max` | 参考视频与音频 | 支持。 | 最多 3 个 `reference_video`、3 个 `reference_audio`，参考素材合计 15 个；音频须搭配图或视频。参考视频只走 APIMart 渠道，按实测秒数计价。 |
@@ -185,10 +185,10 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `spacexai/grok-imagine-image-2.0` | `quality` | `low`、`medium`、`auto`（默认）。 | `low` 或 `medium`，默认 `low`；没有 `auto`。编辑时不可用。 |
 | `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 种比例加 `auto`（默认）；编辑时跟随输入图。 | 7 种比例，默认 `1:1`。编辑可传 `auto`，需显式设置才会跟随输入图。 |
 | `spacexai/grok-imagine-image-2.0` | 编辑参考图 | 最多 5 张。 | 最多 3 张。 |
-| `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 文生与图生：`6`、`10`、`15` 或 `30`，默认 `6`。`30` 秒由 APIMart 渠道提供，超出 xAI 的 1–15 秒范围。参考图：6–10 之间任意整数，默认 `8`。 |
+| `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 文生与图生：`6`、`10`、`15` 或 `30`，默认 `6`。`30` 秒超出 xAI 的 1–15 秒范围，文生走 APIMart 与 KIE，图生只走 APIMart。参考图：6–10 之间任意整数，默认 `8`。 |
 | `spacexai/grok-imagine-video` | 音频 | 默认开启。 | 固定开启（`generate_audio: true`），原生音频无法关闭；传 `generate_audio: false` 会被忽略并返回参数通知。 |
 | `spacexai/grok-imagine-video` | `aspect_ratio` | 含 `4:3`、`3:4`；有输入图时默认跟随其比例。 | 文生：没有 `4:3`、`3:4`，默认 `16:9`。图生：只有 `auto`，跟随输入图；传其他比例会被忽略并返回参数通知。 |
-| `spacexai/grok-imagine-video` | 参考图 | 最多 7 张。 | 2–7 个 `reference_image`，`480p` 或 `720p`，只走 KIE 渠道。 |
+| `spacexai/grok-imagine-video` | 参考图 | 最多 7 张。 | 2–7 个 `reference_image`，`480p` 或 `720p`，走 KIE 与 Cloudflare 渠道。 |
 | `spacexai/grok-imagine-video` | 视频编辑、延长 | 支持。 | 不可用。 |
 
 ### 其他图片模型

@@ -80,7 +80,7 @@ Migrating: set `duration` explicitly to one of the supported lengths; other valu
 | `google/nano-banana-2.1` | Web and image search, `thinking_level`, video input | Available. | Not available. |
 | `google/nano-banana-pro` | Google Search grounding | Available. | Not available (`web_search` is not offered for this model). |
 | `google/nano-banana-pro` | `aspect_ratio` | Vertex AI also lists `1:4`, `4:1`, `1:8`, `8:1`, `9:21`. | 10 standard ratios plus `auto`. |
-| `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | Last frame | Available. | `image` mode accepts a `first_frame` plus an optional `last_frame`, priced the same as first-frame video. First and last frames run on the APIMart channel only; its Ext variant supports them only at 8 seconds with audio. |
+| `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | Last frame | Available. | `image` mode accepts a `first_frame` plus an optional `last_frame`, priced the same as first-frame video. First and last frames run on the official channel and APIMart, and for Fast also on KIE; APIMart's Ext variant and KIE support them only at 8 seconds with audio (KIE at 720p). |
 | `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | Reference images, video extension | Available. | Not available. |
 | `google/veo-3.1-generate-001`, `google/veo-3.1-fast-generate-001` | `personGeneration`, `resizeMode` | Available. | Not available. |
 
@@ -95,7 +95,7 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 | Model | Parameter or feature | ByteDance API | Yir |
 | --- | --- | --- | --- |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Only on `bytedance/seedance-2.0`. |
-| `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `4K`; `4K` runs on the APIMart standard and KIE channels only. |
+| `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `4K`; `4K` runs on the APIMart standard, KIE and fal channels only. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | `aspect_ratio` | Includes `adaptive`. | Fixed ratios only. |
 | `bytedance/seedance-2.0`, `-2.0-fast`, `-2.0-mini` | Reference video and audio duration | Each clip 2–15 seconds, at most 15 seconds in total per type. | Same limits, checked on measured durations: Quote and Submit reject uploaded files that exceed them with `YIR_INVALID_REQUEST` on `input.references[i]`, and URL references fail after import, before any upstream submission. |
 | `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p`, `720p` or `1080p` for text, image and reference input. Default remains `720p`. |
@@ -160,8 +160,8 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `klingai/kling-3.0` | `multi_shot`, elements, voices | Available. | Not available. |
 | `klingai/kling-3.0-omni` | Kling 3.0 Omni (multi-image reference, video editing) | A separate endpoint. | [Kling 3.0 Omni](/docs/models/klingai/kling-3-0-omni) supports text, first and last frames, and generation from reference images and photo subjects. Video editing is unavailable. |
 | `minimax/hailuo-2.3`, `minimax/hailuo-2.3-fast` | `prompt_optimizer`, `fast_pretreatment` | Available. | Not available. `1080p` is available only with 6-second videos, as with MiniMax. |
-| `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` (MiniMax's H3 Max default is `768P`) and 5 s. |
-| `minimax/minimax-h3` | `resolution` | `768P` or `2K`. | Also `480p` and `1080p`, served by the Metaso channel only (no fallback channel). For 480p from MiniMax itself, use `minimax/minimax-h3-max`. |
+| `minimax/minimax-h3`, `minimax/minimax-h3-max` | `resolution`, `duration` | Required. | Optional with defaults: H3 `768P` and 6 s, H3 Max `480p` for text and image input and `768P` for reference input (MiniMax's H3 Max default is `768P`), and 5 s. |
+| `minimax/minimax-h3` | `resolution` | `768P` or `2K`. | Also `480p` and `1080p`, served by the Metaso channel only (no fallback channel). For 480p with fallback channels, use `minimax/minimax-h3-max` (fal and APIMart). |
 | `minimax/minimax-h3`, `minimax/minimax-h3-max` | `aspect_ratio` with a first frame | Any value is treated as `adaptive`. | Only `adaptive` is accepted. |
 | `minimax/minimax-h3-max` | `prompt_expansion_mode` | Available. | Not available. |
 | `minimax/minimax-h3-max` | Reference videos and audio | Available. | Up to 3 `reference_video` and 3 `reference_audio` references, 15 in total; audio needs an image or video. Reference videos run on the APIMart channel only and are priced by their measured seconds. |
@@ -183,10 +183,10 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | `spacexai/grok-imagine-image-2.0` | `quality` | `low`, `medium`, `auto` (default). | `low` or `medium`, default `low`; no `auto`. Not available when editing. |
 | `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 ratios plus `auto` (default); edits follow the input image. | 7 ratios, default `1:1`. Edits accept `auto`; set it explicitly to follow the input. |
 | `spacexai/grok-imagine-image-2.0` | Edit references | Up to 5 images. | Up to 3. |
-| `spacexai/grok-imagine-video` | `duration` | Any integer from 1 to 15; default 8. | Text and image: `6`, `10`, `15` or `30`, default `6`. The `30` second option comes from the APIMart channel and goes beyond xAI's 1 to 15 seconds. Reference images: any integer from 6 to 10, default `8`. |
+| `spacexai/grok-imagine-video` | `duration` | Any integer from 1 to 15; default 8. | Text and image: `6`, `10`, `15` or `30`, default `6`. The `30` second option goes beyond xAI's 1 to 15 seconds; text input runs it on APIMart and KIE, image input on APIMart only. Reference images: any integer from 6 to 10, default `8`. |
 | `spacexai/grok-imagine-video` | Audio | On by default. | Always on (`generate_audio: true`); native audio cannot be turned off, and `generate_audio: false` is ignored with a parameter notice. |
 | `spacexai/grok-imagine-video` | `aspect_ratio` | Includes `4:3` and `3:4`; with an input image, defaults to its ratio. | Text input: no `4:3` or `3:4`; default `16:9`. Image input: `auto` only, following the input image; other ratios are ignored with a parameter notice. |
-| `spacexai/grok-imagine-video` | Reference images | Up to 7 images. | 2 to 7 `reference_image` references, `480p` or `720p`, on the KIE channel only. |
+| `spacexai/grok-imagine-video` | Reference images | Up to 7 images. | 2 to 7 `reference_image` references, `480p` or `720p`, on the KIE and Cloudflare channels. |
 | `spacexai/grok-imagine-video` | Video edit, extension | Available. | Not available. |
 
 ### Other image models
