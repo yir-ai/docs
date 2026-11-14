@@ -49,12 +49,12 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_BUDGET_EXCEEDED` | 422 | The request's `max_cost` is below every eligible channel's current estimate. The message names the lowest estimate. Prices can change, so a cap that passed before can fail now. | Quote again. Raise `max_cost` on a new request if you accept the price, or choose a cheaper model or specification. |
 | `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
 | `YIR_FIDELITY_EXCLUDED` | 422 | Every channel for this specification is below the requested `routing.fidelity`. | Use a lower `fidelity`, or another model or specification. See [fidelity](/docs/concepts/routing#fidelity). |
-| `YIR_RATE_LIMITED` | 429 | The API key exceeded its per-minute request limit, which any Gateway endpoint can return, too many Jobs are in progress for your account, a generation request could not get a slot to import its reference URLs, or the account is temporarily paused from submitting new Jobs after repeated content safety rejections. | Wait the number of seconds in the `Retry-After` header, then retry. See [request rate limits](#request-rate-limits). For in-progress Jobs, wait for them to finish. For URL imports, see [public URLs](/docs/guides/input-files#public-urls). |
+| `YIR_RATE_LIMITED` | 429 | One of these:<br />• The API Key exceeded its per-minute request limit. Any Gateway endpoint can return this.<br />• Too many Jobs are in progress for your account.<br />• A generation request could not get a slot to import its reference URLs.<br />• The account is temporarily paused from submitting new Jobs after repeated content safety rejections. | • Per-minute limit: wait the number of seconds in the `Retry-After` header, then retry. See [request rate limits](#request-rate-limits).<br />• In-progress Jobs: wait for them to finish.<br />• URL imports: see [public URLs](/docs/guides/input-files#public-urls). |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |
 
 ### Request rate limits
 
-Each API key has a per-minute request limit on every Gateway endpoint. The limits are a safety net against client bugs such as a polling loop without a delay or a retry storm, and sit far above normal use. Requests are counted per endpoint, so polling Jobs does not use up the limit for creating them.
+Each API Key has a per-minute request limit on every Gateway endpoint. The limits are a safety net against client bugs such as a polling loop without a delay or a retry storm, and sit far above normal use. Requests are counted per endpoint, so polling Jobs does not use up the limit for creating them.
 
 | Endpoints | Limit per key, per endpoint |
 | --- | --- |
