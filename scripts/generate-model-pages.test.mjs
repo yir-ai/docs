@@ -30,6 +30,16 @@ test('derives stable page paths from model IDs', () => {
   assert.deepEqual(pagePath('bytedance/seedance-2.0'), { creator: 'bytedance', slug: 'seedance-2-0' })
 })
 
+test('retirement retains the contract and replaces runnable examples with migration guidance', () => {
+  const retired = { ...model, lifecycle: { retired_at: '2020-01-01T00:00:00Z', reason: 'retired' } }
+  const page = renderPage(retired, 'en', null)
+  assert.match(page, /Retired/)
+  assert.match(page, /original idempotency key|original key/)
+  assert.match(page, /## Parameters/)
+  assert.doesNotMatch(page, /## Examples/)
+  assert.match(renderPage(retired, 'zh', null), /已下架/)
+})
+
 test('renders modes, per-role counts, ranges and a runnable example per mode', () => {
   const page = renderPage(model, 'en', '/models/_notes/acme/video-1-5.mdx')
   assert.match(page, /\| `image` Image input \| 1 to 2 \| `first_frame` 1<br \/>`last_frame` 0 to 1 \|/)

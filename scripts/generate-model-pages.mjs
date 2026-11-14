@@ -212,6 +212,7 @@ function exampleRequest(model, view, mode) {
 const sentence = (text, lang) => /[.。!！?？]$/.test(text) ? text : `${text}${lang === 'zh' ? '。' : '.'}`
 
 export function renderPage(model, lang, notesFile) {
+  const retired = model.lifecycle?.retired_at && Date.parse(model.lifecycle.retired_at) <= Date.now()
   const t = TEXT[lang]
   const locale = LOCALES[lang]
   const text = model.locales[locale.contract] ?? model.locales.en
@@ -233,6 +234,15 @@ export function renderPage(model, lang, notesFile) {
     `| \`${model.id}\` | ${aliases.map(code).join(t.sep) || t.none} | ${views.map(view => t.operations[view.operation]).join(t.sep)} |`,
     '',
   ]
+  if (model.lifecycle) {
+    const at = model.lifecycle.retired_at
+    lines.push(lang === 'zh'
+      ? `> ${retired ? '已下架' : '弃用预告'}${at ? `，停止新任务时间为 ${at}` : ''}。旧任务和幂等重放保留；不要为结果不明的原请求换幂等键。选择替代模型后核对参数并重新报价，确认是新任务后才使用新键。`
+      : `> ${retired ? 'Retired' : 'Deprecation notice'}${at ? `; new jobs stop at ${at}` : ''}. Existing jobs and idempotent replay remain available. Keep the original key for an uncertain submission. Choose a replacement explicitly, review its parameters and get a fresh quote before submitting new work with a new key.`, '')
+  }
+  if (model.specification_lifecycles?.length) {
+    lines.push(lang === 'zh' ? '## 规格生命周期' : '## Specification lifecycle', '', '```json', JSON.stringify(model.specification_lifecycles, null, 2), '```', '')
+  }
   for (const view of views) {
     lines.push(`## ${t.inputModes}`, '', `| ${t.mode} | ${t.references} | ${t.roles} |`, '| --- | --- | --- |')
     for (const mode of view.modes) {
@@ -267,6 +277,7 @@ export function renderPage(model, lang, notesFile) {
         lines.push(`| \`${name}\` | ${cell(`${label.label}${t.colon}${label.description}${scoped}`)} | ${cell(valuesCell(param, t))} | ${param.default === undefined ? t.notSet : code(param.default)} | ${param.required ? t.yes : t.no} |`)
       }
     }
+    if (retired) continue
     lines.push('', `## ${t.examples}`, '')
     for (const mode of view.modes) {
       lines.push(t.example(mode), '', '```json', JSON.stringify(exampleRequest(model, view, mode), null, 2), '```', '')
@@ -294,6 +305,7 @@ function renderCatalog(models, lang) {
   const locale = LOCALES[lang]
   const lines = [`{/* ${t.generated.split(';')[0]} */}`, '', `| ${t.model} | ID | ${t.type} |`, '| --- | --- | --- |']
   for (const model of models) {
+    if (model.lifecycle?.retired_at && Date.parse(model.lifecycle.retired_at) <= Date.now()) continue
     const { creator, slug } = pagePath(model.id)
     const label = (model.locales[locale.contract] ?? model.locales.en).label
     const types = [...new Set(model.operations.map(op => t.types[op.operation]))].join(t.sep)
@@ -313,7 +325,7 @@ export async function buildPages() {
     for (const model of sorted) {
       const { creator, slug } = pagePath(model.id)
       if (!CREATORS[creator]) throw new Error(`Add a sidebar title for creator ${creator}`)
-      byCreator.set(creator, [...(byCreator.get(creator) ?? []), slug])
+      if (!model.lifecycle?.retired_at || Date.parse(model.lifecycle.retired_at) > Date.now()) byCreator.set(creator, [...(byCreator.get(creator) ?? []), slug])
       const notesRel = SHARED_NOTES[model.id] ?? `${creator}/${slug}`
       const notesPath = `${locale.dir}/_notes/${notesRel}.mdx`
       const exists = await readFile(path.join(root, notesPath), 'utf8').then(() => true, () => false)

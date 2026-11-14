@@ -1,0 +1,7 @@
+## Migrating from Reve 2.1
+
+Yir no longer accepts new Reve 2.1 jobs. Requests using `reve/reve-2.1` or `reve-2.1` receive `400 YIR_INVALID_REQUEST` with `retryable: false` and a detail whose `reason` is `retired`.
+
+For an existing Job, keep its ID and continue checking its status. If a submission's response was lost, retry the original request with the original idempotency key. A different request with that key remains an idempotency conflict.
+
+There is no automatic replacement. Select an image model from the current catalog and retrieve its contract. Reve's `resolution: "native"` is not a portable resolution setting. Review resolution, aspect ratio, reference images and routing restrictions, then quote the complete new request. Use a new idempotency key only when intentionally creating a new Job.

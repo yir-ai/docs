@@ -6,11 +6,13 @@ seo:
   description: "Reve 2.1 API 文档：模型 ID reve/reve-2.1、输入模式、参数取值与默认值，附请求示例。支持文生图与单图编辑，输出分辨率由模型决定。"
 ---
 
-{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/reve/reve-2-1.mdx */}
 
 | 模型 ID | 别名 | 接口 |
 | --- | --- | --- |
 | `reve/reve-2.1` | `reve-2.1` | [图片生成](/zh/docs/guides/image-generation) |
+
+> 已下架，停止新任务时间为 2026-11-14T00:00:00Z。旧任务和幂等重放保留；不要为结果不明的原请求换幂等键。选择替代模型后核对参数并重新报价，确认是新任务后才使用新键。
 
 ## 输入模式
 
@@ -26,47 +28,6 @@ seo:
 | `resolution` | 分辨率：输出内容的分辨率。 | `native` | `native` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 | `1:1`、`16:9`、`9:16`、`4:3`、`3:4`、`3:2`、`2:3` | `1:1` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
-
-## 示例
-
-`text` 输入：
-
-```json
-{
-  "model": "reve/reve-2.1",
-  "input": {
-    "type": "text",
-    "prompt": "A watercolor fox reading a map in a pine forest"
-  },
-  "parameters": {
-    "resolution": "native",
-    "aspect_ratio": "1:1",
-    "n": 1
-  }
-}
-```
-
-`image` 输入：
-
-```json
-{
-  "model": "reve/reve-2.1",
-  "input": {
-    "type": "image",
-    "prompt": "A watercolor fox reading a map in a pine forest",
-    "references": [
-      {
-        "role": "reference_image",
-        "file_id": "file_..."
-      }
-    ]
-  },
-  "parameters": {
-    "resolution": "native",
-    "aspect_ratio": "1:1",
-    "n": 1
-  }
-}
-```
-
 完整合同以 `GET /v1/models/reve/reve-2.1?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
+
+<include>/zh/models/_notes/reve/reve-2-1.mdx</include>

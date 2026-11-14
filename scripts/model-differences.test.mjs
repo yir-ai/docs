@@ -166,7 +166,7 @@ check('hi3d texture none/standard, face_limit 100000..5000000 no default', sameS
 check('meshy text, image and multiview, face_limit 100..300000 default 30000, triangle/quad', eq(modes(me), ['image', 'multiview', 'text']) && sameSet(C(me, 'multiview')?.allowed_reference_roles, views) && P(me, 'face_limit')?.minimum === 100 && P(me, 'face_limit')?.maximum === 300000 && def(me, 'face_limit') === 30000 && sameSet(vals(me, 'topology'), ['triangle', 'quad']), [modes(me), P(me, 'face_limit'), vals(me, 'topology')])
 check('meshy texture none/standard', sameSet(vals(me, 'texture'), ['none', 'standard']), vals(me, 'texture'))
 // Retired models: the page says they were removed from the model list.
-for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1', 'bytedance/seedance-1.5-pro']) check(`${id} removed from contract`, !c.models.some(m => m.id === id), null)
+for (const id of ['google/veo-3.0-generate-001', 'google/gemini-omni-video', 'openai/gpt-image-1', 'bytedance/seedance-1.5-pro', 'reve/reve-2.1']) check(`${id} keeps a retired historical contract`, Boolean(c.models.find(m => m.id === id)?.lifecycle?.retired_at), null)
 
 
 test('the Yir column of the official API differences page matches the model contract', () => {
