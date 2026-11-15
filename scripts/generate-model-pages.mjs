@@ -239,6 +239,12 @@ function exampleRequest(model, view, mode) {
       if (roles.includes(role) && !picked.includes(role)) picked.push(role)
     }
     input.references = picked.map(role => ({ role, file_id: 'file_...' }))
+    const subjects = constraint.subject_references
+    if (subjects && !subjects.mixed && roles.length === 1 && roles[0] === 'reference_image') {
+      input.references = Array.from({ length: subjects.min_images_per_subject }, (_, index) =>
+        ({ role: 'reference_image', file_id: `file_..._${index + 1}`, subject: 'subject' }))
+      input.prompt = '@subject walks into the scene.'
+    }
   }
   return { model: model.id, input, parameters }
 }

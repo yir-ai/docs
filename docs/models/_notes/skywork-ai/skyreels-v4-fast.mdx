@@ -3,3 +3,5 @@ Use `input.type: "image"` with a `first_frame` image. To generate a transition, 
 If Yir can read both frame dimensions and the ratios differ, the route is unavailable. When using image URLs, prepare matching aspect ratios before submitting.
 
 The quote uses the output duration and includes both frame images. Yir settles from APIMart's task-level cost.
+
+For grouped image references, set `input.type` to `"reference"` and set a `subject` on every `reference_image`. Use 1–3 subjects with 1–5 photos each and mention each one as `@subject` in the prompt. This mode generates 3–15 seconds of silent video at 720p. The output-second quote includes all reference photos, and settlement uses APIMart's task-level cost.

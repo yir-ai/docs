@@ -1,9 +1,9 @@
 ---
 title: "SkyReels V4 Fast"
-description: "Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频，以及 720p 首帧图生和首尾帧转场。"
+description: "Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生，以及 720p 首帧图生、首尾帧转场和分组图片参考生。"
 seo:
   title: "SkyReels V4 Fast API 文档：参数与调用示例"
-  description: "SkyReels V4 Fast API 文档：模型 ID skywork-ai/skyreels-v4-fast、输入模式、参数取值与默认值，附请求示例。Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频，以及 720p 首帧图生和首尾帧转场。"
+  description: "SkyReels V4 Fast API 文档：模型 ID skywork-ai/skyreels-v4-fast、输入模式、参数取值与默认值，附请求示例。Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生，以及 720p 首帧图生、首尾帧转场和分组图片参考生。"
 ---
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/skywork-ai/skyreels-v4-fast.mdx */}
@@ -18,6 +18,14 @@ seo:
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
 | `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
+| `reference` 参考素材 | 1–15 | `reference_image` |
+
+### 主体参考（`reference`）
+
+给参考素材设置相同的 `references[].subject` 名称即可归为一个主体，提示词中用 `@<subject>` 引用。
+
+- 照片主体：最多 3 个，每个 1–5 张 `reference_image`
+- 使用主体时，所有参考素材都必须是带 subject 的 `reference_image`。
 
 ## 参数
 
@@ -25,8 +33,8 @@ seo:
 | --- | --- | --- | --- | --- |
 | `duration` | 时长：输出视频的秒数。 | `3`–`15` | `5` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 仅 `text` 模式。 | `480p`、`720p`、`1080p` | `1080p` | 否 |
-| `resolution` | 分辨率：输出内容的分辨率。 仅 `image` 模式。 | `720p` | `720p` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `16:9` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `image`、`reference` 模式。 | `720p` | `720p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text`、`reference` 模式。 | `16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `16:9` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 | `false` | `false` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
@@ -71,6 +79,32 @@ seo:
     "duration": 5,
     "resolution": "720p",
     "aspect_ratio": "auto",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+`reference` 输入：
+
+```json
+{
+  "model": "skywork-ai/skyreels-v4-fast",
+  "input": {
+    "type": "reference",
+    "prompt": "@subject walks into the scene.",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..._1",
+        "subject": "subject"
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
     "generate_audio": false,
     "n": 1
   }
