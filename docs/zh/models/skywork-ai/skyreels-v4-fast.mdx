@@ -1,12 +1,12 @@
 ---
 title: "SkyReels V4 Fast"
-description: "Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频和 720p 首帧图生。"
+description: "Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频，以及 720p 首帧图生和首尾帧转场。"
 seo:
   title: "SkyReels V4 Fast API 文档：参数与调用示例"
-  description: "SkyReels V4 Fast API 文档：模型 ID skywork-ai/skyreels-v4-fast、输入模式、参数取值与默认值，附请求示例。Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频和 720p 首帧图生。"
+  description: "SkyReels V4 Fast API 文档：模型 ID skywork-ai/skyreels-v4-fast、输入模式、参数取值与默认值，附请求示例。Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频，以及 720p 首帧图生和首尾帧转场。"
 ---
 
-{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/skywork-ai/skyreels-v4-fast.mdx */}
 
 | 模型 ID | 别名 | 接口 |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
-| `image` 图片输入 | 1 | `first_frame` |
+| `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
 
 ## 参数
 
@@ -78,3 +78,5 @@ seo:
 ```
 
 完整合同以 `GET /v1/models/skywork-ai/skyreels-v4-fast?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。
+
+<include>/zh/models/_notes/skywork-ai/skyreels-v4-fast.mdx</include>
