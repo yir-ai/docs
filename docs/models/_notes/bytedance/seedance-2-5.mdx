@@ -1,3 +1,29 @@
+## Quote a reference video on the official channel
+
+Use `POST /v1/videos/quotes` with `routing.only: ["bytedance"]` or `["official"]` to select the ByteDance official channel. For reference generation on this channel, use `480p` or `720p`, an explicit aspect ratio and at least one image or video reference. Leave `task_type` at its default `auto`. Use a ready `file_id` for a measured quote, or declare the input video's duration on its URL reference as shown below.
+
+```json
+{
+  "model": "bytedance/seedance-2.5",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifts downstream using the motion from @video1",
+    "references": [
+      { "role": "reference_video", "url": "https://example.com/reference.mp4", "duration_seconds": 5 }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": false
+  },
+  "routing": { "only": ["bytedance"] }
+}
+```
+
+`parameters.duration` is the integer output duration (4–30 seconds for fixed duration). `input.references[].duration_seconds` declares the input duration for a URL quote. Send `generate_audio` inside `parameters`. Omit `routing` to use the API Key's routing profile, or use [`routing.only`](/docs/concepts/routing#fields) to select other public channels such as `apimart` and `kie`. The model contract lists the accepted parameters for each input mode.
+
 ## Task type
 
 `parameters.task_type` tells the model how to use the references in `reference` mode, matching ByteDance's `omni_reference_task_type`:
@@ -5,7 +31,7 @@
 | Value | Use | Constraints |
 | --- | --- | --- |
 | `auto` (default) | The model decides from the references and the prompt. | If the upstream model explicitly rejects the edit parameters, Yir returns `YIR_INPUT_REJECTED` and stops fallback. |
-| `reference` | Generate a new video guided by the images, videos and audio. | Fixed `duration` and `aspect_ratio` as usual. |
+| `reference` | Generate a new video guided by the images, videos and audio. | Requires a fixed `duration`. Quote to see which channels accept this explicit task type. |
 | `edit` | Change the reference video, for example replace a subject. | A 4–30 second `reference_video`; `duration` and `aspect_ratio` follow it (omit them or pass `"auto"`). Runs on the APIMart and KIE channels. |
 | `extend` | Continue the reference video. | A `reference_video`; `aspect_ratio` follows it and `duration` is the length of the new part. Runs on the APIMart, KIE and NanoAPI channels. |
 
@@ -23,4 +49,4 @@ For estimates and admission, Yir rounds the longest measured reference duration 
 
 Omitting `duration` keeps the default of 4 seconds. Explicit integer durations keep their existing behavior; do not send the upstream value `-1` to Yir.
 
-All modes accept `parameters.resolution: "1080p"`: text-to-video runs on the official channel, APIMart and KIE; image and reference modes run on APIMart, KIE and fal. Omitting it still selects `720p`. The official 1080p no-video-input rate is USD 11.70 per million video tokens. At 16:9 and 24 fps, a 4-second output estimate is USD 2.27448; final settlement uses the reported task cost. For exact pixels, this text route also accepts `parameters.size: "1920x1080"` (AI SDK `resolution: "1920x1080"`), bound to 1080p and 16:9. Conflicting ratios/tiers and other pixel sizes are rejected.
+All modes accept `parameters.resolution: "1080p"` at the model level. Quote the exact request to see which channels support that mode and resolution. The official channel supports 1080p for text-to-video. Omitting `resolution` selects `720p`. The official 1080p no-video-input rate is USD 11.70 per million video tokens. At 16:9 and 24 fps, a 4-second output estimate is USD 2.27448; final settlement uses the reported task cost. For exact pixels, this text route also accepts `parameters.size: "1920x1080"` (AI SDK `resolution: "1920x1080"`), bound to 1080p and 16:9. Conflicting ratios/tiers and other pixel sizes are rejected.

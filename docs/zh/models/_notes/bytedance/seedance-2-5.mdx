@@ -1,3 +1,29 @@
+## 为官方渠道的参考视频报价
+
+向 `POST /v1/videos/quotes` 提交请求，用 `routing.only: ["bytedance"]` 或 `["official"]` 选择字节跳动官方渠道。该渠道的参考生视频支持 `480p` 和 `720p`，需要明确画幅，且至少包含一张参考图或一段参考视频。`task_type` 使用默认的 `auto`。报价时可以传已就绪的 `file_id` 让 Yir 使用实测时长，也可以像下面这样在 URL 引用上声明输入时长。
+
+```json
+{
+  "model": "bytedance/seedance-2.5",
+  "input": {
+    "type": "reference",
+    "prompt": "一只纸船顺流而下，运动参考 @video1",
+    "references": [
+      { "role": "reference_video", "url": "https://example.com/reference.mp4", "duration_seconds": 5 }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": false
+  },
+  "routing": { "only": ["bytedance"] }
+}
+```
+
+`parameters.duration` 是输出时长，固定时长取 4–30 的整数秒。`input.references[].duration_seconds` 用于在按 URL 报价时声明输入媒体的时长。`generate_audio` 放在 `parameters` 里。省略 `routing` 会沿用 API Key 的路由配置，也可用 [`routing.only`](/zh/docs/concepts/routing#字段) 选择 `apimart`、`kie` 等公开渠道。各输入模式支持的参数以模型合同为准。
+
 ## 任务类型
 
 `reference` 模式下，`parameters.task_type` 告诉模型如何使用参考素材，对应字节官方的 `omni_reference_task_type`：
@@ -5,7 +31,7 @@
 | 取值 | 用途 | 约束 |
 | --- | --- | --- |
 | `auto`（默认） | 模型根据素材和提示词自行判断。 | 上游明确拒绝编辑参数时，Yir 返回 `YIR_INPUT_REJECTED` 并停止兜底。 |
-| `reference` | 参照图片、视频、音频生成新视频。 | `duration` 与 `aspect_ratio` 照常取固定值。 |
+| `reference` | 参照图片、视频、音频生成新视频。 | `duration` 需要取固定值。请报价查看哪些渠道支持这个显式任务类型。 |
 | `edit` | 修改参考视频，例如替换其中的主体。 | 需要 4–30 秒的 `reference_video`；`duration` 与 `aspect_ratio` 跟随原视频（省略或传 `"auto"`）。走 APIMart 和 KIE 渠道。 |
 | `extend` | 延长参考视频。 | 需要 `reference_video`；`aspect_ratio` 跟随原视频，`duration` 为新增部分的秒数。走 APIMart、KIE 和 NanoAPI 渠道。 |
 
@@ -23,4 +49,4 @@ Quote 接受公开 HTTPS 参考视频 URL，但不会下载素材。设置 `dura
 
 省略 `duration` 仍使用默认 4 秒；显式整数时长保持既有行为。不要向 Yir 传入上游的 `-1` 值。
 
-所有模式都支持 `parameters.resolution: "1080p"`：文生视频走官方渠道、APIMart 和 KIE，图片与参考模式走 APIMart、KIE 和 fal；省略时仍为 `720p`。官方 1080p 无视频输入费率为每百万视频 token 11.70 美元；16:9、24 fps、4 秒的输出估价为 2.27448 美元，最终按任务实际费用结算。该文生路线同时支持精确尺寸 `parameters.size: "1920x1080"`（AI SDK 的 `resolution: "1920x1080"`），绑定 1080p、16:9；与此冲突的画幅／档位及其他像素尺寸会明确拒绝。
+模型合同的所有模式均接受 `parameters.resolution: "1080p"`。请对完整请求报价，查看支持该模式和分辨率的渠道。官方渠道的文生视频支持 1080p。省略 `resolution` 时使用 `720p`。官方 1080p 无视频输入费率为每百万视频 token 11.70 美元；16:9、24 fps、4 秒的输出估价为 2.27448 美元，最终按任务实际费用结算。该文生路线同时支持精确尺寸 `parameters.size: "1920x1080"`（AI SDK 的 `resolution: "1920x1080"`），绑定 1080p、16:9；与此冲突的画幅／档位及其他像素尺寸会明确拒绝。
