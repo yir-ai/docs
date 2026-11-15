@@ -1,9 +1,9 @@
 ---
 title: "SkyReels V4 Fast"
-description: "Skywork AI 的快速文生视频模型，支持 480p 至 1080p 无声视频。"
+description: "Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频和 720p 首帧图生。"
 seo:
   title: "SkyReels V4 Fast API 文档：参数与调用示例"
-  description: "SkyReels V4 Fast API 文档：模型 ID skywork-ai/skyreels-v4-fast、输入模式、参数取值与默认值，附请求示例。Skywork AI 的快速文生视频模型，支持 480p 至 1080p 无声视频。"
+  description: "SkyReels V4 Fast API 文档：模型 ID skywork-ai/skyreels-v4-fast、输入模式、参数取值与默认值，附请求示例。Skywork AI 的快速视频模型，支持 480p 至 1080p 无声文生视频和 720p 首帧图生。"
 ---
 
 {/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
@@ -17,14 +17,17 @@ seo:
 | 模式 | 参考数量 | 参考角色 |
 | --- | --- | --- |
 | `text` 纯文本 | — | — |
+| `image` 图片输入 | 1 | `first_frame` |
 
 ## 参数
 
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
 | `duration` | 时长：输出视频的秒数。 | `3`–`15` | `5` | 否 |
-| `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p`、`1080p` | `1080p` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 | `16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `16:9` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `text` 模式。 | `480p`、`720p`、`1080p` | `1080p` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 仅 `image` 模式。 | `720p` | `720p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `16:9` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 | `false` | `false` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
@@ -43,6 +46,31 @@ seo:
     "duration": 5,
     "resolution": "1080p",
     "aspect_ratio": "16:9",
+    "generate_audio": false,
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "skywork-ai/skyreels-v4-fast",
+  "input": {
+    "type": "image",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "first_frame",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "auto",
     "generate_audio": false,
     "n": 1
   }
