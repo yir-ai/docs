@@ -94,7 +94,7 @@ Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `
 
 | Model | Parameter or feature | ByteDance API | Yir |
 | --- | --- | --- | --- |
-| `bytedance/seedance-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Only on `bytedance/seedance-2.0`. |
+| `bytedance/seedance-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Yir exposes it on `bytedance/seedance-2.0` and `bytedance/seedance-2.5-flash`. |
 | `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `4K`; `4K` runs on the APIMart standard, KIE and fal channels only. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | `aspect_ratio` | Includes `adaptive`. | Fixed ratios only. |
 | `bytedance/seedance-2.0`, `-2.0-fast`, `-2.0-mini` | Reference video and audio duration | Each clip 2–15 seconds, at most 15 seconds in total per type. | Same limits, checked on measured durations: Quote and Submit reject uploaded files that exceed them with `YIR_INVALID_REQUEST` on `input.references[i]`, and URL references fail after import, before any upstream submission. |

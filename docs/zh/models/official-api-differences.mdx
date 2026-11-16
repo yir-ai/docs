@@ -96,7 +96,7 @@ Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `48
 
 | 模型 | 参数或功能 | 字节跳动 API | Yir |
 | --- | --- | --- | --- |
-| `bytedance/seedance-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | 只有 `bytedance/seedance-2.0` 支持。 |
+| `bytedance/seedance-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | Yir 在 `bytedance/seedance-2.0` 和 `bytedance/seedance-2.5-flash` 开放该参数。 |
 | `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版、KIE 与 fal 渠道。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | `aspect_ratio` | 包含 `adaptive`。 | 只有固定比例。 |
 | `bytedance/seedance-2.0`、`-2.0-fast`、`-2.0-mini` | 参考视频与音频时长 | 每段 2–15 秒，同类合计不超过 15 秒。 | 限制相同，按实测时长判断：超限的上传文件在报价与提交时返回 `YIR_INVALID_REQUEST`（字段 `input.references[i]`），URL 素材在导入实测后失败，不会提交到上游。 |

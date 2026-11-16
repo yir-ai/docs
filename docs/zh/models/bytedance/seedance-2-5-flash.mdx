@@ -1,0 +1,114 @@
+---
+title: "Seedance 2.5 Flash"
+description: "支持 4–30 秒、同步音轨及多模态参考的 Seedance 2.5 快速档。"
+seo:
+  title: "Seedance 2.5 Flash API 文档：参数与调用示例"
+  description: "Seedance 2.5 Flash API 文档：模型 ID bytedance/seedance-2.5-flash、输入模式、参数取值与默认值，附请求示例。支持 4–30 秒、同步音轨及多模态参考的 Seedance 2.5 快速档。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `bytedance/seedance-2.5-flash` | `seedance-2.5-flash`、`dreamina-seedance-2-5-flash`、`doubao-seedance-2-5-flash` | [视频生成](/zh/docs/guides/video-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+| `image` 图片输入 | 1–2 | `first_frame` 1<br />`last_frame` 0–1 |
+| `reference` 参考素材 | 1–20 | `reference_audio` 0–5<br />`reference_image` 0–10<br />`reference_video` 0–5 |
+
+提示词上限：20480 个字符，超出时返回 400。
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `duration` | 时长：输出视频的秒数。 仅 `text`、`image` 模式。 | `4`–`30` | `5` | 否 |
+| `duration` | 时长：输出视频的秒数。带参考视频时可传 "auto"，编辑类任务时长跟随输入视频，aspect_ratio 须同为 auto。task_type 为 edit 时即为 auto。 仅 `reference` 模式。 | `4`–`30`、`auto` | `5` | 否 |
+| `resolution` | 分辨率：输出内容的分辨率。 | `480p`、`720p` | `720p` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text`、`reference` 模式。 | `auto`、`21:9`、`16:9`、`4:3`、`1:1`、`3:4`、`9:16` | `auto` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto` | `auto` | 否 |
+| `return_last_frame` | 返回尾帧：由支持的供应渠道返回视频最后一帧图片。 | `false`、`true` | `false` | 否 |
+| `generate_audio` | 生成音频：随视频生成原生音频。 | `false`、`true` | `true` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+| `task_type` | 任务类型：参考素材的用法。auto（默认）由模型按素材和提示词判断；reference 参照素材生成新视频；edit 修改参考视频（4–30 秒），时长与画幅跟随原视频；extend 延长参考视频，画幅跟随原视频，duration 为新增部分的秒数。模型仍会按提示词复核，读起来像编辑的提示词（如 replace、copy exactly）在 reference 下可能失败；edit 与 extend 的可用渠道较少。 仅 `reference` 模式。 | `auto`、`reference`、`edit`、`extend` | `auto` | 否 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "bytedance/seedance-2.5-flash",
+  "input": {
+    "type": "text",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot"
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "auto",
+    "return_last_frame": false,
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "bytedance/seedance-2.5-flash",
+  "input": {
+    "type": "image",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "first_frame",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "auto",
+    "return_last_frame": false,
+    "generate_audio": true,
+    "n": 1
+  }
+}
+```
+
+`reference` 输入：
+
+```json
+{
+  "model": "bytedance/seedance-2.5-flash",
+  "input": {
+    "type": "reference",
+    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "duration": 5,
+    "resolution": "720p",
+    "aspect_ratio": "auto",
+    "return_last_frame": false,
+    "generate_audio": true,
+    "n": 1,
+    "task_type": "auto"
+  }
+}
+```
+
+完整合同以 `GET /v1/models/bytedance/seedance-2.5-flash?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。

@@ -68,7 +68,7 @@ check('seedance-2.5 text resolution includes 1080p', sameSet(vals(s25, 'resoluti
 for (const mode of ['text', 'image', 'reference']) check('seedance-2.5 ' + mode + ' resolution 480p/720p/1080p', sameSet(vals(s25, 'resolution', mode), ['480p', '720p', '1080p']), vals(s25, 'resolution', mode))
 check('seedance-2.5 audio-only references allowed, up to 10 audio', !C(s25, 'reference')?.required_any_reference_roles && C(s25, 'reference')?.reference_counts_by_role?.reference_audio?.maximum === 10, C(s25, 'reference'))
 const withLastFrame = c.models.filter(m => m.operations.some(o => o.parameters.some(p => p.name === 'return_last_frame'))).map(m => m.id)
-check('return_last_frame only on seedance-2.0', eq(withLastFrame, ['bytedance/seedance-2.0']), withLastFrame)
+check('return_last_frame on Seedance 2.0 and Seedance 2.5 Flash', eq(withLastFrame, ['bytedance/seedance-2.0', 'bytedance/seedance-2.5-flash']), withLastFrame)
 check('seedance-2.0 resolution up to 4K', sameSet(vals('bytedance/seedance-2.0', 'resolution'), ['480p', '720p', '1080p', '4K']), vals('bytedance/seedance-2.0', 'resolution'))
 for (const s of ['seedance-2.0-fast', 'seedance-2.0-mini']) {
   const id = 'bytedance/' + s
