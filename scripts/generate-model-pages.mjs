@@ -224,7 +224,8 @@ function exampleRequest(model, view, mode) {
     }
   }
   const promptless = mode === "layer_decomposition" || PROMPTLESS_MODES[view.operation]?.includes(mode)
-  const prompt = model.id === 'heygen/avatar-iv' ? 'Welcome to the team. Here is what to expect on your first day.' : EXAMPLE_PROMPT[view.operation]
+  const scriptedAvatar = ['heygen/avatar-iv', 'pruna/p-video-avatar'].includes(model.id)
+  const prompt = scriptedAvatar ? 'Welcome to the team. Here is what to expect on your first day.' : EXAMPLE_PROMPT[view.operation]
   const input = promptless ? { type: mode } : { type: mode, prompt }
   if (AUTO_LYRICS_MODELS.has(model.id)) parameters.lyrics_optimizer = true
   else if (EXAMPLE_LYRICS[view.operation]) input.lyrics = EXAMPLE_LYRICS[view.operation]
