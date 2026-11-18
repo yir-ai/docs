@@ -6,5 +6,5 @@ export default defineMeta({
   icon: "<svg viewBox=\"0 0 24 24\" width=\"100%\" height=\"100%\" fill=\"currentColor\" fill-rule=\"evenodd\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M1 1h10v10H1zM13 1h10v10H13zM1 13h10v10H1zM13 13h10v10H13z\"/></svg>",
   display: "group",
   collapsed: true,
-  pages: ["mai-image-2-6","mai-image-2-6-flash"],
+  pages: ["mai-image-2-6","mai-image-2-6-flash","mai-image-2-7","mai-image-2-7-flash"],
 });

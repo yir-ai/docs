@@ -1,0 +1,73 @@
+---
+title: "HY Image 3.5 Preview"
+description: "腾讯混元生图模型预览版，支持文生与最多 5 张参考图编辑，最高 4K"
+seo:
+  title: "HY Image 3.5 Preview API 文档：参数与调用示例"
+  description: "HY Image 3.5 Preview API 文档：模型 ID tencent/hy-image-3.5-preview、输入模式、参数取值与默认值，附请求示例。腾讯混元生图模型预览版，支持文生与最多 5 张参考图编辑，最高 4K。"
+---
+
+{/* 由 scripts/generate-model-pages.mjs 根据 openapi/model-contracts.json 生成，请勿手改；补充说明写在 docs/zh/models/_notes/ */}
+
+| 模型 ID | 别名 | 接口 |
+| --- | --- | --- |
+| `tencent/hy-image-3.5-preview` | `hy-image-v3.5-preview`、`hy-image-3.5-preview` | [图片生成](/zh/docs/guides/image-generation) |
+
+## 输入模式
+
+| 模式 | 参考数量 | 参考角色 |
+| --- | --- | --- |
+| `text` 纯文本 | — | — |
+| `image` 图片输入 | 1–5 | `reference_image` |
+
+## 参数
+
+| 参数 | 说明 | 取值 | 默认值 | 必填 |
+| --- | --- | --- | --- | --- |
+| `resolution` | 分辨率：输出内容的分辨率。 | `1K`、`2K`、`4K` | `1K` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text` 模式。 | `1:1`、`4:3`、`3:4`、`16:9`、`9:16`、`3:2`、`2:3`、`5:4`、`4:5`、`21:9` | `1:1` | 否 |
+| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `image` 模式。 | `auto`、`1:1`、`4:3`、`3:4`、`16:9`、`9:16`、`3:2`、`2:3`、`5:4`、`4:5`、`21:9` | `auto` | 否 |
+| `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
+
+## 示例
+
+`text` 输入：
+
+```json
+{
+  "model": "tencent/hy-image-3.5-preview",
+  "input": {
+    "type": "text",
+    "prompt": "A watercolor fox reading a map in a pine forest"
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "1:1",
+    "n": 1
+  }
+}
+```
+
+`image` 输入：
+
+```json
+{
+  "model": "tencent/hy-image-3.5-preview",
+  "input": {
+    "type": "image",
+    "prompt": "A watercolor fox reading a map in a pine forest",
+    "references": [
+      {
+        "role": "reference_image",
+        "file_id": "file_..."
+      }
+    ]
+  },
+  "parameters": {
+    "resolution": "1K",
+    "aspect_ratio": "auto",
+    "n": 1
+  }
+}
+```
+
+完整合同以 `GET /v1/models/tencent/hy-image-3.5-preview?view=contract` 为准。参数合法不代表每个渠道都能执行，请对完整请求[报价](/zh/docs/concepts/billing#获取报价)。价格与渠道见[模型市场](https://yir.ai/zh/models)。

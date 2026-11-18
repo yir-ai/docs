@@ -20,7 +20,7 @@ const LOCALES = {
 const CREATORS = {
   alibaba: 'Alibaba', bfl: 'Black Forest Labs', bytedance: 'ByteDance', elevenlabs: 'ElevenLabs', google: 'Google', heygen: 'HeyGen', higgsfield: 'Higgsfield', hitem3d: 'Hitem3D', ideogram: 'Ideogram', krea: "Krea", klingai: 'Kling AI',
   meshy: 'Meshy', meta: 'Meta', microsoft: 'Microsoft', midjourney: 'Midjourney', minimax: 'MiniMax', nanoapi: 'NanoAPI', openai: 'OpenAI', pixverse: 'PixVerse', prodia: 'Prodia', pruna: 'Pruna AI', recraft: 'Recraft', reve: 'Reve', 'skywork-ai': 'Skywork AI', spacexai: 'xAI', suno: 'Suno',
-  topaz: 'Topaz Labs', tripo: 'Tripo',
+  tencent: 'Tencent', topaz: 'Topaz Labs', tripo: 'Tripo',
 }
 
 // Models whose notes are shared with another page.
@@ -356,7 +356,7 @@ export function renderPage(model, lang, notesFile) {
 // it follows the sidebar text color in both themes. Same marks as yir-web.
 function creatorIcon(creator) {
   const paths = creatorMarks[creator]
-  if (!paths && ['ideogram', 'krea', 'pixverse', 'skywork-ai'].includes(creator)) return ''
+  if (!paths && ['ideogram', 'krea', 'pixverse', 'skywork-ai', 'tencent'].includes(creator)) return ''
   if (!paths) throw new Error(`Add a sidebar mark for creator ${creator}`)
   return `<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor" fill-rule="evenodd" xmlns="http://www.w3.org/2000/svg">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`
 }
