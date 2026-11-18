@@ -130,6 +130,12 @@ const TEXT = {
 
 const EXAMPLE_ROLE = { image: ['first_frame', 'reference_image'], reference: ['reference_image', 'reference_video'], multiview: ['front_view', 'back_view'] }
 const EXAMPLE_PROMPT = { generate_image: 'A watercolor fox reading a map in a pine forest', generate_video: 'A paper boat drifting down a rainy city street, slow tracking shot', generate_music: 'Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk', generate_sound_effect: 'A heavy wooden door creaking open in an empty stone hall', generate_speech: 'Good morning. The city is still waking up.', generate_3d: 'A weathered wooden armchair with a woven seat' }
+const AVATAR_SCRIPT = 'Welcome to the team. Here is what to expect on your first day.'
+const AVATAR_PROMPTS = {
+  'heygen/avatar-iv': AVATAR_SCRIPT,
+  'pruna/p-video-avatar': AVATAR_SCRIPT,
+  'heygen/heygen-avatar-6-turbo': 'Face the camera and use small, natural hand gestures while speaking.',
+}
 // 3D image and multi-view input take no prompt.
 const PROMPTLESS_MODES = { generate_3d: ['image', 'multiview'] }
 // Vocal music with default parameters needs lyrics.
@@ -224,8 +230,7 @@ function exampleRequest(model, view, mode) {
     }
   }
   const promptless = mode === "layer_decomposition" || PROMPTLESS_MODES[view.operation]?.includes(mode)
-  const scriptedAvatar = ['heygen/avatar-iv', 'pruna/p-video-avatar'].includes(model.id)
-  const prompt = scriptedAvatar ? 'Welcome to the team. Here is what to expect on your first day.' : EXAMPLE_PROMPT[view.operation]
+  const prompt = AVATAR_PROMPTS[model.id] ?? EXAMPLE_PROMPT[view.operation]
   const input = promptless ? { type: mode } : { type: mode, prompt }
   if (AUTO_LYRICS_MODELS.has(model.id)) parameters.lyrics_optimizer = true
   else if (EXAMPLE_LYRICS[view.operation]) input.lyrics = EXAMPLE_LYRICS[view.operation]

@@ -1,0 +1,5 @@
+用 `reference_image` 传一张人像照片，用 `reference_audio` 传一段语音。可用 `input.prompt` 描述动作和表情。fal 路线交付一段 1080p 视频，画幅跟随照片，时长跟随音频。
+
+刊例价为 $0.05／输出秒。通过 Files API 上传音频，再传 `file_id`，即可按实测音频时长获取任务估价并使用 `max_cost`。最终按 fal 的逐任务实扣结算。
+
+Yir 当前提供 1080p 照片加语音。[HeyGen 原厂 API](https://developers.heygen.com/docs/models/avatar-6) 还提供 2K、参考视频及预设数字人。

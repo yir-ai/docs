@@ -1,0 +1,5 @@
+Send one portrait as `reference_image` and one speech recording as `reference_audio`. Use `input.prompt` for optional motion and expression directions. The fal route produces one 1080p video and follows the portrait's aspect ratio and the recording's duration.
+
+The listed rate is $0.05 per output second. Upload the audio through the Files API and pass its `file_id` to get a task estimate and use `max_cost`. The estimate uses the measured recording length. Final settlement uses fal's charge for the task.
+
+Yir currently offers the photo-and-audio mode at 1080p. The [HeyGen API](https://developers.heygen.com/docs/models/avatar-6) also offers 2K, video references and preset avatars.
