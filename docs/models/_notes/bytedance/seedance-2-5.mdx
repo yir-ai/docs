@@ -50,3 +50,9 @@ For estimates and admission, Yir rounds the longest measured reference duration 
 Omitting `duration` keeps the default of 4 seconds. Explicit integer durations keep their existing behavior; do not send the upstream value `-1` to Yir.
 
 All modes accept `parameters.resolution: "1080p"` at the model level. Quote the exact request to see which channels support that mode and resolution. The official channel supports 1080p for text-to-video. Omitting `resolution` selects `720p`. The official 1080p no-video-input rate is USD 11.70 per million video tokens. At 16:9 and 24 fps, a 4-second output estimate is USD 2.27448; final settlement uses the reported task cost. For exact pixels, this text route also accepts `parameters.size: "1920x1080"` (AI SDK `resolution: "1920x1080"`), bound to 1080p and 16:9. Conflicting ratios/tiers and other pixel sizes are rejected.
+
+## Native 4K
+
+Set `parameters.resolution` to `"4K"` for APIMart or KIE. Text and reference generation use `aspect_ratio: "16:9"`. Image-to-video uses `auto` and follows the first frame. Use a 16:9 first frame for landscape output.
+
+The native output uses 10-bit HEVC. Check playback support before using it in a browser or editing workflow. With reference video, the estimate includes input and output seconds. Use a ready `file_id` or declare the video's duration for a URL quote. Final charges follow the selected channel's task bill.

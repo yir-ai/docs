@@ -92,13 +92,15 @@ For `google/veo-3.1-generate-001`, first-frame `image` mode may omit `input.prom
 
 Yir's Seedance defaults differ from ByteDance's: when omitted, `resolution` is `480p` (`720p` for Seedance 2.5) instead of `720p`, `duration` is `4` seconds (`5` for 2.0 Fast and 2.0 Mini) instead of `5` or model-chosen, `aspect_ratio` is `16:9` instead of `adaptive` (Seedance 2.5 with a first frame uses `auto`), and `generate_audio` is `false` instead of `true`. Set these parameters explicitly if you relied on ByteDance's defaults. The upstream `duration: -1` value is not accepted directly. Seedance 2.5 reference-video edits can use Yir's `duration: "auto"` with `aspect_ratio: "auto"`; other input modes retain fixed durations. `camera_fixed`, `draft`, `service_tier` and `priority` are not available on any Seedance model.
 
+Seedance 2.5 adds native `4K` on APIMart and KIE. Text and reference generation use 16:9, and image generation follows the first frame. See [the model notes](/docs/models/bytedance/seedance-2-5#native-4k) for playback and billing details.
+
 | Model | Parameter or feature | ByteDance API | Yir |
 | --- | --- | --- | --- |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini`, `-2.5` | `return_last_frame` | Available. | Yir exposes it on `bytedance/seedance-2.0` and `bytedance/seedance-2.5-flash`. |
 | `bytedance/seedance-2.0` | `resolution` | Up to `4k`. | Up to `4K`; `4K` runs on the APIMart standard, KIE and fal channels only. |
 | `bytedance/seedance-2.0-fast`, `-2.0-mini` | `aspect_ratio` | Includes `adaptive`. | Fixed ratios only. |
 | `bytedance/seedance-2.0`, `-2.0-fast`, `-2.0-mini` | Reference video and audio duration | Each clip 2–15 seconds, at most 15 seconds in total per type. | Same limits, checked on measured durations: Quote and Submit reject uploaded files that exceed them with `YIR_INVALID_REQUEST` on `input.references[i]`, and URL references fail after import, before any upstream submission. |
-| `bytedance/seedance-2.5` | `resolution` | Up to `1080p`. | `480p`, `720p` or `1080p` for text, image and reference input. Default remains `720p`. |
+| `bytedance/seedance-2.5` | `resolution` | Up to `4K`. | `480p`, `720p`, `1080p` or `4K` for text, image and reference input. Default remains `720p`. |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`, the only option with a first frame or first and last frames. | Named `auto`. With a first frame or first and last frames, only `auto` is accepted and it is the default. |
 | `bytedance/seedance-2.5` | Task type (`omni_reference_task_type`), audio-only references, `output_format: mov` | Available. | `task_type` accepts `auto` (default), `reference`, `edit` and `extend`. `edit` follows the reference video's duration and aspect ratio, needs a 4–30 second reference video, and runs on fewer channels; `duration: "auto"` with `aspect_ratio: "auto"` still lets the model decide. Reference videos are 2–30 seconds each and at most 30 seconds in total; reference audio is at most 30 seconds in total. No MOV parameter. Audio-only references (up to 10 `reference_audio` clips) run on the APIMart channel only. |
 | `bytedance/seedream-4.5` | References | Up to 14 images. | Up to 10. `9:21` only with references. |

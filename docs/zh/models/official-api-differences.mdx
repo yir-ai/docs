@@ -94,13 +94,15 @@ GPT Image 2.6 另外支持 `output_format: gif`（配合 `frame_count`、`frame_
 
 Yir 的 Seedance 默认值与字节跳动不同：省略时 `resolution` 为 `480p`（Seedance 2.5 为 `720p`），而非 `720p`；`duration` 为 `4` 秒（2.0 Fast 与 2.0 Mini 为 `5` 秒），而非 `5` 秒或由模型决定；`aspect_ratio` 为 `16:9` 而非 `adaptive`（Seedance 2.5 带首帧时为 `auto`）；`generate_audio` 为 `false` 而非 `true`。如果依赖字节跳动的默认值，请显式设置这些参数。Yir 不直接接受上游的 `duration: -1`。Seedance 2.5 参考视频编辑可使用 `duration: "auto"` 和 `aspect_ratio: "auto"`，其他输入模式仍使用固定时长。所有 Seedance 模型都不提供 `camera_fixed`、`draft`、`service_tier` 和 `priority`。
 
+Seedance 2.5 可通过 APIMart 和 KIE 生成原生 `4K`。文生与参考生使用 16:9，图生跟随首帧。播放和计费见[模型说明](/zh/docs/models/bytedance/seedance-2-5#原生-4k)。
+
 | 模型 | 参数或功能 | 字节跳动 API | Yir |
 | --- | --- | --- | --- |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini`、`-2.5` | `return_last_frame` | 支持。 | Yir 在 `bytedance/seedance-2.0` 和 `bytedance/seedance-2.5-flash` 开放该参数。 |
 | `bytedance/seedance-2.0` | `resolution` | 最高 `4k`。 | 最高 `4K`；`4K` 只走 APIMart 标准版、KIE 与 fal 渠道。 |
 | `bytedance/seedance-2.0-fast`、`-2.0-mini` | `aspect_ratio` | 包含 `adaptive`。 | 只有固定比例。 |
 | `bytedance/seedance-2.0`、`-2.0-fast`、`-2.0-mini` | 参考视频与音频时长 | 每段 2–15 秒，同类合计不超过 15 秒。 | 限制相同，按实测时长判断：超限的上传文件在报价与提交时返回 `YIR_INVALID_REQUEST`（字段 `input.references[i]`），URL 素材在导入实测后失败，不会提交到上游。 |
-| `bytedance/seedance-2.5` | `resolution` | 最高 `1080p`。 | 文生、图片、参考均可用 `480p`、`720p`、`1080p`。默认仍为 `720p`。 |
+| `bytedance/seedance-2.5` | `resolution` | 最高 `4K`。 | 文生、图生、参考生均支持 `480p`、`720p`、`1080p`、`4K`。默认仍为 `720p`。 |
 | `bytedance/seedance-2.5` | `aspect_ratio` | `adaptive`，首帧与首尾帧只支持该值。 | 名为 `auto`。首帧与首尾帧只接受 `auto`，也是默认值。 |
 | `bytedance/seedance-2.5` | 任务类型（`omni_reference_task_type`）、纯音频参考、`output_format: mov` | 支持。 | `task_type` 可取 `auto`（默认）、`reference`、`edit`、`extend`。`edit` 的时长与画幅跟随参考视频，需要 4–30 秒的参考视频，可用渠道较少；`duration: "auto"` 加 `aspect_ratio: "auto"` 仍由模型自行判断。参考视频每段 2–30 秒、合计不超过 30 秒，参考音频合计不超过 30 秒。不提供 MOV 参数。纯音频参考（最多 10 段 `reference_audio`）只走 APIMart 渠道。 |
 | `bytedance/seedream-4.5` | 参考图 | 最多 14 张。 | 最多 10 张。`9:21` 仅在有参考图时可用。 |
