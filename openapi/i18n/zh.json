@@ -99,6 +99,8 @@
   "The model contract is unchanged since the version named by If-None-Match; no body.": "模型合同自 If-None-Match 所指版本以来未变；无响应体。",
   "Image quality tier when the request constrains one; absent when omitted, which lets any channel run.": "请求约束的图片画质档位；省略时不出现，表示任何渠道都可执行。",
   "Present when the model declares generate_audio.": "模型声明 generate_audio 时出现。",
+  "Video dynamic range. Defaults to SDR. HDR requires a model, resolution, and channel that declare HDR support.": "视频动态范围，默认 SDR。HDR 要求模型、分辨率和渠道均明确支持。",
+  "Present for HDR video requests. Omitted for SDR.": "请求 HDR 视频时返回。SDR 时省略。",
   "The normalized parameters the Job executes with, in the same shape as the quote echo, so a caller can check the delivered result against what was charged. Present from creation.": "Job 实际执行的规范化参数，与报价回显同形，供调用方核对交付结果与扣费。自创建起即存在。",
   "true when a request must send the parameter because the contract publishes no default. A parameter with a default is optional: an omitted value executes and is billed at that default.": "合同未发布默认值、请求必须传该参数时为 true。有默认值的参数是可选的：省略时按该默认值执行并计费。",
   "The value an omitted parameter resolves to. Absent only for required parameters and for quality, whose omission means no constraint.": "省略该参数时采用的值。只有必填参数和 quality 没有默认值；省略 quality 表示不约束。",

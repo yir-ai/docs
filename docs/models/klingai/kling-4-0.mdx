@@ -36,11 +36,12 @@ Give references the same `references[].subject` name to group them into one subj
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
 | `duration` | Duration: Output video duration in seconds. | `3` to `30` | `5` | No |
-| `resolution` | Resolution: Output resolution. | `720p`, `1080p` | `720p` | No |
+| `resolution` | Resolution: Output resolution. | `720p`, `1080p`, `4K` | `720p` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9`, `9:16`, `1:1`, `21:9` | `16:9` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `auto` | `auto` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `auto`, `16:9`, `9:16`, `1:1`, `21:9` | `auto` | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
+| `dynamic_range` | Dynamic range: HDR outputs 10-bit HLG video in HEVC and is available at 1080p, 4K. | `sdr`, `hdr` | `sdr` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
@@ -59,6 +60,7 @@ Give references the same `references[].subject` name to group them into one subj
     "resolution": "720p",
     "aspect_ratio": "16:9",
     "generate_audio": true,
+    "dynamic_range": "sdr",
     "n": 1
   }
 }
@@ -84,6 +86,7 @@ Give references the same `references[].subject` name to group them into one subj
     "resolution": "720p",
     "aspect_ratio": "auto",
     "generate_audio": true,
+    "dynamic_range": "sdr",
     "n": 1
   }
 }
@@ -109,6 +112,7 @@ Give references the same `references[].subject` name to group them into one subj
     "resolution": "720p",
     "aspect_ratio": "auto",
     "generate_audio": true,
+    "dynamic_range": "sdr",
     "n": 1
   }
 }

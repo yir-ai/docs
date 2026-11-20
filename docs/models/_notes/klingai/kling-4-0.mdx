@@ -1,3 +1,7 @@
 In `image` mode, add up to 8 `keyframe` references between `first_frame` and the optional `last_frame`. Keyframes play in the order they appear in `references` (they carry no timestamp), and the same image may appear more than once to return to a shot. Name frames in the prompt as `@first_frame`, `@keyframe_1`, `@keyframe_2` and `@last_frame`; every name must match a frame in the request.
 
 The total number of frames (first, keyframes and last) is capped by duration: 3 to 8 seconds allow duration + 1 frames (for example 4 frames at 3 seconds), and 9 seconds or longer allow 10. Keyframes cost nothing extra; the price is per output second.
+
+KIE supports `resolution: "4K"` in text, image, and reference modes. Set `dynamic_range: "hdr"` at 1080p or 4K for 10-bit HLG video in HEVC. The default is SDR.
+
+Without video input, the base charge is per output second. With a reference video or a video subject, the base charge covers the output duration plus the greater of the input and output durations. The HDR surcharge applies only to output seconds. Use the video quote endpoint for the current price.

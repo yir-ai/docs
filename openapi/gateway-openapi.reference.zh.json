@@ -2239,6 +2239,14 @@
               "generate_audio": {
                 "type": "boolean"
               },
+              "dynamic_range": {
+                "type": "string",
+                "enum": [
+                  "sdr",
+                  "hdr"
+                ],
+                "description": "视频动态范围，默认 SDR。HDR 要求模型、分辨率和渠道均明确支持。"
+              },
               "n": {
                 "type": "integer",
                 "enum": [
@@ -2329,6 +2337,14 @@
               },
               "generate_audio": {
                 "type": "boolean"
+              },
+              "dynamic_range": {
+                "type": "string",
+                "enum": [
+                  "sdr",
+                  "hdr"
+                ],
+                "description": "视频动态范围，默认 SDR。HDR 要求模型、分辨率和渠道均明确支持。"
               },
               "n": {
                 "type": "integer",
@@ -3349,6 +3365,13 @@
           "generate_audio": {
             "type": "boolean",
             "description": "模型声明 generate_audio 时出现。"
+          },
+          "dynamic_range": {
+            "type": "string",
+            "enum": [
+              "hdr"
+            ],
+            "description": "请求 HDR 视频时返回。SDR 时省略。"
           },
           "instrumental": {
             "type": "boolean",
