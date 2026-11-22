@@ -205,7 +205,7 @@
             "$ref": "#/components/responses/InsufficientBalance"
           },
           "403": {
-            "$ref": "#/components/responses/SpendLimitExceeded"
+            "$ref": "#/components/responses/SubmissionForbidden"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -415,7 +415,7 @@
             "$ref": "#/components/responses/InsufficientBalance"
           },
           "403": {
-            "$ref": "#/components/responses/SpendLimitExceeded"
+            "$ref": "#/components/responses/SubmissionForbidden"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -557,7 +557,7 @@
             "$ref": "#/components/responses/InsufficientBalance"
           },
           "403": {
-            "$ref": "#/components/responses/SpendLimitExceeded"
+            "$ref": "#/components/responses/SubmissionForbidden"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -696,7 +696,7 @@
             "$ref": "#/components/responses/InsufficientBalance"
           },
           "403": {
-            "$ref": "#/components/responses/SpendLimitExceeded"
+            "$ref": "#/components/responses/SubmissionForbidden"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -835,7 +835,7 @@
             "$ref": "#/components/responses/InsufficientBalance"
           },
           "403": {
-            "$ref": "#/components/responses/SpendLimitExceeded"
+            "$ref": "#/components/responses/SubmissionForbidden"
           },
           "409": {
             "$ref": "#/components/responses/Conflict"
@@ -1513,8 +1513,24 @@
       "InsufficientBalance": {
         "$ref": "#/components/responses/StandardError"
       },
-      "SpendLimitExceeded": {
-        "$ref": "#/components/responses/StandardError"
+      "SubmissionForbidden": {
+        "description": "The API key reached its monthly spend limit (YIR_SPEND_LIMIT_EXCEEDED), or the account is restricted from submitting new Jobs (YIR_ACCOUNT_RESTRICTED), for example paused after repeated content safety rejections. Neither is retried automatically.",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Seconds until submission resumes when YIR_ACCOUNT_RESTRICTED has action retry_later."
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
       },
       "Conflict": {
         "$ref": "#/components/responses/StandardError"
@@ -1523,14 +1539,14 @@
         "$ref": "#/components/responses/StandardError"
       },
       "RateLimited": {
-        "description": "Too many Jobs are in progress, the API key exceeded its per-minute request rate, or the account is temporarily paused from submitting new Jobs after repeated content safety rejections (YIR_RATE_LIMITED).",
+        "description": "Too many Jobs are in progress, or the API key exceeded its per-minute request rate (YIR_RATE_LIMITED).",
         "headers": {
           "Retry-After": {
             "schema": {
               "type": "integer",
               "minimum": 1
             },
-            "description": "Seconds to wait when the per-minute rate was exceeded or new Job submission is temporarily paused."
+            "description": "Seconds to wait when the per-minute rate was exceeded."
           }
         },
         "content": {
@@ -3432,7 +3448,8 @@
               "YIR_OUTCOME_TIMEOUT",
               "YIR_RESULT_DELIVERY_FAILED",
               "YIR_JOB_TIMEOUT",
-              "YIR_FIDELITY_EXCLUDED"
+              "YIR_FIDELITY_EXCLUDED",
+              "YIR_ACCOUNT_RESTRICTED"
             ]
           },
           "message": {
