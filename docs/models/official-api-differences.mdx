@@ -60,7 +60,6 @@ Model: `google/gemini-omni-1.1-flash`.
 | Last frame | First-to-last-frame interpolation. | `image` mode accepts a `first_frame` plus an optional `last_frame`. First and last frames run on the KIE channel only. |
 | Reference images | Several reference images. | Up to 7 `reference_image` references; more than 3 runs on the KIE channel only. |
 | Reference videos, edit, extend | Supported. | Not available. |
-| Audio | Native audio; no mute control. | No `generate_audio` parameter. `generate_audio: true` is accepted and treated as omitted (also for `google/gemini-omni-1.2-flash`); `false` is rejected because silent output cannot be guaranteed. |
 
 Migrating: set `duration` explicitly to one of the supported lengths; other values are rejected rather than rounded.
 

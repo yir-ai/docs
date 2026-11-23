@@ -62,7 +62,6 @@ GPT Image 2.6 另外支持 `output_format: gif`（配合 `frame_count`、`frame_
 | 尾帧 | 支持首尾帧插值。 | `image` 模式接受 `first_frame`，可选再加 `last_frame`。首尾帧只走 KIE 渠道。 |
 | 参考图 | 可用多张参考图。 | 最多 7 个 `reference_image`；超过 3 张只走 KIE 渠道。 |
 | 参考视频、编辑、延长 | 支持。 | 不可用。 |
-| 音频 | 原生音轨，没有静音开关。 | 没有 `generate_audio` 参数。传 `generate_audio: true` 会接受并按未传处理（`google/gemini-omni-1.2-flash` 同样适用）；传 `false` 会被拒绝，因为无法保证静音。 |
 
 迁移时：显式设置一个支持的 `duration`；其他取值会被拒绝，不会就近取整。
 
