@@ -29,9 +29,8 @@ Prompt limit: 2,500 characters (`text`, `reference`); longer prompts are rejecte
 | `duration` | Duration: Output video duration in seconds. | `3` to `15` | `5` | No |
 | `resolution` | Resolution: Output resolution. Only in `text`, `image`. | `720p`, `1080p` | `720p` | No |
 | `resolution` | Resolution: Output resolution. Only in `reference`. | `720p`, `1080p` | `1080p` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`. | `16:9` | `16:9` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`, `reference`. | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | `16:9` | No |
 | `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `image`. | `adaptive` | `adaptive` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `reference`. | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | `16:9` | No |
 | `generate_audio` | Generate audio: Generate native audio with the video. | `true` | `true` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 

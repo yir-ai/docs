@@ -117,7 +117,7 @@ Where Alibaba defaults to `1080P` (Wan 2.6, Wan 2.7, Wan 3.0, HappyHorse 1.1) Yi
 | Model | Parameter or feature | Alibaba API | Yir |
 | --- | --- | --- | --- |
 | `alibaba/happyhorse-1.1` | `duration` | Any integer from 3 to 15. | Any integer from 3 to 15; default `5`. |
-| `alibaba/happyhorse-1.1` | `resolution`, `aspect_ratio` | `480P` to `1080P`; 9 ratios for text-to-video and reference-to-video. | `720p` or `1080p`; text-to-video is `16:9` only; reference-to-video offers `16:9`, `9:16`, `1:1`, `4:3`, `3:4`. |
+| `alibaba/happyhorse-1.1` | `resolution`, `aspect_ratio` | `480P` to `1080P`; 9 ratios for text-to-video and reference-to-video. | `720p` or `1080p`; text-to-video and reference-to-video offer `16:9`, `9:16`, `1:1`, `4:3`, `3:4`. |
 | `alibaba/happyhorse-1.1` | Reference to video | 1 to 9 reference images. | 1 to 9 `reference_image` references, on the APIMart channel only; defaults follow Alibaba (`1080p`, `16:9`, 5 s). |
 | `alibaba/qwen-image-2.1` | Size | Any area from 512² to 2048², ratios from 1:8 to 8:1. | `1K` or `2K` with 7 ratios. |
 | `alibaba/qwen-image-3.0-pro` | Image editing | 1 to 3 input images. | One output in 1K or 2K, with 1 to 3 reference images and 5 ratios. |
@@ -143,7 +143,7 @@ BFL sets output size with `width` and `height`; Yir offers `resolution` tiers an
 | --- | --- | --- | --- |
 | `bfl/flux-2-flex` | Editing with up to 8 input images | Available. | 1 to 8 reference images, with one square 1MP output. |
 | `bfl/flux-2-flex` | `steps`, `guidance`, `prompt_upsampling` | Available. | Not available. |
-| `bfl/flux-2-flex`, `bfl/flux-2-pro` | Size | Up to 4 MP. | `1MP` with 5 ratios for text input. FLUX.2 Flex editing uses `1:1`. |
+| `bfl/flux-2-flex`, `bfl/flux-2-pro` | Size | Up to 4 MP. | `1MP` with 5 ratios for text input. FLUX.2 Flex editing uses `1:1`. On BFL models whose only tier is `1MP`, `resolution: "1K"` is accepted as `1MP`. |
 | `bfl/flux-2-max` | Size, editing | Up to 4 MP, editing with up to 8 input images. | One `1MP` output at `1:1`. Editing accepts 1 to 8 reference images. |
 | `bfl/flux-2-pro`, `bfl/flux-2-max` | `disable_pup` | Turns prompt upsampling off. | Not available; upsampling stays on. |
 | `bfl/flux-kontext-pro` | `aspect_ratio` | Any ratio from 21:9 to 9:21; edits keep the input's shape when omitted. | 9 preset ratios; default `1:1`. |

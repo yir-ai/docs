@@ -86,7 +86,7 @@ for (const q of ['qwen-image-2.1', 'qwen-image-3.0-pro']) check(`${q} default 1K
 const hh = 'alibaba/happyhorse-1.1'
 check('happyhorse duration 3..15 default 5', P(hh, 'duration')?.minimum === 3 && P(hh, 'duration')?.maximum === 15 && def(hh, 'duration') === 5, P(hh, 'duration'))
 check('happyhorse reference: 1-9 images, 5 ratios, default 1080p', C(hh, 'reference')?.max_references === 9 && sameSet(vals(hh, 'aspect_ratio', 'reference'), ['16:9', '9:16', '1:1', '4:3', '3:4']) && def(hh, 'resolution', 'reference') === '1080p', [C(hh, 'reference'), vals(hh, 'aspect_ratio', 'reference'), def(hh, 'resolution', 'reference')])
-check('happyhorse res 720p/1080p, text 16:9 only', sameSet(vals(hh, 'resolution'), ['720p', '1080p']) && sameSet(vals(hh, 'aspect_ratio'), ['16:9']), [vals(hh, 'resolution'), vals(hh, 'aspect_ratio')])
+check('happyhorse res 720p/1080p, text 5 ratios', sameSet(vals(hh, 'resolution'), ['720p', '1080p']) && sameSet(vals(hh, 'aspect_ratio'), ['16:9', '9:16', '1:1', '4:3', '3:4']), [vals(hh, 'resolution'), vals(hh, 'aspect_ratio')])
 check('qwen-image-2.1 1K/2K with 7 ratios', sameSet(vals('alibaba/qwen-image-2.1', 'resolution'), ['1K', '2K']) && vals('alibaba/qwen-image-2.1', 'aspect_ratio').length === 7, [vals('alibaba/qwen-image-2.1', 'resolution'), vals('alibaba/qwen-image-2.1', 'aspect_ratio')?.length])
 const qwen30 = 'alibaba/qwen-image-3.0-pro'
 check('qwen-image-3.0-pro editing: 1–3 references, 5 ratios, 1K or 2K', sameSet(modes(qwen30), ['image', 'text']) && C(qwen30, 'image')?.min_references === 1 && C(qwen30, 'image')?.max_references === 3 && vals(qwen30, 'aspect_ratio', 'image').length === 5 && sameSet(vals(qwen30, 'resolution', 'image'), ['1K', '2K']), C(qwen30, 'image'))

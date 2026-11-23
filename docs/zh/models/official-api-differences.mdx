@@ -119,7 +119,7 @@ Seedance 2.5 可通过 APIMart 和 KIE 生成原生 `4K`。文生与参考生使
 | 模型 | 参数或功能 | 阿里巴巴 API | Yir |
 | --- | --- | --- | --- |
 | `alibaba/happyhorse-1.1` | `duration` | 3–15 之间任意整数。 | 3–15 之间任意整数，默认 `5`。 |
-| `alibaba/happyhorse-1.1` | `resolution`、`aspect_ratio` | `480P` 到 `1080P`；文生与参考生视频 9 种比例。 | `720p` 或 `1080p`；文生视频只有 `16:9`；参考生视频可选 `16:9`、`9:16`、`1:1`、`4:3`、`3:4`。 |
+| `alibaba/happyhorse-1.1` | `resolution`、`aspect_ratio` | `480P` 到 `1080P`；文生与参考生视频 9 种比例。 | `720p` 或 `1080p`；文生与参考生视频都可选 `16:9`、`9:16`、`1:1`、`4:3`、`3:4`。 |
 | `alibaba/happyhorse-1.1` | 参考生视频 | 1–9 张参考图。 | 1–9 个 `reference_image`，只走 APIMart 渠道；默认值随阿里巴巴（`1080p`、`16:9`、5 秒）。 |
 | `alibaba/qwen-image-2.1` | 尺寸 | 面积 512² 到 2048² 任意，比例 1:8 到 8:1。 | `1K` 或 `2K`，7 种比例。 |
 | `alibaba/qwen-image-3.0-pro` | 图片编辑 | 1–3 张输入图。 | 接收 1–3 张参考图，输出一张 1K 或 2K 图，支持 5 种画幅。 |
@@ -145,7 +145,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | --- | --- | --- | --- |
 | `bfl/flux-2-flex` | 最多 8 张输入图的编辑 | 支持。 | 接收 1–8 张参考图，输出一张 1MP 方图。 |
 | `bfl/flux-2-flex` | `steps`、`guidance`、`prompt_upsampling` | 支持。 | 不可用。 |
-| `bfl/flux-2-flex`、`bfl/flux-2-pro` | 尺寸 | 最高 4 MP。 | 文生为 `1MP`，支持 5 种画幅。FLUX.2 Flex 编辑为 `1:1`。 |
+| `bfl/flux-2-flex`、`bfl/flux-2-pro` | 尺寸 | 最高 4 MP。 | 文生为 `1MP`，支持 5 种画幅。FLUX.2 Flex 编辑为 `1:1`。只有 `1MP` 档的 BFL 模型也接受 `resolution: "1K"`，按 `1MP` 处理。 |
 | `bfl/flux-2-max` | 尺寸、编辑 | 最高 4 MP，最多 8 张输入图编辑。 | 输出一张 `1MP` `1:1` 图片。编辑接收 1–8 张参考图。 |
 | `bfl/flux-2-pro`、`bfl/flux-2-max` | `disable_pup` | 可关闭提示词扩写。 | 不可用；扩写始终开启。 |
 | `bfl/flux-kontext-pro` | `aspect_ratio` | 21:9 到 9:21 之间任意比例；编辑时省略则保持输入图形状。 | 9 种预设比例；默认 `1:1`。 |
