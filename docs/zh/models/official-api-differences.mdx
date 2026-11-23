@@ -16,7 +16,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)、[音乐生成](/zh/docs/guides/music-generation)和 [3D 生成](/zh/docs/guides/3d-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
 | 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而不同。 |
-| 输出数量 | 很多 API 允许 `n` 大于 1。 | Suno v6 系列和 `suno/suno-speech` 每次返回两个音频文件（`n: 2`）。`midjourney/midjourney-v8.2` 每次返回四张图（`n: 4`）。Seedream 5.5 图层拆分使用 `max_images`（2–100，默认 30）。其他模型使用 `n: 1`。分别生成时，每个 Job 使用独立幂等键。 |
+| 输出数量 | 很多 API 允许 `n` 大于 1。 | Suno v6 系列和 `suno/suno-speech` 每次返回两个音频文件（`n: 2`）。`midjourney/midjourney-v8.2` 每次返回四张图（`n: 4`）；传 `n: 1` 也会接受，按同一单次价格交付全部四张，并返回参数通知。Seedream 5.5 图层拆分使用 `max_images`（2–100，默认 30）。其他模型使用 `n: 1`。分别生成时，每个 Job 使用独立幂等键。 |
 | 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`，3D 多视角输入为 `front_view`、`left_view`、`back_view`、`right_view`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
 | 默认值 | 厂商的默认值，有时是“由模型决定”。 | Yir 合同中的 `default`。省略参数即采用该默认值，可能与厂商不同（见下方各模型）。 |
@@ -62,6 +62,7 @@ GPT Image 2.6 另外支持 `output_format: gif`（配合 `frame_count`、`frame_
 | 尾帧 | 支持首尾帧插值。 | `image` 模式接受 `first_frame`，可选再加 `last_frame`。首尾帧只走 KIE 渠道。 |
 | 参考图 | 可用多张参考图。 | 最多 7 个 `reference_image`；超过 3 张只走 KIE 渠道。 |
 | 参考视频、编辑、延长 | 支持。 | 不可用。 |
+| 音频 | 原生音轨，没有静音开关。 | 没有 `generate_audio` 参数。传 `generate_audio: true` 会接受并按未传处理（`google/gemini-omni-1.2-flash` 同样适用）；传 `false` 会被拒绝，因为无法保证静音。 |
 
 迁移时：显式设置一个支持的 `duration`；其他取值会被拒绝，不会就近取整。
 
@@ -187,7 +188,7 @@ BFL 用 `width` 和 `height` 设置输出尺寸；Yir 提供 `resolution` 档位
 | `spacexai/grok-imagine-image-2.0` | `quality` | `low`、`medium`、`auto`（默认）。 | `low` 或 `medium`，默认 `low`；没有 `auto`。编辑时不可用。 |
 | `spacexai/grok-imagine-image-2.0` | `aspect_ratio` | 15 种比例加 `auto`（默认）；编辑时跟随输入图。 | 7 种比例，默认 `1:1`。编辑可传 `auto`，需显式设置才会跟随输入图。 |
 | `spacexai/grok-imagine-image-2.0` | 编辑参考图 | 最多 5 张。 | 最多 3 张。 |
-| `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 文生与图生：`6`、`10`、`15` 或 `30`，默认 `6`。`30` 秒超出 xAI 的 1–15 秒范围，文生走 APIMart 与 KIE，图生只走 APIMart。参考图：6–10 之间任意整数，默认 `8`。 |
+| `spacexai/grok-imagine-video` | `duration` | 1–15 之间任意整数，默认 8。 | 文生与图生：1–15 之间任意整数或 `30`，默认 `6`。`6`、`10`、`15` 秒也可走 APIMart 与 KIE，其他时长只走官方路线，按 xAI 秒价计费。`30` 秒超出 xAI 的 1–15 秒范围，文生走 APIMart 与 KIE，图生只走 APIMart。参考图：6–10 之间任意整数，默认 `8`。 |
 | `spacexai/grok-imagine-video` | 音频 | 默认开启。 | 固定开启（`generate_audio: true`），原生音频无法关闭；传 `generate_audio: false` 会被忽略并返回参数通知。 |
 | `spacexai/grok-imagine-video` | `aspect_ratio` | 含 `4:3`、`3:4`；有输入图时默认跟随其比例。 | 文生：没有 `4:3`、`3:4`，默认 `16:9`。图生：只有 `auto`，跟随输入图；传其他比例会被忽略并返回参数通知。 |
 | `spacexai/grok-imagine-video` | 参考图 | 最多 7 张。 | 2–7 个 `reference_image`，`480p` 或 `720p`，走 KIE 与 Cloudflare 渠道。 |

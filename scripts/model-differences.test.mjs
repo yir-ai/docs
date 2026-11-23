@@ -143,7 +143,7 @@ check('grok-2.0 edits accept auto', vals(g2, 'aspect_ratio', 'image')?.includes(
 check('grok-2.0 edit up to 3 refs', C(g2, 'image')?.max_references === 3, C(g2, 'image')?.max_references)
 const gv = 'spacexai/grok-imagine-video'
 check('grok-video default duration 6', def(gv, 'duration') === 6, def(gv, 'duration'))
-check('grok-video text durations 6/10/15/30', sameSet(vals(gv, 'duration'), [6, 10, 15, 30]), vals(gv, 'duration'))
+check('grok-video text durations 1..15 plus 30', sameSet(vals(gv, 'duration'), [...Array.from({ length: 15 }, (_, i) => i + 1), 30]), vals(gv, 'duration'))
 check('grok-video reference 2-7 images, 6..10 s default 8', C(gv, 'reference')?.min_references === 2 && C(gv, 'reference')?.max_references === 7 && def(gv, 'duration', 'reference') === 8, [C(gv, 'reference'), P(gv, 'duration', 'reference')])
 check('grok-video audio always on', sameSet(vals(gv, 'generate_audio'), [true]) && sameSet(vals(gv, 'generate_audio', 'image'), [true]), [vals(gv, 'generate_audio'), vals(gv, 'generate_audio', 'image')])
 check('grok-video image input aspect auto only', sameSet(vals(gv, 'aspect_ratio', 'image'), ['auto']) && def(gv, 'aspect_ratio', 'image') === 'auto', vals(gv, 'aspect_ratio', 'image'))
