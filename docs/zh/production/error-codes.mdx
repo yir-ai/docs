@@ -39,7 +39,7 @@ HTTP 调用立即返回。生成请求以这种方式被拒绝时，不会创建
 | `YIR_UNAUTHORIZED` | 401 | Key 缺失、错误、已轮换、已吊销、已过期，或来源 IP 不被允许。 | 在 Console 检查 Key 及其设置，不要原样重试。 |
 | `YIR_INSUFFICIENT_BALANCE` | 402 | 可用余额不足以覆盖首选渠道的估价加上其他执行中和排队中 Job 的估价，或余额为负。 | 充值后再提交。 |
 | `YIR_SPEND_LIMIT_EXCEEDED` | 403 | 会超出该 Key 的月度支出上限。 | 提高上限，或等到下一个 UTC 自然月。 |
-| `YIR_ACCOUNT_RESTRICTED` | 403 | 账户暂时不能提交新 Job，例如多次触发内容安全拦截后暂停 24 小时。`retryable` 为 `false`。已提交的 Job、查询和报价不受影响。 | `action: retry_later` 时不要自动重试：`Retry-After` 给出恢复提交前的秒数，请修改被拒的提示词或参考图。`action: contact_support` 时请联系支持。 |
+| `YIR_ACCOUNT_RESTRICTED` | 403 | 账户或 API Key 暂时不能提交部分新 Job。同一把 API Key 的 Grok、Seedream Job 多次被内容安全拦截后，这把 Key 的 Grok、Seedream 新 Job 暂停 24 小时，其他模型和其他 Key 照常。`retryable` 为 `false`。已提交的 Job、查询和报价不受影响。 | `action: retry_later` 时不要自动重试：`Retry-After` 给出恢复提交前的秒数，请修改被拒的提示词或参考图。`action: contact_support` 时请联系支持。 |
 | `YIR_MODEL_NOT_FOUND` | 404 | 模型路径中的模型 ID 不存在。 | 使用 `GET /v1/models` 返回的规范 ID。 |
 | `YIR_JOB_NOT_FOUND` | 404 | 该账户下没有此 Job，或已超过 90 天。 | 检查 Job ID 和 Key 所属账户。 |
 | `YIR_FILE_NOT_FOUND` | 404 | Files 接口或报价：该账户下没有此输入文件。 | 检查文件 ID，或重新上传。 |
