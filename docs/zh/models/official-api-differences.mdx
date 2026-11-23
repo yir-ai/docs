@@ -15,7 +15,7 @@ Yir 实际接受什么，始终以模型合同（`GET /v1/models/{creator}/{mode
 | --- | --- | --- |
 | 请求格式 | 各厂商有自己的端点和请求体。 | 所有模型使用同一请求体：`model`、`input`（提示词和参考素材）、`parameters`。见[图片生成](/zh/docs/guides/image-generation)、[视频生成](/zh/docs/guides/video-generation)、[音乐生成](/zh/docs/guides/music-generation)和 [3D 生成](/zh/docs/guides/3d-generation)。 |
 | 执行方式 | 常为同步，有的支持流式。 | 一律是异步 Job。可轮询、长轮询或使用 Webhook；不提供流式或中间图输出。见 [Job 生命周期](/zh/docs/concepts/task-lifecycle)。 |
-| 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而不同。 |
+| 输出尺寸 | 通常是像素尺寸（`size`、`width`/`height`）或厂商自己的预设。 | `resolution`（档位，如 `1K`、`2K`、`4K` 或 `480p`、`720p`、`1080p`）加 `aspect_ratio`。Yir 把它们换算成各渠道原生的尺寸，因此实际像素可能因渠道而不同。按百万像素命名档位的模型（BFL 的 `1MP`）接受 `1K` 作为该档。没有 `720p`、只有 `768P` 档的模型（MiniMax H3 与 Hailuo、HeyGen Video 1）收到 `720p` 时按 `768P` 生成，画幅不变、按 `768P` 报价，并返回 `resolution_exceeded` 参数通知。 |
 | 输出数量 | 很多 API 允许 `n` 大于 1。 | Suno v6 系列和 `suno/suno-speech` 每次返回两个音频文件（`n: 2`）。`midjourney/midjourney-v8.2` 每次返回四张图（`n: 4`）；传 `n: 1` 也会接受，按同一单次价格交付全部四张，并返回参数通知。Seedream 5.5 图层拆分使用 `max_images`（2–100，默认 30）。其他模型使用 `n: 1`。分别生成时，每个 Job 使用独立幂等键。 |
 | 参考输入 | URL、base64 或 multipart 上传，字段名各不相同。 | [Files API](/zh/docs/guides/input-files) 返回的 `file_id` 或公开 HTTPS `url`，加角色引用，角色如 `reference_image`、`first_frame`、`last_frame`、`reference_video`、`reference_audio`，3D 多视角输入为 `front_view`、`left_view`、`back_view`、`right_view`。Base64、Data URL 和 multipart 请求体会被拒绝。 |
 | 未列出的参数 | 厂商特有选项，如 `seed`、`negative_prompt`、`style`、`output_format`、`background`、`moderation`、`user`。 | 不接受。`parameters` 只接受模型合同中的参数名，其他一律返回 `400 YIR_INVALID_REQUEST`。Yir 不会把未知字段转发给渠道。 |
