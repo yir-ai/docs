@@ -21,7 +21,8 @@ Errors use one stable shape, whether they come back from an HTTP request or appe
 - `retryable` says whether trying again later can succeed.
 - `action` suggests what to do next: `fix_request`, `modify_input`, `add_funds`, `retry_later`, or `contact_support`.
 - `request_id` identifies the HTTP request. Include it when contacting support.
-- `details` appears on field-level `YIR_INVALID_REQUEST` errors. Each entry names the `field` (for example `parameters.resolution`), a stable `reason` (`unsupported`, `required`, `wrong_type`, `not_allowed`, `invalid`, `unknown_field`, `invalid_body` or `retired`) and, where the field takes fixed values, the `allowed` values from the model contract. Use it to correct the request instead of parsing `message`.
+- `details` appears on field-level `YIR_INVALID_REQUEST` errors. Each entry names the `field` (for example `parameters.resolution`), a stable `reason` (`unsupported`, `required`, `wrong_type`, `not_allowed`, `invalid`, `unknown_field`, `invalid_body` or `retired`) and, where the field takes fixed values, the `allowed` values from the model contract; other limits are described in `expected`. Use it to correct the request instead of parsing `message`.
+- When your channel settings exclude every available channel, `422 YIR_NO_EXECUTABLE_ROUTE` may carry a `details` entry whose `field` is `routing`; `allowed` lists the channels that support the request.
 
 On a failed Job, the same `error` object (without `request_id`) is in both `GET /v1/jobs/{id}` and `GET /v1/jobs/{id}/status`.
 
@@ -48,7 +49,7 @@ Returned immediately by an HTTP call. When a generation request is rejected this
 | `YIR_JOB_NOT_CANCELLABLE` | 409 | The Job already succeeded or failed. | Nothing to cancel. Read the Job. |
 | `YIR_FILE_EXPIRED` | 410 | Files API only (`/complete`, `/content`): the input file has expired. `GET /v1/files/{id}` returns `200` with `status: "expired"` instead. | Upload it again. |
 | `YIR_BUDGET_EXCEEDED` | 422 | The request's `max_cost` is below every eligible channel's current estimate. The message names the lowest estimate. Prices can change, so a cap that passed before can fail now. | Quote again. Raise `max_cost` on a new request if you accept the price, or choose a cheaper model or specification. |
-| `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later, relax `routing`, or change parameters. Quote to check `supply`. |
+| `YIR_NO_EXECUTABLE_ROUTE` | 422 | No channel can currently run this request within its constraints. | Retry later when `retryable` is `true`; otherwise relax `routing`, change parameters, or choose another model. Quote to check `supply`. |
 | `YIR_FIDELITY_EXCLUDED` | 422 | Every channel for this specification is below the requested `routing.fidelity`. | Use a lower `fidelity`, or another model or specification. See [fidelity](/docs/concepts/routing#fidelity). |
 | `YIR_RATE_LIMITED` | 429 | One of these:<br />• The API Key exceeded its per-minute request limit. Any Gateway endpoint can return this.<br />• Too many Jobs are in progress for your account.<br />• A generation request could not get a slot to import its reference URLs. | • Per-minute limit: wait the number of seconds in the `Retry-After` header, then retry. See [request rate limits](#request-rate-limits).<br />• In-progress Jobs: wait for them to finish.<br />• URL imports: see [public URLs](/docs/guides/input-files#public-urls). |
 | `YIR_TEMPORARILY_UNAVAILABLE` | 503 | A temporary service problem. | Retry with back-off. For submissions, reuse the same idempotency key. |
