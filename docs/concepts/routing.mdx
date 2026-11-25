@@ -157,7 +157,7 @@ Each delivered file reports what was actually checked, in `result.files[].fideli
 | `original` | Vendor's API output: valid vendor signature, content unchanged. |
 | `app` | Vendor's consumer app output (for example ChatGPT): valid vendor signature, content unchanged. |
 | `equivalent` | No valid vendor signature, but evidence that the output was not upscaled or changed. |
-| `altered` | Upscaled, changed after signing, or below the requested size or duration. |
+| `altered` | Upscaled, changed after signing, below the requested size or duration, or its credentials name a different model. |
 | `unverified` | No evidence either way. |
 
 `reason` is a short machine-readable code explaining the grade. Results delivered before grading existed have no `fidelity`. Fidelity filters on each route's tested grade, so it lowers the chance of an upscaled result but is not a guarantee; check `grade` on files you present as the model's own output.
