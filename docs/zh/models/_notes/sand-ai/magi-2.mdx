@@ -1,0 +1,9 @@
+MAGI-2 输出 1080p、25 fps 视频。出片较慢，按时长约需 13–20 分钟，请用 [Webhook](/zh/docs/production/webhooks) 或轮询获取结果。成片比 `duration` 长约 0.24 秒。
+
+使用 `first_frame` 时，请把 `aspect_ratio` 设成与首帧一致的值。画幅不跟随图片，默认 `16:9`。
+
+参考生视频可以只给音频。参考视频和参考音频每段 2–30 秒，各自合计不超过 30 秒。在提示词中按顺序用 `@image_1`、`@video_1`、`@audio_1` 引用。首尾帧用 `@first_frame`、`@last_frame` 引用。图片须小于 30 MB、不超过 1600 万像素、边长 16–10,000 像素；参考视频须为 MP4 且不超过 200 MB；音频不超过 15 MB。Sand AI 的 `seed` 与 `enhance_prompt` 参数未开放。
+
+按请求的 `duration` 计费，画幅、音频和参考素材不影响单价。
+
+[Sand AI API 文档](https://platform.sand.ai/docs/ark-generations/)

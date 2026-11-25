@@ -1,0 +1,9 @@
+MAGI-2 outputs 1080p video at 25 fps. Generation is slow: allow about 13–20 minutes, depending on duration, and use [webhooks](/docs/production/webhooks) or polling. The delivered file runs about 0.24 seconds longer than `duration`.
+
+With `first_frame`, set `aspect_ratio` to match the frame. It does not follow the image, and the default is `16:9`.
+
+Reference generation accepts audio alone. Each reference video or audio clip runs 2–30 seconds, with at most 30 seconds in total per type. Refer to files in the prompt as `@image_1`, `@video_1` and `@audio_1`, in order. With frames, use `@first_frame` and `@last_frame`. Images must be under 30 MB and 16 megapixels, 16–10,000 px per side. Reference videos must be MP4 files of at most 200 MB, and audio files at most 15 MB. Sand AI's `seed` and `enhance_prompt` parameters are not available.
+
+Billing uses the requested `duration`. Aspect ratio, sound and reference media do not change the rate.
+
+[Sand AI API reference](https://platform.sand.ai/docs/ark-generations/)
