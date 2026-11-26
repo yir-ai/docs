@@ -52,6 +52,16 @@ test('renders modes, per-role counts, ranges and a runnable example per mode', (
   assert.match(renderPage(model, 'zh', null), /\| `duration` \| 时长：秒数。 \|/)
 })
 
+test('hides ignored parameters from the table and the example request', () => {
+  const op = model.operations[0]
+  const followsInput = { ...model, operations: [{ ...op, parameters: [{ ...op.parameters[0], ignored: true }, op.parameters[1]] }] }
+  for (const lang of ['en', 'zh']) {
+    const page = renderPage(followsInput, lang, null)
+    assert.doesNotMatch(page, /duration/)
+    assert.match(page, /\| `resolution` /)
+  }
+})
+
 test('keeps generated model pages in sync with the model contract', async () => {
   const { files, notesUsed } = await buildPages()
   assert.deepEqual(await orphanNotes(notesUsed), [], 'notes must belong to a model page')

@@ -28,10 +28,7 @@ Prompt limit: 5,000 characters; longer prompts are rejected with 400.
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `duration` | Duration: Output video duration in seconds. | `4` to `30` | `5` | No |
 | `resolution` | Resolution: Output resolution. | `480p`, `720p`, `1080p` | `720p` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. | `auto` | `auto` | No |
-| `generate_audio` | Generate audio: Generate native audio with the video. | `false` | `false` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
@@ -56,10 +53,7 @@ Prompt limit: 5,000 characters; longer prompts are rejected with 400.
     ]
   },
   "parameters": {
-    "duration": 5,
     "resolution": "720p",
-    "aspect_ratio": "auto",
-    "generate_audio": false,
     "n": 1
   }
 }

@@ -164,6 +164,9 @@ function operationViews(model) {
       view.modes.push(mode)
       view.constraints[mode] = op.input_constraints[mode] ?? {}
       for (const param of op.parameters) {
+        // Ignored parameters are still accepted for older requests but change nothing
+        // (the output follows the input media), so pages neither list nor send them.
+        if (param.ignored) continue
         const slot = view.params.get(param.name) ?? new Map()
         const key = JSON.stringify({ ...param, locales: undefined })
         const variant = slot.get(key) ?? { param, modes: [] }

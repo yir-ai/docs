@@ -5182,6 +5182,10 @@
             },
             "description": "数值参数额外接受的字符串值，例如 duration \"auto\"。适用条件由 locales 说明，并由网关校验。"
           },
+          "ignored": {
+            "type": "boolean",
+            "description": "为 true 时，网关为兼容旧请求仍接受并校验该参数，但它不影响成片和价格，因为成片跟随输入素材。文档和调试台不展示 ignored 参数，新请求应省略。"
+          },
           "default": {
             "$ref": "#/components/schemas/ModelParameterValue",
             "description": "省略该参数时采用的值。只有必填参数和 quality 没有默认值；省略 quality 表示不约束。"

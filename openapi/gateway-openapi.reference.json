@@ -5182,6 +5182,10 @@
             },
             "description": "Additional string values a numeric parameter accepts, such as duration \"auto\". Conditions are described in locales and enforced by the Gateway."
           },
+          "ignored": {
+            "type": "boolean",
+            "description": "true when the Gateway still accepts and validates the parameter for older requests but it has no effect on the output or price, because the output follows the input media. Documentation and playgrounds hide ignored parameters; new requests should omit them."
+          },
           "default": {
             "$ref": "#/components/schemas/ModelParameterValue",
             "description": "The value an omitted parameter resolves to. Absent only for required parameters and for quality, whose omission means no constraint."

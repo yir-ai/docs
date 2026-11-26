@@ -4,6 +4,6 @@ Genjutsu transfers motion from one source video to the people in 1–10 referenc
 
 To replace an object in the source video, choose [Genjutsu Object Swap](/docs/models/higgsfield/genjutsu/object-swap) or [Genjutsu Light Object Swap](/docs/models/higgsfield/genjutsu-light/object-swap). See [the Genjutsu request examples](/docs/guides/video-generation#genjutsu-motion-transfer-and-object-swap).
 
-The output duration and aspect ratio follow the source video. `duration` is a catalog representative value; it is not sent to the model and does not trim the video. Audio cannot be controlled: `generate_audio: true` is rejected, while `false` does not guarantee a silent result. Check the delivered file for an audio track.
+The output duration and aspect ratio follow the source video, so the request has no duration or aspect ratio to set. Audio cannot be controlled; check the delivered file for an audio track.
 
 Quotes use the longer of the measured audio and video tracks, rounded to the nearest second with a four-second minimum. Reference media have no additional fee. A URL that has not yet been imported has no complete quote; use a newly uploaded, measured file for an estimate. Final charges use the actual task cost.

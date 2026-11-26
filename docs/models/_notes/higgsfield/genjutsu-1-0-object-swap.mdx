@@ -4,4 +4,4 @@ Use `input.type: "reference"` with one 4–30 second MP4 as `reference_video` an
 
 To have the person in the reference photos perform the source video's movements, use [Genjutsu Motion Transfer](/docs/models/higgsfield/genjutsu/motion-transfer). See [the Genjutsu request examples](/docs/guides/video-generation#genjutsu-motion-transfer-and-object-swap).
 
-Yir uses NanoAPI for this model. The output length follows the source clip. The request's `duration` does not trim the clip, and the model has no audio switch. For a numeric quote, upload the source through [Files](/docs/guides/input-files). Estimates round up the longer measured audio or video track to whole seconds. Final billing uses the channel's actual task charge.
+Yir uses NanoAPI for this model. The output length and aspect ratio follow the source clip, and the model has no audio switch. For a numeric quote, upload the source through [Files](/docs/guides/input-files). Estimates round up the longer measured audio or video track to whole seconds. Final billing uses the channel's actual task charge.

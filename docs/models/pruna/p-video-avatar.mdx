@@ -23,7 +23,6 @@ seo:
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
 | `resolution` | Resolution: Output resolution. | `720p` | `720p` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. | `auto` | `auto` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. | `1` | `1` | No |
 
 ## Examples
@@ -45,7 +44,6 @@ seo:
   },
   "parameters": {
     "resolution": "720p",
-    "aspect_ratio": "auto",
     "n": 1
   }
 }
