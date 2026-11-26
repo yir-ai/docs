@@ -32,9 +32,9 @@ Prompt limit: 2,000 characters (`layer_decomposition`); longer prompts are rejec
 
 | Parameter | Description | Values | Default | Required |
 | --- | --- | --- | --- | --- |
-| `resolution` | Resolution: Output resolution. Only in `text`, `image`. | `1K`, `2K` | `1K` | No |
+| `resolution` | Resolution: Output resolution. Only in `text`, `image`. | `1K`, `2K`, `3K` | `1K` | No |
 | `resolution` | Resolution: Output resolution. Only in `layer_decomposition`. | `1K`, `1.5K`, `2K`, `auto` | `auto` | No |
-| `aspect_ratio` | Aspect ratio: Output aspect ratio. Only in `text`, `image`. | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `2:1`, `1:2`, `21:9` | `1:1` | No |
+| `aspect_ratio` | Aspect ratio: Output aspect ratio. At 3K, use 1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3, 21:9. Only in `text`, `image`. | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `2:1`, `1:2`, `21:9` | `1:1` | No |
 | `n` | Outputs per request: Number of outputs from one API request (one Job), not the application batch size. For multiple Jobs, submit separate requests; n=1 does not prevent application-managed batching. Only in `text`, `image`. | `1` | `1` | No |
 | `max_images` | Maximum images: Maximum number of files, including the base image. Only in `layer_decomposition`. | `2` to `100` | `30` | No |
 

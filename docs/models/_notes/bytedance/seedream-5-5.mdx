@@ -1,3 +1,7 @@
+### 3K output through KIE
+
+For text-to-image or image editing, set `parameters.resolution` to `"3K"`. Select KIE with `routing.only: ["kie"]`. Choose one of the eight supported aspect ratios, or omit `parameters.aspect_ratio` to use Yir's 1:1 default. At 16:9, KIE outputs 3840 × 2160. The quote includes each reference image, and the final charge follows KIE's reported task cost.
+
 ### Prompt length by channel
 
 For text-to-image and image editing, pass 3–5000 Unicode characters in `input.prompt`. Yir counts the text after trimming leading and trailing whitespace. APIMart and fal accept 3–5000 characters through Yir. KIE requires 5–5000 characters.

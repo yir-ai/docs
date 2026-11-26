@@ -1,3 +1,7 @@
+### 通过 KIE 输出 3K
+
+文生图或图生图时，将 `parameters.resolution` 设为 `"3K"`，用 `routing.only: ["kie"]` 选择 KIE。可以从八种画幅中选择，省略 `parameters.aspect_ratio` 时采用 Yir 的默认画幅 1:1。16:9 对应 3840 × 2160。报价包含每张参考图的费用，最终按 KIE 返回的任务实扣结算。
+
 ### 各渠道的提示词长度
 
 文生图和图片编辑的 `input.prompt` 须包含 3–5000 个 Unicode 字符，按去除首尾空白后的长度计算。经 Yir 调用 APIMart 和 fal 时接受 3–5000 个字符，KIE 需要 5–5000 个字符。
