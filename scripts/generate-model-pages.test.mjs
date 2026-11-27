@@ -62,6 +62,19 @@ test('hides ignored parameters from the table and the example request', () => {
   }
 })
 
+test('reference-video examples drop the scene prompt', () => {
+  const op = model.operations[0]
+  const reference = (constraint) => ({ ...model, operations: [{ ...op, input_modes: ['reference'], input_constraints: { reference: constraint } }] })
+  const motion = { min_references: 2, max_references: 2, allowed_reference_roles: ['reference_image', 'reference_video'], required_reference_roles: ['reference_image', 'reference_video'] }
+  const upscale = { prompt_optional: true, min_references: 1, max_references: 1, allowed_reference_roles: ['reference_video'], required_reference_roles: ['reference_video'] }
+  const motionPage = renderPage(reference(motion), 'en', null)
+  assert.doesNotMatch(motionPage, /paper boat/)
+  assert.match(motionPage, /"prompt": "The character in the photo performs the movement from the reference video\."/)
+  const upscalePage = renderPage(reference(upscale), 'en', null)
+  assert.doesNotMatch(upscalePage, /"prompt"/)
+  assert.match(upscalePage, /"role": "reference_video"/)
+})
+
 test('keeps generated model pages in sync with the model contract', async () => {
   const { files, notesUsed } = await buildPages()
   assert.deepEqual(await orphanNotes(notesUsed), [], 'notes must belong to a model page')

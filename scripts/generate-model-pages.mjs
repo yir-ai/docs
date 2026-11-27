@@ -131,6 +131,7 @@ const TEXT = {
 const EXAMPLE_ROLE = { image: ['first_frame', 'reference_image'], reference: ['reference_image', 'reference_video'], multiview: ['front_view', 'back_view'] }
 const EXAMPLE_PROMPT = { generate_image: 'A watercolor fox reading a map in a pine forest', generate_video: 'A paper boat drifting down a rainy city street, slow tracking shot', generate_music: 'Warm indie folk, acoustic guitar and soft vocals, a quiet morning walk', generate_sound_effect: 'A heavy wooden door creaking open in an empty stone hall', generate_speech: 'Good morning. The city is still waking up.', generate_3d: 'A weathered wooden armchair with a woven seat' }
 const AVATAR_SCRIPT = 'Welcome to the team. Here is what to expect on your first day.'
+const MOTION_PROMPT = 'The character in the photo performs the movement from the reference video.'
 const AVATAR_PROMPTS = {
   'heygen/avatar-iv': AVATAR_SCRIPT,
   'pruna/p-video-avatar': AVATAR_SCRIPT,
@@ -249,6 +250,12 @@ function exampleRequest(model, view, mode) {
       if (roles.includes(role) && !picked.includes(role)) picked.push(role)
     }
     input.references = picked.map(role => ({ role, file_id: 'file_...' }))
+    // A source or driving video decides the shot, so a scene prompt would mislead:
+    // leave the prompt out when it is optional, otherwise describe the motion transfer.
+    if (picked.includes('reference_video')) {
+      if (constraint.prompt_optional) delete input.prompt
+      else if (picked.includes('reference_image')) input.prompt = MOTION_PROMPT
+    }
     const subjects = constraint.subject_references
     if (subjects && !subjects.mixed && roles.length === 1 && roles[0] === 'reference_image') {
       input.references = Array.from({ length: subjects.min_images_per_subject }, (_, index) =>

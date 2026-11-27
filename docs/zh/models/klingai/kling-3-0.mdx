@@ -39,13 +39,13 @@ seo:
 | 参数 | 说明 | 取值 | 默认值 | 必填 |
 | --- | --- | --- | --- | --- |
 | `duration` | 时长：输出视频的秒数。 仅 `text`、`image` 模式。 | `3`–`15` | `5` | 否 |
-| `duration` | 时长：输出视频的秒数。 仅 `reference` 模式。 | `3`–`30` | `5` | 否 |
+| `duration` | 时长：不使用主体（动作控制）时不起作用，成片时长跟随参考视频；使用主体时为输出秒数，范围见主体参考。 仅 `reference` 模式。 | `3`–`30` | `5` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 仅 `text`、`image` 模式。 | `720p`、`1080p`、`4K` | `720p` | 否 |
 | `resolution` | 分辨率：输出内容的分辨率。 仅 `reference` 模式。 | `720p`、`1080p` | `720p` | 否 |
 | `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `text`、`image` 模式。 | `16:9`、`9:16`、`1:1` | `16:9` | 否 |
-| `aspect_ratio` | 画幅：输出内容的宽高比。 仅 `reference` 模式。 | `auto` | `auto` | 否 |
+| `aspect_ratio` | 画幅：不使用主体（动作控制）时只能为 auto，画幅跟随参考素材；使用主体时取值见主体参考。 仅 `reference` 模式。 | `auto` | `auto` | 否 |
 | `generate_audio` | 生成音频：随视频生成原生音频。 仅 `text`、`image` 模式。 | `false`、`true` | `false` | 否 |
-| `generate_audio` | 生成音频：随视频生成原生音频。 仅 `reference` 模式。 | `false` | `false` | 否 |
+| `generate_audio` | 生成音频：不使用主体（动作控制）时只能为 false；使用主体时取值见主体参考。 仅 `reference` 模式。 | `false` | `false` | 否 |
 | `n` | 单次请求输出数量：单次 API 请求（一个 Job）的输出数量，不是应用的批量张数。应用可提交多个独立请求组成一批；n=1 不表示应用只能生成一张。 | `1` | `1` | 否 |
 
 ## 示例
@@ -101,7 +101,7 @@ seo:
   "model": "klingai/kling-3.0",
   "input": {
     "type": "reference",
-    "prompt": "A paper boat drifting down a rainy city street, slow tracking shot",
+    "prompt": "The character in the photo performs the movement from the reference video.",
     "references": [
       {
         "role": "reference_image",
